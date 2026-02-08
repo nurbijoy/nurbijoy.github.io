@@ -42,8 +42,10 @@ git push origin main
 npm run deploy
 ```
 
+```bash
 # One line code
 git add . && git commit -m "Update portfolio" && git push origin main && npm run deploy
+```
 
 Your site will be live at: **https://nurbijoy.github.io**
 
