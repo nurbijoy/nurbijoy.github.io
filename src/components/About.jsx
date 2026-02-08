@@ -39,7 +39,7 @@ const About = () => {
             >
               <div className="relative overflow-hidden rounded-lg shadow-2xl transition-transform duration-500 hover:scale-105">
                 <img
-                  src="https://nurbijoy.github.io/static/images/contest_image.jpg"
+                  src="/profile.jpg"
                   alt="About Me"
                   className="w-full rounded-lg"
                 />

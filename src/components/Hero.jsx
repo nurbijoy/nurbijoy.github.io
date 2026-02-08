@@ -115,7 +115,7 @@ const Hero = () => {
                 className="relative w-80 h-80 lg:w-96 lg:h-96 xl:w-[450px] xl:h-[450px] rounded-full border-4 border-secondary overflow-hidden shadow-2xl"
               >
                 <img
-                  src="https://nurbijoy.github.io/static/images/contest_image.jpg"
+                  src="/profile.jpg"
                   alt="Profile"
                   className="w-full h-full object-cover"
                 />
