@@ -21,17 +21,33 @@ npm run dev
 ```
 Visit: `http://localhost:5173`
 
-### 3. Build for Production
+### 3. Deploy to GitHub Pages
 ```bash
-npm run build
-```
-
-### 4. Deploy to GitHub Pages
-```bash
+# This will build and deploy automatically
 npm run deploy
 ```
 
+### 4. Update Source Code on GitHub
+```bash
+# Add all changes
+git add .
+
+# Commit changes
+git commit -m "Update portfolio"
+
+# Push to main branch
+git push origin main
+
+# Deploy to GitHub Pages
+npm run deploy
+```
+
+# One line code
+git add . && git commit -m "Update portfolio" && git push origin main && npm run deploy
+
 Your site will be live at: **https://nurbijoy.github.io**
+
+**Note:** `npm run deploy` automatically builds and deploys to `gh-pages` branch. The commands in step 4 update your source code on the `main` branch.
 
 ---
 
