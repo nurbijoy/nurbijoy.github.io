@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { FiPlay, FiRefreshCw, FiShuffle } from 'react-icons/fi'
+import { FiPlay, FiRefreshCw, FiShuffle, FiInfo } from 'react-icons/fi'
 import SimulatorLayout from './SimulatorLayout'
 
 const DijkstraSimulator = () => {
@@ -12,6 +12,7 @@ const DijkstraSimulator = () => {
   const [logs, setLogs] = useState([])
   const [isRunning, setIsRunning] = useState(false)
   const [stats, setStats] = useState({ nodes: 0, edges: 0, pathLength: '-' })
+  const [showLogs, setShowLogs] = useState(false)
 
   useEffect(() => {
     generateGraph()
@@ -24,65 +25,75 @@ const DijkstraSimulator = () => {
     }
   }, [nodes, edges, distances, visited, path])
 
+  useEffect(() => {
+    const handleResize = () => resizeCanvas()
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
   const resizeCanvas = () => {
     const canvas = canvasRef.current
     if (canvas) {
-      canvas.width = canvas.offsetWidth
-      canvas.height = 500
+      const container = canvas.parentElement
+      canvas.width = container.offsetWidth
+      canvas.height = container.offsetHeight
+      draw()
     }
   }
 
   const log = (msg) => {
     const time = new Date().toLocaleTimeString()
-    setLogs(prev => [...prev.slice(-9), `[${time}] ${msg}`])
+    setLogs(prev => [...prev, `[${time}] ${msg}`])
   }
 
   const generateGraph = () => {
-    const nodeCount = 6
+    const nodeCount = 8
     const newNodes = []
-    const canvas = canvasRef.current
+    
+    // Wait for canvas to be ready
+    setTimeout(() => {
+      const canvas = canvasRef.current
+      if (!canvas) return
 
-    if (!canvas) return
+      const centerX = canvas.width / 2
+      const centerY = canvas.height / 2
+      const radius = Math.min(canvas.width, canvas.height) * 0.35
 
-    const centerX = canvas.width / 2 || 400
-    const centerY = 250
-    const radius = Math.min(centerX, centerY) * 0.7
+      for (let i = 0; i < nodeCount; i++) {
+        const angle = (i / nodeCount) * 2 * Math.PI - Math.PI / 2
+        newNodes.push({
+          id: i,
+          x: centerX + radius * Math.cos(angle),
+          y: centerY + radius * Math.sin(angle),
+          label: String.fromCharCode(65 + i)
+        })
+      }
 
-    for (let i = 0; i < nodeCount; i++) {
-      const angle = (i / nodeCount) * 2 * Math.PI
-      newNodes.push({
-        id: i,
-        x: centerX + radius * Math.cos(angle),
-        y: centerY + radius * Math.sin(angle),
-        label: String.fromCharCode(65 + i)
-      })
-    }
-
-    const newEdges = []
-    for (let i = 0; i < nodeCount; i++) {
-      for (let j = i + 1; j < nodeCount; j++) {
-        if (Math.random() > 0.5) {
-          newEdges.push({
-            from: i,
-            to: j,
-            weight: Math.floor(Math.random() * 15) + 1
-          })
+      const newEdges = []
+      for (let i = 0; i < nodeCount; i++) {
+        for (let j = i + 1; j < nodeCount; j++) {
+          if (Math.random() > 0.6) {
+            newEdges.push({
+              from: i,
+              to: j,
+              weight: Math.floor(Math.random() * 15) + 1
+            })
+          }
         }
       }
-    }
 
-    setNodes(newNodes)
-    setEdges(newEdges)
-    setStats({ nodes: newNodes.length, edges: newEdges.length, pathLength: '-' })
-    reset()
-    log(`Generated graph with ${newNodes.length} nodes and ${newEdges.length} edges`)
+      setNodes(newNodes)
+      setEdges(newEdges)
+      setStats({ nodes: newNodes.length, edges: newEdges.length, pathLength: '-' })
+      reset()
+      log(`Generated graph with ${newNodes.length} nodes and ${newEdges.length} edges`)
+    }, 100)
   }
 
   const reset = () => {
     setDistances({})
     setVisited(new Set())
     setPath([])
-    setLogs([])
   }
 
   const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms))
@@ -92,6 +103,7 @@ const DijkstraSimulator = () => {
 
     setIsRunning(true)
     reset()
+    setLogs([])
 
     const start = 0
     const end = nodes.length - 1
@@ -127,7 +139,7 @@ const DijkstraSimulator = () => {
       setVisited(new Set(newVisited))
 
       log(`Visiting ${nodes[current].label} (distance: ${newDistances[current]})`)
-      await sleep(800)
+      await sleep(600)
 
       edges.forEach(edge => {
         let neighbor = null
@@ -169,7 +181,7 @@ const DijkstraSimulator = () => {
 
   const draw = () => {
     const canvas = canvasRef.current
-    if (!canvas) return
+    if (!canvas || nodes.length === 0) return
 
     const ctx = canvas.getContext('2d')
     ctx.clearRect(0, 0, canvas.width, canvas.height)
@@ -186,16 +198,21 @@ const DijkstraSimulator = () => {
       ctx.beginPath()
       ctx.moveTo(from.x, from.y)
       ctx.lineTo(to.x, to.y)
-      ctx.strokeStyle = isInPath ? '#38a169' : '#718096'
-      ctx.lineWidth = isInPath ? 4 : 2
+      ctx.strokeStyle = isInPath ? '#38a169' : '#4a5568'
+      ctx.lineWidth = isInPath ? 5 : 2
       ctx.stroke()
 
       // Draw weight
       const midX = (from.x + to.x) / 2
       const midY = (from.y + to.y) / 2
+      ctx.fillStyle = '#1a202c'
+      ctx.beginPath()
+      ctx.arc(midX, midY, 15, 0, 2 * Math.PI)
+      ctx.fill()
       ctx.fillStyle = '#d69e2e'
       ctx.font = 'bold 14px Arial'
       ctx.textAlign = 'center'
+      ctx.textBaseline = 'middle'
       ctx.fillText(edge.weight, midX, midY)
     })
 
@@ -205,100 +222,137 @@ const DijkstraSimulator = () => {
       const isInPath = path.includes(node.id)
 
       ctx.beginPath()
-      ctx.arc(node.x, node.y, 25, 0, 2 * Math.PI)
-      ctx.fillStyle = isInPath ? '#38a169' : isVisited ? '#3182ce' : '#4a5568'
+      ctx.arc(node.x, node.y, 30, 0, 2 * Math.PI)
+      ctx.fillStyle = isInPath ? '#38a169' : isVisited ? '#3182ce' : '#2d3748'
       ctx.fill()
       ctx.strokeStyle = '#f7fafc'
-      ctx.lineWidth = 2
+      ctx.lineWidth = 3
       ctx.stroke()
 
       ctx.fillStyle = '#f7fafc'
-      ctx.font = 'bold 16px Arial'
+      ctx.font = 'bold 18px Arial'
       ctx.textAlign = 'center'
       ctx.textBaseline = 'middle'
       ctx.fillText(node.label, node.x, node.y)
 
       // Show distance
       if (distances[node.id] !== undefined && distances[node.id] !== Infinity) {
-        ctx.font = '12px Arial'
+        ctx.font = 'bold 12px Arial'
+        ctx.fillStyle = '#1a202c'
+        ctx.beginPath()
+        ctx.arc(node.x, node.y - 45, 18, 0, 2 * Math.PI)
+        ctx.fill()
         ctx.fillStyle = '#d69e2e'
-        ctx.fillText(`d:${distances[node.id]}`, node.x, node.y + 35)
+        ctx.fillText(`${distances[node.id]}`, node.x, node.y - 45)
       }
     })
   }
 
   return (
     <SimulatorLayout title="Dijkstra's Shortest Path Algorithm">
-      {/* Controls */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 p-6 bg-[#2d3748] rounded-lg">
-        <button
-          onClick={runDijkstra}
-          disabled={isRunning}
-          className="flex items-center justify-center gap-2 px-6 py-3 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white rounded-lg transition-all font-medium"
-        >
-          <FiPlay /> Run Dijkstra
-        </button>
+      <div className="h-[calc(100vh-73px)] flex flex-col">
+        {/* Controls Bar */}
+        <div className="bg-[#112240] border-b border-gray-700 px-4 py-3">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={runDijkstra}
+                disabled={isRunning}
+                className="flex items-center gap-2 px-4 py-1.5 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white rounded text-sm transition-all font-medium"
+              >
+                <FiPlay size={14} /> Run Dijkstra
+              </button>
 
-        <button
-          onClick={generateGraph}
-          disabled={isRunning}
-          className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white rounded-lg transition-all font-medium"
-        >
-          <FiShuffle /> New Graph
-        </button>
+              <button
+                onClick={generateGraph}
+                disabled={isRunning}
+                className="flex items-center gap-2 px-4 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white rounded text-sm transition-all"
+              >
+                <FiShuffle size={14} /> New Graph
+              </button>
 
-        <button
-          onClick={reset}
-          disabled={isRunning}
-          className="flex items-center justify-center gap-2 px-6 py-3 bg-orange-600 hover:bg-orange-700 disabled:bg-gray-600 text-white rounded-lg transition-all font-medium"
-        >
-          <FiRefreshCw /> Reset
-        </button>
-      </div>
+              <button
+                onClick={reset}
+                disabled={isRunning}
+                className="flex items-center gap-2 px-3 py-1.5 bg-orange-600 hover:bg-orange-700 disabled:bg-gray-600 text-white rounded text-sm transition-all"
+              >
+                <FiRefreshCw size={14} /> Reset
+              </button>
 
-      {/* Canvas */}
-      <div className="mb-6 bg-[#2d3748] rounded-lg p-4">
-        <canvas
-          ref={canvasRef}
-          className="w-full rounded-lg border border-dashed border-gray-600"
-          style={{ height: '500px' }}
-        />
-      </div>
-
-      {/* Info Panel */}
-      <div className="grid md:grid-cols-2 gap-6">
-        {/* Stats */}
-        <div className="bg-[#2d3748] rounded-lg p-6">
-          <h3 className="text-xl font-bold mb-4">Statistics</h3>
-          <div className="grid grid-cols-3 gap-4">
-            <div className="text-center">
-              <div className="text-3xl font-bold text-blue-400">{stats.nodes}</div>
-              <div className="text-xs text-gray-400 uppercase tracking-wider">Nodes</div>
+              <button
+                onClick={() => setShowLogs(!showLogs)}
+                className="flex items-center gap-2 px-3 py-1.5 bg-[#2d3748] hover:bg-[#4a5568] text-white rounded text-sm transition-all"
+              >
+                <FiInfo size={14} /> {showLogs ? 'Hide' : 'Show'} Logs
+              </button>
             </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-green-400">{stats.edges}</div>
-              <div className="text-xs text-gray-400 uppercase tracking-wider">Edges</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-yellow-400">{stats.pathLength}</div>
-              <div className="text-xs text-gray-400 uppercase tracking-wider">Path Length</div>
+
+            {/* Stats */}
+            <div className="flex items-center gap-4 text-sm">
+              <div className="flex items-center gap-2">
+                <span className="text-gray-400">Nodes:</span>
+                <span className="font-bold text-blue-400">{stats.nodes}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-gray-400">Edges:</span>
+                <span className="font-bold text-green-400">{stats.edges}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-gray-400">Path Length:</span>
+                <span className="font-bold text-yellow-400">{stats.pathLength}</span>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Operation Log */}
-        <div className="bg-[#2d3748] rounded-lg p-6">
-          <h3 className="text-xl font-bold mb-4">Operation Log</h3>
-          <div className="h-32 overflow-y-auto font-mono text-sm space-y-1 text-gray-300">
-            {logs.length === 0 ? (
-              <div className="text-gray-500 italic">No operations yet...</div>
-            ) : (
-              logs.map((log, index) => (
-                <div key={index} className="text-xs">{log}</div>
-              ))
-            )}
-          </div>
+        {/* Canvas */}
+        <div className="flex-1 bg-[#0a192f] relative">
+          <canvas
+            ref={canvasRef}
+            className="w-full h-full"
+          />
+          
+          {nodes.length === 0 && (
+            <div className="absolute inset-0 flex items-center justify-center text-gray-500">
+              <div className="text-center">
+                <div className="text-4xl mb-2">📊</div>
+                <p>Generating graph...</p>
+              </div>
+            </div>
+          )}
         </div>
+
+        {/* Logs Modal */}
+        {showLogs && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowLogs(false)}>
+            <div className="bg-[#112240] rounded-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-auto" onClick={e => e.stopPropagation()}>
+              <div className="flex justify-between items-start mb-4">
+                <h3 className="text-xl font-bold">Operation Log</h3>
+                <button onClick={() => setShowLogs(false)} className="text-gray-400 hover:text-white">✕</button>
+              </div>
+              
+              <div className="font-mono text-sm space-y-1 text-gray-300">
+                {logs.length === 0 ? (
+                  <div className="text-gray-500 italic">No operations yet...</div>
+                ) : (
+                  logs.map((log, index) => (
+                    <div key={index} className="text-xs py-1 border-b border-gray-700">{log}</div>
+                  ))
+                )}
+              </div>
+
+              <div className="mt-6 pt-4 border-t border-gray-700">
+                <h4 className="font-semibold mb-2">About Dijkstra's Algorithm</h4>
+                <p className="text-sm text-gray-300 mb-2">
+                  Finds the shortest path between nodes in a weighted graph using a greedy approach.
+                </p>
+                <p className="text-sm text-gray-300">
+                  <strong>Time Complexity:</strong> O((V + E) log V) | <strong>Space:</strong> O(V)
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </SimulatorLayout>
   )

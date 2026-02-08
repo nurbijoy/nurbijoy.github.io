@@ -9,10 +9,10 @@ const CELL_TYPES = {
   END: 3,
   VISITED: 4,
   PATH: 5,
-  FRONTIER: 6
+  OPEN: 6
 }
 
-const BFSSimulator = () => {
+const AStarSimulator = () => {
   const containerRef = useRef(null)
   const [dimensions, setDimensions] = useState({ rows: 20, cols: 40, cellSize: 20 })
   const [grid, setGrid] = useState([])
@@ -23,6 +23,7 @@ const BFSSimulator = () => {
   const [stats, setStats] = useState({ visited: 0, pathLength: 0, time: 0 })
   const [isMouseDown, setIsMouseDown] = useState(false)
   const [showInfo, setShowInfo] = useState(false)
+  const [heuristic, setHeuristic] = useState('manhattan')
 
   useEffect(() => {
     calculateDimensions()
@@ -135,7 +136,23 @@ const BFSSimulator = () => {
 
   const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms))
 
-  const startBFS = async () => {
+  const manhattanDistance = (row1, col1, row2, col2) => {
+    return Math.abs(row1 - row2) + Math.abs(col1 - col2)
+  }
+
+  const euclideanDistance = (row1, col1, row2, col2) => {
+    return Math.sqrt(Math.pow(row1 - row2, 2) + Math.pow(col1 - col2, 2))
+  }
+
+  const getHeuristic = (row, col) => {
+    if (heuristic === 'manhattan') {
+      return manhattanDistance(row, col, endPos.row, endPos.col)
+    } else {
+      return euclideanDistance(row, col, endPos.row, endPos.col)
+    }
+  }
+
+  const startAStar = async () => {
     if (isRunning) return
     resetSearch()
     setIsRunning(true)
@@ -143,11 +160,12 @@ const BFSSimulator = () => {
     const startTime = performance.now()
     let visitedCount = 0
 
-    const queue = [{ ...startPos, dist: 0 }]
-    const visited = Array(dimensions.rows).fill(null).map(() => Array(dimensions.cols).fill(false))
+    const openSet = [{ ...startPos, g: 0, h: getHeuristic(startPos.row, startPos.col), f: getHeuristic(startPos.row, startPos.col) }]
+    const closedSet = new Set()
+    const gScore = Array(dimensions.rows).fill(null).map(() => Array(dimensions.cols).fill(Infinity))
     const parent = Array(dimensions.rows).fill(null).map(() => Array(dimensions.cols).fill(null))
 
-    visited[startPos.row][startPos.col] = true
+    gScore[startPos.row][startPos.col] = 0
 
     const directions = [
       { row: -1, col: 0 },
@@ -159,49 +177,61 @@ const BFSSimulator = () => {
     let found = false
     let endNode = null
 
-    while (queue.length > 0 && !found) {
-      const current = queue.shift()
-      const { row, col, dist } = current
+    while (openSet.length > 0 && !found) {
+      // Find node with lowest f score
+      openSet.sort((a, b) => a.f - b.f)
+      const current = openSet.shift()
 
-      if (row === endPos.row && col === endPos.col) {
+      if (current.row === endPos.row && current.col === endPos.col) {
         found = true
         endNode = current
         break
       }
 
-      if (!(row === startPos.row && col === startPos.col)) {
+      const key = `${current.row},${current.col}`
+      if (closedSet.has(key)) continue
+      closedSet.add(key)
+
+      if (!(current.row === startPos.row && current.col === startPos.col)) {
         visitedCount++
         setGrid(prev => {
           const newGrid = [...prev.map(r => [...r])]
-          if (newGrid[row][col] !== CELL_TYPES.END) {
-            newGrid[row][col] = CELL_TYPES.VISITED
+          if (newGrid[current.row][current.col] !== CELL_TYPES.END) {
+            newGrid[current.row][current.col] = CELL_TYPES.VISITED
           }
           return newGrid
         })
       }
 
       for (const dir of directions) {
-        const newRow = row + dir.row
-        const newCol = col + dir.col
+        const newRow = current.row + dir.row
+        const newCol = current.col + dir.col
 
         if (
           newRow >= 0 && newRow < dimensions.rows &&
           newCol >= 0 && newCol < dimensions.cols &&
           grid[newRow][newCol] !== CELL_TYPES.WALL &&
-          !visited[newRow][newCol]
+          !closedSet.has(`${newRow},${newCol}`)
         ) {
-          visited[newRow][newCol] = true
-          parent[newRow][newCol] = current
-          queue.push({ row: newRow, col: newCol, dist: dist + 1 })
+          const tentativeG = gScore[current.row][current.col] + 1
 
-          if (!(newRow === endPos.row && newCol === endPos.col)) {
-            setGrid(prev => {
-              const newGrid = [...prev.map(r => [...r])]
-              if (newGrid[newRow][newCol] === CELL_TYPES.EMPTY) {
-                newGrid[newRow][newCol] = CELL_TYPES.FRONTIER
-              }
-              return newGrid
-            })
+          if (tentativeG < gScore[newRow][newCol]) {
+            parent[newRow][newCol] = current
+            gScore[newRow][newCol] = tentativeG
+            const h = getHeuristic(newRow, newCol)
+            const f = tentativeG + h
+
+            openSet.push({ row: newRow, col: newCol, g: tentativeG, h, f })
+
+            if (!(newRow === endPos.row && newCol === endPos.col)) {
+              setGrid(prev => {
+                const newGrid = [...prev.map(r => [...r])]
+                if (newGrid[newRow][newCol] === CELL_TYPES.EMPTY) {
+                  newGrid[newRow][newCol] = CELL_TYPES.OPEN
+                }
+                return newGrid
+              })
+            }
           }
         }
       }
@@ -234,7 +264,7 @@ const BFSSimulator = () => {
 
       setStats({
         visited: visitedCount,
-        pathLength: endNode.dist,
+        pathLength: path.length,
         time: Math.round(endTime - startTime)
       })
     } else {
@@ -263,15 +293,15 @@ const BFSSimulator = () => {
         return `${baseClass} bg-blue-600 animate-fadeIn`
       case CELL_TYPES.PATH:
         return `${baseClass} bg-yellow-500 animate-pulse`
-      case CELL_TYPES.FRONTIER:
-        return `${baseClass} bg-purple-600 animate-pulse`
+      case CELL_TYPES.OPEN:
+        return `${baseClass} bg-cyan-600 animate-pulse`
       default:
         return `${baseClass} bg-[#2d3748]`
     }
   }
 
   return (
-    <SimulatorLayout title="Breadth-First Search (BFS)">
+    <SimulatorLayout title="A* Search Algorithm">
       <div className="h-[calc(100vh-73px)] flex flex-col">
         {/* Controls Bar */}
         <div className="bg-[#112240] border-b border-gray-700 px-4 py-3">
@@ -304,14 +334,24 @@ const BFSSimulator = () => {
                 <FiSquare size={14} /> Wall
               </button>
 
+              <select
+                value={heuristic}
+                onChange={(e) => setHeuristic(e.target.value)}
+                disabled={isRunning}
+                className="px-3 py-1.5 bg-[#2d3748] text-white rounded text-sm border border-gray-600"
+              >
+                <option value="manhattan">Manhattan</option>
+                <option value="euclidean">Euclidean</option>
+              </select>
+
               <div className="w-px h-6 bg-gray-700"></div>
 
               <button
-                onClick={startBFS}
+                onClick={startAStar}
                 disabled={isRunning}
-                className="flex items-center gap-2 px-4 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white rounded text-sm transition-all font-medium"
+                className="flex items-center gap-2 px-4 py-1.5 bg-cyan-600 hover:bg-cyan-700 disabled:bg-gray-600 text-white rounded text-sm transition-all font-medium"
               >
-                <FiPlay size={14} /> Run BFS
+                <FiPlay size={14} /> Run A*
               </button>
 
               <button
@@ -391,14 +431,21 @@ const BFSSimulator = () => {
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowInfo(false)}>
             <div className="bg-[#112240] rounded-lg p-6 max-w-2xl w-full" onClick={e => e.stopPropagation()}>
               <div className="flex justify-between items-start mb-4">
-                <h3 className="text-xl font-bold">About BFS</h3>
+                <h3 className="text-xl font-bold">About A* Search</h3>
                 <button onClick={() => setShowInfo(false)} className="text-gray-400 hover:text-white">✕</button>
               </div>
               
               <div className="space-y-4 text-sm">
                 <p className="text-gray-300">
-                  Breadth-First Search explores nodes level by level, guaranteeing the shortest path in unweighted graphs.
+                  A* is an informed search algorithm that uses heuristics to find the optimal path.
+                  It combines the actual cost (g) and estimated cost (h) to prioritize nodes: f = g + h.
                 </p>
+                
+                <div>
+                  <h4 className="font-semibold mb-2">Heuristics:</h4>
+                  <p className="text-gray-300 mb-1"><strong>Manhattan:</strong> |x1-x2| + |y1-y2| (grid movement)</p>
+                  <p className="text-gray-300"><strong>Euclidean:</strong> √((x1-x2)² + (y1-y2)²) (straight line)</p>
+                </div>
                 
                 <div>
                   <h4 className="font-semibold mb-2">Legend:</h4>
@@ -416,23 +463,23 @@ const BFSSimulator = () => {
                       <span>Wall</span>
                     </div>
                     <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 bg-cyan-600 rounded"></div>
+                      <span>Open Set</span>
+                    </div>
+                    <div className="flex items-center gap-2">
                       <div className="w-4 h-4 bg-blue-600 rounded"></div>
-                      <span>Visited</span>
+                      <span>Closed Set</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="w-4 h-4 bg-yellow-500 rounded"></div>
-                      <span>Shortest Path</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 bg-purple-600 rounded"></div>
-                      <span>Frontier</span>
+                      <span>Optimal Path</span>
                     </div>
                   </div>
                 </div>
 
                 <div>
                   <h4 className="font-semibold mb-2">Complexity:</h4>
-                  <p className="text-gray-300">Time: O(V + E) | Space: O(V)</p>
+                  <p className="text-gray-300">Time: O(b^d) | Space: O(b^d)</p>
                 </div>
               </div>
             </div>
@@ -443,4 +490,4 @@ const BFSSimulator = () => {
   )
 }
 
-export default BFSSimulator
+export default AStarSimulator

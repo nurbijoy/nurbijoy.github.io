@@ -9,10 +9,10 @@ const CELL_TYPES = {
   END: 3,
   VISITED: 4,
   PATH: 5,
-  FRONTIER: 6
+  CURRENT: 6
 }
 
-const BFSSimulator = () => {
+const DFSSimulator = () => {
   const containerRef = useRef(null)
   const [dimensions, setDimensions] = useState({ rows: 20, cols: 40, cellSize: 20 })
   const [grid, setGrid] = useState([])
@@ -135,7 +135,7 @@ const BFSSimulator = () => {
 
   const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms))
 
-  const startBFS = async () => {
+  const startDFS = async () => {
     if (isRunning) return
     resetSearch()
     setIsRunning(true)
@@ -143,11 +143,8 @@ const BFSSimulator = () => {
     const startTime = performance.now()
     let visitedCount = 0
 
-    const queue = [{ ...startPos, dist: 0 }]
     const visited = Array(dimensions.rows).fill(null).map(() => Array(dimensions.cols).fill(false))
     const parent = Array(dimensions.rows).fill(null).map(() => Array(dimensions.cols).fill(null))
-
-    visited[startPos.row][startPos.col] = true
 
     const directions = [
       { row: -1, col: 0 },
@@ -159,14 +156,18 @@ const BFSSimulator = () => {
     let found = false
     let endNode = null
 
-    while (queue.length > 0 && !found) {
-      const current = queue.shift()
-      const { row, col, dist } = current
+    const dfs = async (row, col, dist) => {
+      if (found) return
+
+      if (row < 0 || row >= dimensions.rows || col < 0 || col >= dimensions.cols) return
+      if (grid[row][col] === CELL_TYPES.WALL || visited[row][col]) return
+
+      visited[row][col] = true
 
       if (row === endPos.row && col === endPos.col) {
         found = true
-        endNode = current
-        break
+        endNode = { row, col, dist }
+        return
       }
 
       if (!(row === startPos.row && col === startPos.col)) {
@@ -174,6 +175,15 @@ const BFSSimulator = () => {
         setGrid(prev => {
           const newGrid = [...prev.map(r => [...r])]
           if (newGrid[row][col] !== CELL_TYPES.END) {
+            newGrid[row][col] = CELL_TYPES.CURRENT
+          }
+          return newGrid
+        })
+        await sleep(10)
+
+        setGrid(prev => {
+          const newGrid = [...prev.map(r => [...r])]
+          if (newGrid[row][col] === CELL_TYPES.CURRENT) {
             newGrid[row][col] = CELL_TYPES.VISITED
           }
           return newGrid
@@ -181,33 +191,23 @@ const BFSSimulator = () => {
       }
 
       for (const dir of directions) {
+        if (found) break
         const newRow = row + dir.row
         const newCol = col + dir.col
 
         if (
           newRow >= 0 && newRow < dimensions.rows &&
           newCol >= 0 && newCol < dimensions.cols &&
-          grid[newRow][newCol] !== CELL_TYPES.WALL &&
-          !visited[newRow][newCol]
+          !visited[newRow][newCol] &&
+          grid[newRow][newCol] !== CELL_TYPES.WALL
         ) {
-          visited[newRow][newCol] = true
-          parent[newRow][newCol] = current
-          queue.push({ row: newRow, col: newCol, dist: dist + 1 })
-
-          if (!(newRow === endPos.row && newCol === endPos.col)) {
-            setGrid(prev => {
-              const newGrid = [...prev.map(r => [...r])]
-              if (newGrid[newRow][newCol] === CELL_TYPES.EMPTY) {
-                newGrid[newRow][newCol] = CELL_TYPES.FRONTIER
-              }
-              return newGrid
-            })
-          }
+          parent[newRow][newCol] = { row, col }
+          await dfs(newRow, newCol, dist + 1)
         }
       }
-
-      await sleep(10)
     }
+
+    await dfs(startPos.row, startPos.col, 0)
 
     const endTime = performance.now()
 
@@ -234,7 +234,7 @@ const BFSSimulator = () => {
 
       setStats({
         visited: visitedCount,
-        pathLength: endNode.dist,
+        pathLength: path.length,
         time: Math.round(endTime - startTime)
       })
     } else {
@@ -260,18 +260,18 @@ const BFSSimulator = () => {
       case CELL_TYPES.END:
         return `${baseClass} bg-red-600 text-white font-bold`
       case CELL_TYPES.VISITED:
-        return `${baseClass} bg-blue-600 animate-fadeIn`
+        return `${baseClass} bg-purple-600 animate-fadeIn`
       case CELL_TYPES.PATH:
         return `${baseClass} bg-yellow-500 animate-pulse`
-      case CELL_TYPES.FRONTIER:
-        return `${baseClass} bg-purple-600 animate-pulse`
+      case CELL_TYPES.CURRENT:
+        return `${baseClass} bg-orange-500 animate-pulse`
       default:
         return `${baseClass} bg-[#2d3748]`
     }
   }
 
   return (
-    <SimulatorLayout title="Breadth-First Search (BFS)">
+    <SimulatorLayout title="Depth-First Search (DFS)">
       <div className="h-[calc(100vh-73px)] flex flex-col">
         {/* Controls Bar */}
         <div className="bg-[#112240] border-b border-gray-700 px-4 py-3">
@@ -307,11 +307,11 @@ const BFSSimulator = () => {
               <div className="w-px h-6 bg-gray-700"></div>
 
               <button
-                onClick={startBFS}
+                onClick={startDFS}
                 disabled={isRunning}
-                className="flex items-center gap-2 px-4 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white rounded text-sm transition-all font-medium"
+                className="flex items-center gap-2 px-4 py-1.5 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 text-white rounded text-sm transition-all font-medium"
               >
-                <FiPlay size={14} /> Run BFS
+                <FiPlay size={14} /> Run DFS
               </button>
 
               <button
@@ -335,7 +335,7 @@ const BFSSimulator = () => {
             <div className="flex items-center gap-4 text-sm">
               <div className="flex items-center gap-2">
                 <span className="text-gray-400">Visited:</span>
-                <span className="font-bold text-blue-400">{stats.visited}</span>
+                <span className="font-bold text-purple-400">{stats.visited}</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-gray-400">Path:</span>
@@ -391,13 +391,14 @@ const BFSSimulator = () => {
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowInfo(false)}>
             <div className="bg-[#112240] rounded-lg p-6 max-w-2xl w-full" onClick={e => e.stopPropagation()}>
               <div className="flex justify-between items-start mb-4">
-                <h3 className="text-xl font-bold">About BFS</h3>
+                <h3 className="text-xl font-bold">About DFS</h3>
                 <button onClick={() => setShowInfo(false)} className="text-gray-400 hover:text-white">✕</button>
               </div>
               
               <div className="space-y-4 text-sm">
                 <p className="text-gray-300">
-                  Breadth-First Search explores nodes level by level, guaranteeing the shortest path in unweighted graphs.
+                  Depth-First Search explores as far as possible along each branch before backtracking.
+                  It uses a stack (or recursion) and doesn't guarantee the shortest path.
                 </p>
                 
                 <div>
@@ -416,16 +417,16 @@ const BFSSimulator = () => {
                       <span>Wall</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 bg-blue-600 rounded"></div>
+                      <div className="w-4 h-4 bg-purple-600 rounded"></div>
                       <span>Visited</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 bg-yellow-500 rounded"></div>
-                      <span>Shortest Path</span>
+                      <div className="w-4 h-4 bg-orange-500 rounded"></div>
+                      <span>Current</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 bg-purple-600 rounded"></div>
-                      <span>Frontier</span>
+                      <div className="w-4 h-4 bg-yellow-500 rounded"></div>
+                      <span>Path</span>
                     </div>
                   </div>
                 </div>
@@ -443,4 +444,4 @@ const BFSSimulator = () => {
   )
 }
 
-export default BFSSimulator
+export default DFSSimulator

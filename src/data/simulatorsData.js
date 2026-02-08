@@ -11,7 +11,7 @@ export const simulatorsData = {
         description: 'Visualize the A* pathfinding algorithm with different heuristics and obstacle configurations.',
         tags: ['Pathfinding', 'Heuristics', 'Optimal Path'],
         image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=200&fit=crop',
-        implemented: false
+        implemented: true
       },
       {
         id: 'bfs',
@@ -27,7 +27,7 @@ export const simulatorsData = {
         description: 'Understand recursive and iterative DFS implementations with visualization.',
         tags: ['Backtracking', 'Stack', 'Maze Solving'],
         image: 'https://images.unsplash.com/photo-1639762681057-408e52192e55?w=400&h=200&fit=crop',
-        implemented: false
+        implemented: true
       }
     ]
   },
@@ -49,7 +49,7 @@ export const simulatorsData = {
         description: 'Self-balancing BST with automatic rotations to maintain balance.',
         tags: ['Self-Balancing', 'Rotations', 'O(log n)'],
         image: 'https://images.unsplash.com/photo-1509228468518-180dd4864904?w=400&h=200&fit=crop',
-        implemented: false
+        implemented: true
       },
       {
         id: 'minheap',
@@ -57,7 +57,7 @@ export const simulatorsData = {
         description: 'Understand heap operations including insert, extract-min, and heapify.',
         tags: ['Priority Queue', 'Heap Sort', 'Efficiency'],
         image: 'https://images.unsplash.com/photo-1563986768609-322da13575f3?w=400&h=200&fit=crop',
-        implemented: false
+        implemented: true
       },
       {
         id: 'maxheap',
@@ -65,7 +65,7 @@ export const simulatorsData = {
         description: 'Visualize max heap operations with extract-max and heapify-up/down.',
         tags: ['Priority Queue', 'Max Element', 'O(log n)'],
         image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=200&fit=crop',
-        implemented: false
+        implemented: true
       },
       {
         id: 'linkedlist',
@@ -73,7 +73,7 @@ export const simulatorsData = {
         description: 'Visualize node insertion, deletion, and traversal in linked lists.',
         tags: ['Pointers', 'Dynamic', 'Operations'],
         image: 'https://images.unsplash.com/photo-1610563166150-b34df4f3bcd6?w=400&h=200&fit=crop',
-        implemented: false
+        implemented: true
       },
       {
         id: 'stack',
@@ -81,7 +81,7 @@ export const simulatorsData = {
         description: 'Understand LIFO (Last In First Out) operations with push, pop, and peek.',
         tags: ['LIFO', 'Push/Pop', 'Recursion'],
         image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=200&fit=crop',
-        implemented: false
+        implemented: true
       },
       {
         id: 'queue',
@@ -89,7 +89,7 @@ export const simulatorsData = {
         description: 'Visualize FIFO (First In First Out) operations with enqueue and dequeue.',
         tags: ['FIFO', 'Enqueue/Dequeue', 'BFS'],
         image: 'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=400&h=200&fit=crop',
-        implemented: false
+        implemented: true
       },
       {
         id: 'hashtable',
@@ -97,7 +97,7 @@ export const simulatorsData = {
         description: 'Understand hashing, collision resolution, and chaining techniques.',
         tags: ['Hashing', 'Chaining', 'O(1)'],
         image: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=400&h=200&fit=crop',
-        implemented: false
+        implemented: true
       },
       {
         id: 'trie',
@@ -105,7 +105,7 @@ export const simulatorsData = {
         description: 'Visualize prefix-based search and autocomplete functionality.',
         tags: ['Prefix Search', 'Autocomplete', 'Dictionary'],
         image: 'https://images.unsplash.com/photo-1457369804613-52c61a468e7d?w=400&h=200&fit=crop',
-        implemented: false
+        implemented: true
       }
     ]
   },
@@ -127,7 +127,7 @@ export const simulatorsData = {
         description: 'Find minimum spanning tree using Kruskal\'s algorithm with Union-Find.',
         tags: ['MST', 'Union-Find', 'Greedy'],
         image: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=400&h=200&fit=crop',
-        implemented: false
+        implemented: true
       },
       {
         id: 'graphcoloring',
@@ -135,7 +135,7 @@ export const simulatorsData = {
         description: 'Visualize greedy graph coloring algorithm and chromatic number.',
         tags: ['Coloring', 'Greedy', 'NP-Complete'],
         image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=200&fit=crop',
-        implemented: false
+        implemented: true
       },
       {
         id: 'topological',
@@ -143,7 +143,7 @@ export const simulatorsData = {
         description: 'Visualize topological ordering of directed acyclic graphs (DAG).',
         tags: ['DAG', 'DFS', 'Ordering'],
         image: 'https://images.unsplash.com/photo-1516116216624-53e697fedbea?w=400&h=200&fit=crop',
-        implemented: false
+        implemented: true
       }
     ]
   },
@@ -165,7 +165,7 @@ export const simulatorsData = {
         description: 'Understand the merging process of sorted subarrays in this stable sort.',
         tags: ['Divide & Conquer', 'Stable', 'O(n log n)'],
         image: 'https://miro.medium.com/v2/resize:fit:1400/1*g-socXIlMx2ZqjMYESf_0Q.png',
-        implemented: false
+        implemented: true
       },
       {
         id: 'heapsort',
@@ -173,7 +173,7 @@ export const simulatorsData = {
         description: 'Visualize how a heap data structure can be used for efficient sorting.',
         tags: ['In-place', 'Heap', 'O(n log n)'],
         image: 'https://images.unsplash.com/photo-1563986768609-322da13575f3?w=400&h=200&fit=crop',
-        implemented: false
+        implemented: true
       }
     ]
   },
@@ -187,7 +187,7 @@ export const simulatorsData = {
         description: 'Visualize Graham\'s scan or Jarvis march algorithms for convex hull.',
         tags: ['Geometry', 'Graham\'s Scan', 'Jarvis March'],
         image: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=400&h=200&fit=crop',
-        implemented: false
+        implemented: true
       }
     ]
   }

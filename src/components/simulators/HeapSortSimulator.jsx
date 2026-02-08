@@ -2,16 +2,18 @@ import { useState, useEffect } from 'react'
 import { FiPlay, FiRefreshCw, FiShuffle, FiInfo } from 'react-icons/fi'
 import SimulatorLayout from './SimulatorLayout'
 
-const QuickSortSimulator = () => {
+const HeapSortSimulator = () => {
   const [array, setArray] = useState([])
+  const [heapArray, setHeapArray] = useState([])
   const [comparing, setComparing] = useState([])
-  const [pivot, setPivot] = useState(null)
   const [sorted, setSorted] = useState([])
+  const [heapifying, setHeapifying] = useState([])
   const [isRunning, setIsRunning] = useState(false)
   const [stats, setStats] = useState({ comparisons: 0, swaps: 0, time: 0 })
-  const [arraySize, setArraySize] = useState(50)
-  const [speed, setSpeed] = useState(30)
+  const [arraySize, setArraySize] = useState(40)
+  const [speed, setSpeed] = useState(50)
   const [showInfo, setShowInfo] = useState(false)
+  const [phase, setPhase] = useState('') // 'building' or 'sorting'
 
   useEffect(() => {
     generateArray()
@@ -22,57 +24,62 @@ const QuickSortSimulator = () => {
       Math.floor(Math.random() * 100) + 10
     )
     setArray(newArray)
+    setHeapArray([])
     setComparing([])
-    setPivot(null)
     setSorted([])
+    setHeapifying([])
     setStats({ comparisons: 0, swaps: 0, time: 0 })
+    setPhase('')
   }
 
   const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms))
 
-  const quickSort = async (arr, low, high, comparisons, swaps) => {
-    if (low < high) {
-      const { pivotIndex, newComparisons, newSwaps } = await partition(arr, low, high, comparisons, swaps)
-      await quickSort(arr, low, pivotIndex - 1, newComparisons, newSwaps)
-      await quickSort(arr, pivotIndex + 1, high, newComparisons, newSwaps)
-    } else if (low === high) {
-      setSorted(prev => [...prev, low])
-    }
-    return { comparisons, swaps }
-  }
+  const heapify = async (arr, n, i, comparisons, swaps) => {
+    let largest = i
+    const left = 2 * i + 1
+    const right = 2 * i + 2
 
-  const partition = async (arr, low, high, comparisons, swaps) => {
-    const pivotValue = arr[high]
-    setPivot(high)
-    let i = low - 1
+    setHeapifying([i, left, right].filter(idx => idx < n))
+    await sleep(speed)
 
-    for (let j = low; j < high; j++) {
-      setComparing([j, high])
+    if (left < n) {
+      setComparing([left, largest])
       comparisons++
       setStats(prev => ({ ...prev, comparisons }))
       await sleep(speed)
 
-      if (arr[j] < pivotValue) {
-        i++
-        if (i !== j) {
-          [arr[i], arr[j]] = [arr[j], arr[i]]
-          swaps++
-          setStats(prev => ({ ...prev, swaps }))
-          setArray([...arr])
-          await sleep(speed)
-        }
+      if (arr[left] > arr[largest]) {
+        largest = left
       }
     }
 
-    [arr[i + 1], arr[high]] = [arr[high], arr[i + 1]]
-    swaps++
-    setStats(prev => ({ ...prev, swaps }))
-    setArray([...arr])
-    setSorted(prev => [...prev, i + 1])
-    setPivot(null)
-    await sleep(speed)
+    if (right < n) {
+      setComparing([right, largest])
+      comparisons++
+      setStats(prev => ({ ...prev, comparisons }))
+      await sleep(speed)
 
-    return { pivotIndex: i + 1, newComparisons: comparisons, newSwaps: swaps }
+      if (arr[right] > arr[largest]) {
+        largest = right
+      }
+    }
+
+    if (largest !== i) {
+      ;[arr[i], arr[largest]] = [arr[largest], arr[i]]
+      swaps++
+      setStats(prev => ({ ...prev, swaps }))
+      setArray([...arr])
+      await sleep(speed)
+
+      const result = await heapify(arr, n, largest, comparisons, swaps)
+      comparisons = result.comparisons
+      swaps = result.swaps
+    }
+
+    setHeapifying([])
+    setComparing([])
+
+    return { comparisons, swaps }
   }
 
   const startSort = async () => {
@@ -81,15 +88,43 @@ const QuickSortSimulator = () => {
     setIsRunning(true)
     setSorted([])
     setComparing([])
-    setPivot(null)
+    setHeapifying([])
 
     const startTime = performance.now()
     const arrCopy = [...array]
-    await quickSort(arrCopy, 0, arrCopy.length - 1, 0, 0)
+    let comparisons = 0
+    let swaps = 0
+
+    // Build max heap
+    setPhase('building')
+    const n = arrCopy.length
+    for (let i = Math.floor(n / 2) - 1; i >= 0; i--) {
+      const result = await heapify(arrCopy, n, i, comparisons, swaps)
+      comparisons = result.comparisons
+      swaps = result.swaps
+    }
+
+    setHeapArray([...arrCopy])
+
+    // Extract elements from heap
+    setPhase('sorting')
+    for (let i = n - 1; i > 0; i--) {
+      ;[arrCopy[0], arrCopy[i]] = [arrCopy[i], arrCopy[0]]
+      swaps++
+      setStats(prev => ({ ...prev, swaps }))
+      setArray([...arrCopy])
+      setSorted(prev => [...prev, i])
+      await sleep(speed)
+
+      const result = await heapify(arrCopy, i, 0, comparisons, swaps)
+      comparisons = result.comparisons
+      swaps = result.swaps
+    }
 
     setSorted(Array.from({ length: arrCopy.length }, (_, i) => i))
     setComparing([])
-    setPivot(null)
+    setHeapifying([])
+    setPhase('')
 
     const endTime = performance.now()
     setStats(prev => ({ ...prev, time: Math.round(endTime - startTime) }))
@@ -98,7 +133,7 @@ const QuickSortSimulator = () => {
 
   const getBarColor = (index) => {
     if (sorted.includes(index)) return 'bg-green-500'
-    if (pivot === index) return 'bg-yellow-500'
+    if (heapifying.includes(index)) return 'bg-purple-500'
     if (comparing.includes(index)) return 'bg-red-500'
     return 'bg-blue-500'
   }
@@ -106,9 +141,8 @@ const QuickSortSimulator = () => {
   const maxValue = Math.max(...array, 1)
 
   return (
-    <SimulatorLayout title="Quick Sort Visualization">
+    <SimulatorLayout title="Heap Sort Visualization">
       <div className="h-[calc(100vh-73px)] flex flex-col">
-        {/* Controls Bar */}
         <div className="bg-[#112240] border-b border-gray-700 px-4 py-3">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex flex-wrap items-center gap-3">
@@ -144,7 +178,7 @@ const QuickSortSimulator = () => {
                 <input
                   type="range"
                   min="20"
-                  max="100"
+                  max="80"
                   value={arraySize}
                   onChange={(e) => setArraySize(Number(e.target.value))}
                   disabled={isRunning}
@@ -167,6 +201,12 @@ const QuickSortSimulator = () => {
                 <span className="text-xs font-bold w-8">{speed}ms</span>
               </div>
 
+              {phase && (
+                <div className="px-3 py-1.5 bg-purple-600 text-white rounded text-sm font-medium">
+                  {phase === 'building' ? '🔨 Building Heap' : '📊 Sorting'}
+                </div>
+              )}
+
               <button
                 onClick={() => setShowInfo(!showInfo)}
                 className="p-1.5 bg-[#2d3748] hover:bg-[#4a5568] rounded transition-colors"
@@ -175,7 +215,6 @@ const QuickSortSimulator = () => {
               </button>
             </div>
 
-            {/* Stats */}
             <div className="flex items-center gap-4 text-sm">
               <div className="flex items-center gap-2">
                 <span className="text-gray-400">Comparisons:</span>
@@ -193,7 +232,6 @@ const QuickSortSimulator = () => {
           </div>
         </div>
 
-        {/* Visualization */}
         <div className="flex-1 flex items-end justify-center bg-[#0a192f]">
           <div className="flex items-end justify-center gap-px h-full w-full px-2">
             {array.map((value, index) => (
@@ -212,19 +250,18 @@ const QuickSortSimulator = () => {
           </div>
         </div>
 
-        {/* Info Modal */}
         {showInfo && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowInfo(false)}>
             <div className="bg-[#112240] rounded-lg p-6 max-w-2xl w-full" onClick={e => e.stopPropagation()}>
               <div className="flex justify-between items-start mb-4">
-                <h3 className="text-xl font-bold">About Quick Sort</h3>
+                <h3 className="text-xl font-bold">About Heap Sort</h3>
                 <button onClick={() => setShowInfo(false)} className="text-gray-400 hover:text-white">✕</button>
               </div>
               
               <div className="space-y-4 text-sm">
                 <p className="text-gray-300">
-                  Quick Sort is a divide-and-conquer algorithm that picks a pivot element and partitions
-                  the array around it, placing smaller elements before and larger elements after the pivot.
+                  Heap Sort builds a max heap from the array, then repeatedly extracts the maximum element
+                  and rebuilds the heap until the array is sorted.
                 </p>
                 
                 <div>
@@ -235,8 +272,8 @@ const QuickSortSimulator = () => {
                       <span>Unsorted</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 bg-yellow-500 rounded"></div>
-                      <span>Pivot</span>
+                      <div className="w-6 h-6 bg-purple-500 rounded"></div>
+                      <span>Heapifying</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="w-6 h-6 bg-red-500 rounded"></div>
@@ -252,8 +289,9 @@ const QuickSortSimulator = () => {
                 <div>
                   <h4 className="font-semibold mb-2">Complexity:</h4>
                   <p className="text-gray-300">
-                    <strong>Time:</strong> O(n log n) average, O(n²) worst case<br/>
-                    <strong>Space:</strong> O(log n)
+                    <strong>Time:</strong> O(n log n) all cases<br/>
+                    <strong>Space:</strong> O(1) - in-place<br/>
+                    <strong>Stable:</strong> No
                   </p>
                 </div>
               </div>
@@ -265,4 +303,4 @@ const QuickSortSimulator = () => {
   )
 }
 
-export default QuickSortSimulator
+export default HeapSortSimulator

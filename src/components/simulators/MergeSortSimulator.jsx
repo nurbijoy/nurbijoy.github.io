@@ -2,13 +2,13 @@ import { useState, useEffect } from 'react'
 import { FiPlay, FiRefreshCw, FiShuffle, FiInfo } from 'react-icons/fi'
 import SimulatorLayout from './SimulatorLayout'
 
-const QuickSortSimulator = () => {
+const MergeSortSimulator = () => {
   const [array, setArray] = useState([])
   const [comparing, setComparing] = useState([])
-  const [pivot, setPivot] = useState(null)
   const [sorted, setSorted] = useState([])
+  const [merging, setMerging] = useState([])
   const [isRunning, setIsRunning] = useState(false)
-  const [stats, setStats] = useState({ comparisons: 0, swaps: 0, time: 0 })
+  const [stats, setStats] = useState({ comparisons: 0, merges: 0, time: 0 })
   const [arraySize, setArraySize] = useState(50)
   const [speed, setSpeed] = useState(30)
   const [showInfo, setShowInfo] = useState(false)
@@ -23,56 +23,74 @@ const QuickSortSimulator = () => {
     )
     setArray(newArray)
     setComparing([])
-    setPivot(null)
     setSorted([])
-    setStats({ comparisons: 0, swaps: 0, time: 0 })
+    setMerging([])
+    setStats({ comparisons: 0, merges: 0, time: 0 })
   }
 
   const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms))
 
-  const quickSort = async (arr, low, high, comparisons, swaps) => {
-    if (low < high) {
-      const { pivotIndex, newComparisons, newSwaps } = await partition(arr, low, high, comparisons, swaps)
-      await quickSort(arr, low, pivotIndex - 1, newComparisons, newSwaps)
-      await quickSort(arr, pivotIndex + 1, high, newComparisons, newSwaps)
-    } else if (low === high) {
-      setSorted(prev => [...prev, low])
-    }
-    return { comparisons, swaps }
-  }
+  const merge = async (arr, left, mid, right, comparisons, merges) => {
+    const leftArr = arr.slice(left, mid + 1)
+    const rightArr = arr.slice(mid + 1, right + 1)
 
-  const partition = async (arr, low, high, comparisons, swaps) => {
-    const pivotValue = arr[high]
-    setPivot(high)
-    let i = low - 1
+    let i = 0, j = 0, k = left
 
-    for (let j = low; j < high; j++) {
-      setComparing([j, high])
+    setMerging(Array.from({ length: right - left + 1 }, (_, idx) => left + idx))
+
+    while (i < leftArr.length && j < rightArr.length) {
+      setComparing([left + i, mid + 1 + j])
       comparisons++
       setStats(prev => ({ ...prev, comparisons }))
       await sleep(speed)
 
-      if (arr[j] < pivotValue) {
+      if (leftArr[i] <= rightArr[j]) {
+        arr[k] = leftArr[i]
         i++
-        if (i !== j) {
-          [arr[i], arr[j]] = [arr[j], arr[i]]
-          swaps++
-          setStats(prev => ({ ...prev, swaps }))
-          setArray([...arr])
-          await sleep(speed)
-        }
+      } else {
+        arr[k] = rightArr[j]
+        j++
       }
+      k++
+      merges++
+      setStats(prev => ({ ...prev, merges }))
+      setArray([...arr])
+      await sleep(speed)
     }
 
-    [arr[i + 1], arr[high]] = [arr[high], arr[i + 1]]
-    swaps++
-    setStats(prev => ({ ...prev, swaps }))
-    setArray([...arr])
-    setSorted(prev => [...prev, i + 1])
-    setPivot(null)
-    await sleep(speed)
+    while (i < leftArr.length) {
+      arr[k] = leftArr[i]
+      i++
+      k++
+      setArray([...arr])
+      await sleep(speed)
+    }
 
-    return { pivotIndex: i + 1, newComparisons: comparisons, newSwaps: swaps }
+    while (j < rightArr.length) {
+      arr[k] = rightArr[j]
+      j++
+      k++
+      setArray([...arr])
+      await sleep(speed)
+    }
+
+    setMerging([])
+    setComparing([])
+
+    return { comparisons, merges }
+  }
+
+  const mergeSort = async (arr, left, right, comparisons, merges) => {
+    if (left < right) {
+      const mid = Math.floor((left + right) / 2)
+
+      const result1 = await mergeSort(arr, left, mid, comparisons, merges)
+      const result2 = await mergeSort(arr, mid + 1, right, result1.comparisons, result1.merges)
+      const result3 = await merge(arr, left, mid, right, result2.comparisons, result2.merges)
+
+      return result3
+    }
+    return { comparisons, merges }
   }
 
   const startSort = async () => {
@@ -81,15 +99,15 @@ const QuickSortSimulator = () => {
     setIsRunning(true)
     setSorted([])
     setComparing([])
-    setPivot(null)
+    setMerging([])
 
     const startTime = performance.now()
     const arrCopy = [...array]
-    await quickSort(arrCopy, 0, arrCopy.length - 1, 0, 0)
+    await mergeSort(arrCopy, 0, arrCopy.length - 1, 0, 0)
 
     setSorted(Array.from({ length: arrCopy.length }, (_, i) => i))
     setComparing([])
-    setPivot(null)
+    setMerging([])
 
     const endTime = performance.now()
     setStats(prev => ({ ...prev, time: Math.round(endTime - startTime) }))
@@ -98,7 +116,7 @@ const QuickSortSimulator = () => {
 
   const getBarColor = (index) => {
     if (sorted.includes(index)) return 'bg-green-500'
-    if (pivot === index) return 'bg-yellow-500'
+    if (merging.includes(index)) return 'bg-purple-500'
     if (comparing.includes(index)) return 'bg-red-500'
     return 'bg-blue-500'
   }
@@ -106,7 +124,7 @@ const QuickSortSimulator = () => {
   const maxValue = Math.max(...array, 1)
 
   return (
-    <SimulatorLayout title="Quick Sort Visualization">
+    <SimulatorLayout title="Merge Sort Visualization">
       <div className="h-[calc(100vh-73px)] flex flex-col">
         {/* Controls Bar */}
         <div className="bg-[#112240] border-b border-gray-700 px-4 py-3">
@@ -131,7 +149,7 @@ const QuickSortSimulator = () => {
               <button
                 onClick={() => {
                   generateArray()
-                  setStats({ comparisons: 0, swaps: 0, time: 0 })
+                  setStats({ comparisons: 0, merges: 0, time: 0 })
                 }}
                 disabled={isRunning}
                 className="flex items-center gap-2 px-3 py-1.5 bg-orange-600 hover:bg-orange-700 disabled:bg-gray-600 text-white rounded text-sm transition-all"
@@ -182,8 +200,8 @@ const QuickSortSimulator = () => {
                 <span className="font-bold text-blue-400">{stats.comparisons}</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-gray-400">Swaps:</span>
-                <span className="font-bold text-green-400">{stats.swaps}</span>
+                <span className="text-gray-400">Merges:</span>
+                <span className="font-bold text-purple-400">{stats.merges}</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-gray-400">Time:</span>
@@ -217,14 +235,14 @@ const QuickSortSimulator = () => {
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowInfo(false)}>
             <div className="bg-[#112240] rounded-lg p-6 max-w-2xl w-full" onClick={e => e.stopPropagation()}>
               <div className="flex justify-between items-start mb-4">
-                <h3 className="text-xl font-bold">About Quick Sort</h3>
+                <h3 className="text-xl font-bold">About Merge Sort</h3>
                 <button onClick={() => setShowInfo(false)} className="text-gray-400 hover:text-white">✕</button>
               </div>
               
               <div className="space-y-4 text-sm">
                 <p className="text-gray-300">
-                  Quick Sort is a divide-and-conquer algorithm that picks a pivot element and partitions
-                  the array around it, placing smaller elements before and larger elements after the pivot.
+                  Merge Sort is a divide-and-conquer algorithm that divides the array into halves,
+                  recursively sorts them, and then merges the sorted halves back together.
                 </p>
                 
                 <div>
@@ -235,8 +253,8 @@ const QuickSortSimulator = () => {
                       <span>Unsorted</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 bg-yellow-500 rounded"></div>
-                      <span>Pivot</span>
+                      <div className="w-6 h-6 bg-purple-500 rounded"></div>
+                      <span>Merging</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="w-6 h-6 bg-red-500 rounded"></div>
@@ -252,8 +270,9 @@ const QuickSortSimulator = () => {
                 <div>
                   <h4 className="font-semibold mb-2">Complexity:</h4>
                   <p className="text-gray-300">
-                    <strong>Time:</strong> O(n log n) average, O(n²) worst case<br/>
-                    <strong>Space:</strong> O(log n)
+                    <strong>Time:</strong> O(n log n) all cases<br/>
+                    <strong>Space:</strong> O(n)<br/>
+                    <strong>Stable:</strong> Yes
                   </p>
                 </div>
               </div>
@@ -265,4 +284,4 @@ const QuickSortSimulator = () => {
   )
 }
 
-export default QuickSortSimulator
+export default MergeSortSimulator
