@@ -1,19 +1,9 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { FiPlay, FiFlag, FiSquare, FiRefreshCw, FiTrash2, FiInfo } from 'react-icons/fi'
 import SimulatorLayout from './SimulatorLayout'
-
-const CELL_TYPES = {
-  EMPTY: 0,
-  WALL: 1,
-  START: 2,
-  END: 3,
-  VISITED: 4,
-  PATH: 5,
-  FRONTIER: 6
-}
+import PathfindingGrid, { CELL_TYPES } from './PathfindingGrid'
 
 const BFSSimulator = () => {
-  const containerRef = useRef(null)
   const [dimensions, setDimensions] = useState({ rows: 20, cols: 40, cellSize: 20 })
   const [grid, setGrid] = useState([])
   const [startPos, setStartPos] = useState({ row: 10, col: 8 })
@@ -21,50 +11,27 @@ const BFSSimulator = () => {
   const [mode, setMode] = useState('wall')
   const [isRunning, setIsRunning] = useState(false)
   const [stats, setStats] = useState({ visited: 0, pathLength: 0, time: 0 })
-  const [isMouseDown, setIsMouseDown] = useState(false)
   const [showInfo, setShowInfo] = useState(false)
 
-  useEffect(() => {
-    calculateDimensions()
-    window.addEventListener('resize', calculateDimensions)
-    return () => window.removeEventListener('resize', calculateDimensions)
-  }, [])
-
-  useEffect(() => {
-    if (dimensions.rows > 0 && dimensions.cols > 0) {
-      initializeGrid()
-    }
-  }, [dimensions])
-
-  const calculateDimensions = () => {
-    if (!containerRef.current) {
-      setTimeout(calculateDimensions, 100)
-      return
-    }
+  const handleGridReady = (newDimensions) => {
+    const newStartPos = { row: Math.floor(newDimensions.rows / 2), col: Math.floor(newDimensions.cols / 4) }
+    const newEndPos = { row: Math.floor(newDimensions.rows / 2), col: Math.floor(newDimensions.cols * 3 / 4) }
     
-    const container = containerRef.current
-    const availableWidth = container.clientWidth - 20  // Reduced padding
-    const availableHeight = container.clientHeight - 20
+    setDimensions(newDimensions)
+    setStartPos(newStartPos)
+    setEndPos(newEndPos)
     
-    // Calculate cell size to fit the screen
-    const targetCols = 50
-    const targetRows = 30
-    
-    const cellSizeByWidth = Math.floor(availableWidth / targetCols)
-    const cellSizeByHeight = Math.floor(availableHeight / targetRows)
-    const cellSize = Math.max(12, Math.min(cellSizeByWidth, cellSizeByHeight))
-    
-    // Calculate exact number of cells that fit
-    const cols = Math.floor(availableWidth / cellSize)
-    const rows = Math.floor(availableHeight / cellSize)
-    
-    setDimensions({ rows, cols, cellSize })
-    setStartPos({ row: Math.floor(rows / 2), col: Math.floor(cols / 4) })
-    setEndPos({ row: Math.floor(rows / 2), col: Math.floor(cols * 3 / 4) })
+    // Initialize grid with new positions
+    const newGrid = Array(newDimensions.rows).fill(null).map(() => Array(newDimensions.cols).fill(CELL_TYPES.EMPTY))
+    newGrid[newStartPos.row][newStartPos.col] = CELL_TYPES.START
+    newGrid[newEndPos.row][newEndPos.col] = CELL_TYPES.END
+    setGrid(newGrid)
+    setStats({ visited: 0, pathLength: 0, time: 0 })
   }
 
   const initializeGrid = () => {
-    // Ensure positions are within bounds
+    if (dimensions.rows === 0 || dimensions.cols === 0) return
+    
     const validStartRow = Math.min(startPos.row, dimensions.rows - 1)
     const validStartCol = Math.min(startPos.col, dimensions.cols - 1)
     const validEndRow = Math.min(endPos.row, dimensions.rows - 1)
@@ -356,35 +323,14 @@ const BFSSimulator = () => {
         </div>
 
         {/* Main Content */}
-        <div ref={containerRef} className="flex-1 flex items-center justify-center overflow-hidden">
-          {grid.length > 0 && (
-            <div
-              className="inline-grid gap-px bg-gray-800 p-1 rounded shadow-2xl"
-              style={{
-                gridTemplateColumns: `repeat(${dimensions.cols}, ${dimensions.cellSize}px)`,
-                gridTemplateRows: `repeat(${dimensions.rows}, ${dimensions.cellSize}px)`
-              }}
-              onMouseLeave={() => setIsMouseDown(false)}
-            >
-              {grid.map((row, rowIndex) =>
-                row.map((cell, colIndex) => (
-                  <div
-                    key={`${rowIndex}-${colIndex}`}
-                    className={getCellClass(cell)}
-                    style={{ width: `${dimensions.cellSize}px`, height: `${dimensions.cellSize}px` }}
-                    onClick={() => handleCellClick(rowIndex, colIndex)}
-                    onMouseEnter={() => handleCellHover(rowIndex, colIndex)}
-                    onMouseDown={() => setIsMouseDown(true)}
-                    onMouseUp={() => setIsMouseDown(false)}
-                  >
-                    {cell === CELL_TYPES.START && '▶'}
-                    {cell === CELL_TYPES.END && '🏁'}
-                  </div>
-                ))
-              )}
-            </div>
-          )}
-        </div>
+        <PathfindingGrid
+          grid={grid}
+          onGridReady={handleGridReady}
+          getCellClass={getCellClass}
+          isRunning={isRunning}
+          onCellClick={handleCellClick}
+          onCellHover={handleCellHover}
+        />
 
         {/* Info Modal */}
         {showInfo && (
