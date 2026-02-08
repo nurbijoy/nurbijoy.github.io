@@ -44,7 +44,7 @@ npm run deploy
 
 ```bash
 # One line code
-git add . && git commit -m "Update portfolio" && git push origin main && npm run deploy
+git add . && git commit -m "Updated games" && git push origin main && npm run deploy
 ```
 
 Your site will be live at: **https://nurbijoy.github.io**
@@ -59,9 +59,10 @@ Your site will be live at: **https://nurbijoy.github.io**
 - 📱 Fully responsive design
 - ⚡ Fast performance with Vite
 - 🎭 Smooth animations with Framer Motion
-- 🎮 Interactive games showcase
-- 📊 Algorithm simulators
+- 🎮 Interactive games (Snake, Tetris, Pong, Tic Tac Toe)
+- 📊 Algorithm simulators with visualizations
 - 🚀 GitHub Pages ready
+- 🎯 Full-screen game layouts with smooth animations
 
 ---
 
@@ -70,6 +71,13 @@ Your site will be live at: **https://nurbijoy.github.io**
 ```
 ├── src/
 │   ├── components/      # React components
+│   │   ├── games/      # Game components
+│   │   │   ├── GameLayout.jsx
+│   │   │   ├── SnakeGame.jsx
+│   │   │   ├── TetrisGame.jsx
+│   │   │   ├── PongGame.jsx
+│   │   │   └── TicTacToeGame.jsx
+│   │   ├── simulators/ # Algorithm simulators
 │   │   ├── Navbar.jsx
 │   │   ├── Hero.jsx
 │   │   ├── About.jsx
@@ -79,12 +87,16 @@ Your site will be live at: **https://nurbijoy.github.io**
 │   │   ├── Simulators.jsx
 │   │   ├── Contact.jsx
 │   │   └── Footer.jsx
+│   ├── data/           # Data files
+│   │   ├── gamesData.js
+│   │   └── simulatorsData.js
 │   ├── hooks/          # Custom hooks
+│   ├── pages/          # Page components
 │   ├── App.jsx
 │   ├── main.jsx
 │   └── index.css
 ├── public/             # Static files
-├── reference/          # Games & simulators
+├── reference/          # Original HTML games & simulators
 └── package.json
 ```
 
@@ -203,8 +215,51 @@ npm run dev
 3. **Skills** - Animated progress bars
 4. **Projects** - Featured work
 5. **Games** - Interactive games showcase
+   - 🐍 Snake Game - Classic snake with smooth controls
+   - 🧱 Tetris - Block stacking puzzle game
+   - 🏓 Pong - Two-player paddle game
+   - ⭕ Tic Tac Toe - Play against AI with minimax algorithm
 6. **Simulators** - Algorithm visualizers
 7. **Contact** - Get in touch
+
+## 🎮 Games
+
+All games feature:
+- Full-screen layouts for immersive gameplay
+- Smooth animations and modern UI
+- Responsive controls
+- Score tracking and statistics
+- Clean, professional design
+
+### Snake Game
+- Classic snake gameplay with WASD or arrow key controls
+- Growing snake mechanic with food collection
+- Collision detection with walls and self
+- Speed settings (slow, normal, fast)
+- High score tracking with localStorage
+- Activity log showing game events
+
+### Tetris
+- Standard Tetris gameplay with 7 piece types
+- Rotation and movement controls
+- Line clearing with score multipliers
+- Progressive difficulty levels
+- Next piece preview
+- Smooth drop animations
+
+### Pong
+- Two-player paddle game
+- Smooth ball physics with spin mechanics
+- Score tracking for both players
+- First to 5 points wins
+- Responsive paddle controls (W/S and Arrow keys)
+
+### Tic Tac Toe
+- Play against unbeatable AI using minimax algorithm
+- Toggle between AI and 2-player modes
+- Win/loss/draw statistics
+- Winning line highlighting
+- Instant game reset
 
 ---
 

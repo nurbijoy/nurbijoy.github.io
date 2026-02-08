@@ -1,48 +1,11 @@
 import { motion } from 'framer-motion'
 import { useInView } from '../hooks/useInView'
 import { FiExternalLink } from 'react-icons/fi'
+import { Link } from 'react-router-dom'
+import { gamesData } from '../data/gamesData'
 
 const Games = () => {
   const [ref, inView] = useInView({ triggerOnce: true, threshold: 0.1 })
-
-  const games = [
-    {
-      title: 'Snake Game',
-      description: 'Classic snake game with smooth controls and score tracking.',
-      tags: ['Canvas', 'Collision Detection', 'Score Tracking'],
-      link: 'reference/games/snake.html',
-    },
-    {
-      title: 'Tic Tac Toe',
-      description: 'Play against AI with minimax algorithm implementation.',
-      tags: ['AI', 'Minimax', 'Strategy'],
-      link: 'reference/games/tictactoe.html',
-    },
-    {
-      title: 'Tetris',
-      description: 'Stack falling blocks to clear lines with increasing difficulty.',
-      tags: ['Puzzle', 'Rotation', 'Score System'],
-      link: 'reference/games/tetris.html',
-    },
-    {
-      title: 'Chess',
-      description: 'Full chess game with move validation and capture tracking.',
-      tags: ['Strategy', 'Logic', '2-Player'],
-      link: 'reference/games/chess.html',
-    },
-    {
-      title: 'Memory Match',
-      description: 'Test your memory by matching pairs of cards.',
-      tags: ['Memory', 'Cards', 'Timer'],
-      link: 'reference/games/memory.html',
-    },
-    {
-      title: 'Space Invaders',
-      description: 'Defend Earth from alien invaders in this retro arcade shooter!',
-      tags: ['Shooter', 'Retro', 'Waves'],
-      link: 'reference/games/spaceinvaders.html',
-    },
-  ]
 
   return (
     <section id="games" className="py-20">
@@ -62,16 +25,16 @@ const Games = () => {
           </p>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {games.map((game, index) => (
+            {gamesData.map((game, index) => (
               <motion.div
-                key={game.title}
+                key={game.id}
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={inView ? { opacity: 1, scale: 1 } : {}}
                 transition={{ delay: index * 0.1 }}
                 className="bg-[#112240] rounded-lg overflow-hidden hover:transform hover:-translate-y-2 transition-all duration-300 group"
               >
                 <div className="h-48 bg-gradient-to-br from-secondary/20 to-blue-500/20 flex items-center justify-center">
-                  <div className="text-6xl">🎮</div>
+                  <div className="text-6xl">{game.emoji}</div>
                 </div>
                 
                 <div className="p-6">
@@ -79,12 +42,18 @@ const Games = () => {
                     <h3 className="text-xl font-bold text-light group-hover:text-secondary transition-colors">
                       {game.title}
                     </h3>
-                    <a
-                      href={game.link}
-                      className="text-gray hover:text-secondary transition-colors"
-                    >
-                      <FiExternalLink className="text-xl" />
-                    </a>
+                    {game.implemented ? (
+                      <Link
+                        to={`/games/${game.id}`}
+                        className="text-gray hover:text-secondary transition-colors"
+                      >
+                        <FiExternalLink className="text-xl" />
+                      </Link>
+                    ) : (
+                      <span className="text-xs text-gray bg-dark px-2 py-1 rounded">
+                        Coming Soon
+                      </span>
+                    )}
                   </div>
                   
                   <p className="text-gray mb-4 text-sm leading-relaxed">
@@ -107,12 +76,12 @@ const Games = () => {
           </div>
 
           <div className="text-center mt-12">
-            <a
-              href="reference/games.html"
+            <Link
+              to="/games"
               className="inline-block px-8 py-3 border border-secondary text-secondary rounded-lg hover:bg-secondary/10 transition-all duration-300"
             >
               View All Games
-            </a>
+            </Link>
           </div>
         </motion.div>
       </div>
