@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import { Link } from 'react-router-dom'
 import { useInView } from '../hooks/useInView'
 import { FiExternalLink } from 'react-icons/fi'
 
@@ -10,31 +11,31 @@ const Simulators = () => {
       title: 'A* Search',
       description: 'Visualize the A* pathfinding algorithm with different heuristics.',
       tags: ['Pathfinding', 'Heuristics', 'Optimal Path'],
-      link: 'reference/simulators/astar.html',
+      link: '/simulators/astar',
     },
     {
       title: 'Binary Search Tree',
       description: 'Visualize insertion, deletion, and traversal operations on a BST.',
       tags: ['Search', 'Traversal', 'Balancing'],
-      link: 'reference/simulators/bst.html',
+      link: '/simulators/bst',
     },
     {
       title: 'QuickSort',
       description: 'Dynamic visualization of the QuickSort algorithm with pivot animations.',
       tags: ['Divide & Conquer', 'Pivot', 'O(n log n)'],
-      link: 'reference/simulators/quicksort.html',
+      link: '/simulators/quicksort',
     },
     {
-      title: 'Min Heap',
-      description: 'Visual min-heap operations like insert and extract-min.',
-      tags: ['Priority Queue', 'Heap Sort', 'Efficiency'],
-      link: 'reference/simulators/minheap.html',
+      title: 'BFS',
+      description: 'Explore level-order traversal and shortest path finding.',
+      tags: ['Shortest Path', 'Queue', 'Level Order'],
+      link: '/simulators/bfs',
     },
     {
       title: 'Dijkstra\'s Algorithm',
       description: 'Find shortest paths in weighted graphs using Dijkstra\'s algorithm.',
       tags: ['Shortest Path', 'Weighted Graph', 'Greedy'],
-      link: 'reference/simulators/dijkstra.html',
+      link: '/simulators/dijkstra',
     },
     {
       title: 'Merge Sort',
@@ -79,12 +80,21 @@ const Simulators = () => {
                     <h3 className="text-xl font-bold text-light group-hover:text-secondary transition-colors">
                       {simulator.title}
                     </h3>
-                    <a
-                      href={simulator.link}
-                      className="text-gray hover:text-secondary transition-colors"
-                    >
-                      <FiExternalLink className="text-xl" />
-                    </a>
+                    {simulator.link.startsWith('/') ? (
+                      <Link
+                        to={simulator.link}
+                        className="text-gray hover:text-secondary transition-colors"
+                      >
+                        <FiExternalLink className="text-xl" />
+                      </Link>
+                    ) : (
+                      <a
+                        href={simulator.link}
+                        className="text-gray hover:text-secondary transition-colors"
+                      >
+                        <FiExternalLink className="text-xl" />
+                      </a>
+                    )}
                   </div>
                   
                   <p className="text-gray mb-4 text-sm leading-relaxed">
@@ -107,12 +117,12 @@ const Simulators = () => {
           </div>
 
           <div className="text-center mt-12">
-            <a
-              href="reference/simulators.html"
+            <Link
+              to="/simulators"
               className="inline-block px-8 py-3 border border-secondary text-secondary rounded-lg hover:bg-secondary/10 transition-all duration-300"
             >
               View All Simulators
-            </a>
+            </Link>
           </div>
         </motion.div>
       </div>
