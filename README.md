@@ -1,8 +1,8 @@
 # Modern Portfolio - Nur Mohammad Bijoy
 
-A modern, responsive portfolio website built with React, Tailwind CSS, and Framer Motion.
+A modern, interactive portfolio website featuring algorithm visualizations and classic games, built with React, Tailwind CSS, and Framer Motion.
 
-![Portfolio](https://img.shields.io/badge/React-18-blue) ![Tailwind](https://img.shields.io/badge/Tailwind-3.4-38bdf8) ![Vite](https://img.shields.io/badge/Vite-5.2-646cff)
+![Portfolio](https://img.shields.io/badge/React-18-blue) ![Tailwind](https://img.shields.io/badge/Tailwind-3.4-38bdf8) ![Vite](https://img.shields.io/badge/Vite-5.2-646cff) ![React Router](https://img.shields.io/badge/React_Router-7-red)
 
 🌐 **Live Site**: [https://nurbijoy.github.io](https://nurbijoy.github.io)
 
@@ -59,10 +59,12 @@ Your site will be live at: **https://nurbijoy.github.io**
 - 📱 Fully responsive design
 - ⚡ Fast performance with Vite
 - 🎭 Smooth animations with Framer Motion
-- 🎮 Interactive games (Snake, Tetris, Pong, Tic Tac Toe)
-- 📊 Algorithm simulators with visualizations
-- 🚀 GitHub Pages ready
-- 🎯 Full-screen game layouts with smooth animations
+- 🎮 9 interactive games with full-screen layouts
+- 📊 20+ algorithm simulators with step-by-step visualizations
+- 🧭 Multi-page routing with React Router
+- 🚀 GitHub Pages deployment ready
+- 🎯 Organized data structure with centralized game/simulator management
+- 🎨 Custom hooks for input device detection and scroll animations
 
 ---
 
@@ -70,14 +72,42 @@ Your site will be live at: **https://nurbijoy.github.io**
 
 ```
 ├── src/
-│   ├── components/      # React components
-│   │   ├── games/      # Game components
+│   ├── components/
+│   │   ├── games/           # 9 interactive games
 │   │   │   ├── GameLayout.jsx
 │   │   │   ├── SnakeGame.jsx
 │   │   │   ├── TetrisGame.jsx
 │   │   │   ├── PongGame.jsx
-│   │   │   └── TicTacToeGame.jsx
-│   │   ├── simulators/ # Algorithm simulators
+│   │   │   ├── TicTacToeGame.jsx
+│   │   │   ├── ChessGame.jsx
+│   │   │   ├── MemoryGame.jsx
+│   │   │   ├── FlappyGame.jsx
+│   │   │   ├── BreakoutGame.jsx
+│   │   │   └── InvadersGame.jsx
+│   │   ├── simulators/      # 20+ algorithm visualizers
+│   │   │   ├── SimulatorLayout.jsx
+│   │   │   ├── PathfindingGrid.jsx
+│   │   │   ├── BFSSimulator.jsx
+│   │   │   ├── DFSSimulator.jsx
+│   │   │   ├── AStarSimulator.jsx
+│   │   │   ├── DijkstraSimulator.jsx
+│   │   │   ├── QuickSortSimulator.jsx
+│   │   │   ├── MergeSortSimulator.jsx
+│   │   │   ├── HeapSortSimulator.jsx
+│   │   │   ├── BSTSimulator.jsx
+│   │   │   ├── AVLTreeSimulator.jsx
+│   │   │   ├── StackSimulator.jsx
+│   │   │   ├── QueueSimulator.jsx
+│   │   │   ├── LinkedListSimulator.jsx
+│   │   │   ├── MinHeapSimulator.jsx
+│   │   │   ├── MaxHeapSimulator.jsx
+│   │   │   ├── HashTableSimulator.jsx
+│   │   │   ├── TrieSimulator.jsx
+│   │   │   ├── KruskalSimulator.jsx
+│   │   │   ├── TopologicalSortSimulator.jsx
+│   │   │   ├── GraphColoringSimulator.jsx
+│   │   │   ├── ConvexHullSimulator.jsx
+│   │   │   └── ComingSoon.jsx
 │   │   ├── Navbar.jsx
 │   │   ├── Hero.jsx
 │   │   ├── About.jsx
@@ -87,16 +117,26 @@ Your site will be live at: **https://nurbijoy.github.io**
 │   │   ├── Simulators.jsx
 │   │   ├── Contact.jsx
 │   │   └── Footer.jsx
-│   ├── data/           # Data files
+│   ├── data/                # Centralized data management
 │   │   ├── gamesData.js
 │   │   └── simulatorsData.js
-│   ├── hooks/          # Custom hooks
-│   ├── pages/          # Page components
-│   ├── App.jsx
+│   ├── hooks/               # Custom React hooks
+│   │   ├── useInputDevice.js
+│   │   └── useInView.js
+│   ├── pages/               # Route pages
+│   │   ├── HomePage.jsx
+│   │   ├── GamesPage.jsx
+│   │   └── SimulatorsPage.jsx
+│   ├── App.jsx              # Main app with routing
 │   ├── main.jsx
 │   └── index.css
-├── public/             # Static files
-├── reference/          # Original HTML games & simulators
+├── public/                  # Static assets
+│   ├── profile.jpg
+│   ├── vite.svg
+│   └── 404.html
+├── vite.config.js
+├── tailwind.config.js
+├── postcss.config.js
 └── package.json
 ```
 
@@ -199,67 +239,140 @@ npm run dev
 
 ## 📚 Technologies
 
-- **React 18** - UI library
-- **Vite 5** - Build tool
-- **Tailwind CSS 3** - Styling
-- **Framer Motion** - Animations
-- **React Icons** - Icons
-- **gh-pages** - Deployment
+- **React 18** - UI library with hooks
+- **Vite 5** - Lightning-fast build tool
+- **Tailwind CSS 3** - Utility-first CSS framework
+- **Framer Motion 11** - Production-ready animations
+- **React Router DOM 7** - Client-side routing
+- **React Icons 5** - Icon library
+- **gh-pages** - GitHub Pages deployment
 
 ---
 
 ## 📝 Sections
 
-1. **Hero** - Introduction with animated profile
-2. **About** - Personal bio and technologies
-3. **Skills** - Animated progress bars
-4. **Projects** - Featured work
-5. **Games** - Interactive games showcase
-   - 🐍 Snake Game - Classic snake with smooth controls
-   - 🧱 Tetris - Block stacking puzzle game
-   - 🏓 Pong - Two-player paddle game
-   - ⭕ Tic Tac Toe - Play against AI with minimax algorithm
-6. **Simulators** - Algorithm visualizers
-7. **Contact** - Get in touch
+### Home Page
+1. **Hero** - Animated introduction with profile image
+2. **About** - Personal bio and technology stack
+3. **Skills** - Animated progress bars showing proficiency levels
+4. **Projects** - Featured work and portfolio pieces
+5. **Games** - Showcase of 9 interactive games
+6. **Simulators** - Preview of 20+ algorithm visualizations
+7. **Contact** - Contact information and social links
+
+### Games Page
+Dedicated page featuring all 9 games with descriptions and tags. Each game opens in a full-screen immersive layout.
+
+### Simulators Page
+Organized by categories:
+- **Graph Algorithms** (3 simulators)
+- **Data Structures** (9 simulators)
+- **Advanced Graph Algorithms** (4 simulators)
+- **Sorting Algorithms** (3 simulators)
+- **Computational Geometry** (1 simulator)
 
 ## 🎮 Games
 
-All games feature:
-- Full-screen layouts for immersive gameplay
-- Smooth animations and modern UI
-- Responsive controls
-- Score tracking and statistics
-- Clean, professional design
+All games feature full-screen layouts, smooth animations, responsive controls, and modern UI design.
 
-### Snake Game
-- Classic snake gameplay with WASD or arrow key controls
-- Growing snake mechanic with food collection
-- Collision detection with walls and self
+### 🐍 Snake Game
+Classic snake gameplay with growing mechanics and collision detection.
+- WASD or arrow key controls
 - Speed settings (slow, normal, fast)
 - High score tracking with localStorage
-- Activity log showing game events
+- Activity log for game events
 
-### Tetris
-- Standard Tetris gameplay with 7 piece types
+### 🧱 Tetris
+Standard Tetris with 7 piece types and line clearing.
 - Rotation and movement controls
-- Line clearing with score multipliers
 - Progressive difficulty levels
 - Next piece preview
-- Smooth drop animations
+- Score multipliers
 
-### Pong
-- Two-player paddle game
+### 🏓 Pong
+Two-player paddle game with realistic physics.
 - Smooth ball physics with spin mechanics
-- Score tracking for both players
+- W/S and Arrow key controls
 - First to 5 points wins
-- Responsive paddle controls (W/S and Arrow keys)
+- Score tracking
 
-### Tic Tac Toe
-- Play against unbeatable AI using minimax algorithm
-- Toggle between AI and 2-player modes
+### ⭕ Tic Tac Toe
+Play against unbeatable AI using minimax algorithm.
+- AI vs 2-player mode toggle
 - Win/loss/draw statistics
 - Winning line highlighting
-- Instant game reset
+- Instant reset
+
+### ♟️ Chess
+Full chess implementation with move validation.
+- Complete chess rules
+- Piece capture tracking
+- Move validation
+- 2-player gameplay
+
+### 🃏 Memory Match
+Test your memory by matching card pairs.
+- Card flip animations
+- Timer and move counter
+- Multiple difficulty levels
+- Score tracking
+
+### 🐦 Flappy Bird
+Navigate through pipes with precise timing.
+- Tap/click to fly
+- Increasing difficulty
+- High score system
+- Smooth physics
+
+### 🧱 Brick Breaker
+Classic breakout-style game with paddle and ball.
+- Paddle controls
+- Brick destruction
+- Power-ups
+- Level progression
+
+### 👾 Space Invaders
+Defend Earth from alien invaders.
+- Shooter mechanics
+- Wave-based gameplay
+- Score system
+- Classic arcade feel
+
+---
+
+## 📊 Algorithm Simulators
+
+Interactive visualizations for learning data structures and algorithms with step-by-step execution.
+
+### Graph Algorithms
+- **A* Search** - Pathfinding with heuristics and optimal path finding
+- **Breadth-First Search (BFS)** - Level-order traversal and shortest path in unweighted graphs
+- **Depth-First Search (DFS)** - Recursive/iterative implementations with backtracking
+
+### Data Structures
+- **Binary Search Tree (BST)** - Insertion, deletion, and traversal operations
+- **AVL Tree** - Self-balancing BST with automatic rotations
+- **Min Heap** - Priority queue with insert, extract-min, and heapify
+- **Max Heap** - Max element extraction with heapify operations
+- **Linked List** - Node insertion, deletion, and traversal
+- **Stack** - LIFO operations (push, pop, peek)
+- **Queue** - FIFO operations (enqueue, dequeue)
+- **Hash Table** - Hashing with collision resolution and chaining
+- **Trie** - Prefix-based search and autocomplete
+
+### Advanced Graph Algorithms
+- **Dijkstra's Algorithm** - Shortest paths in weighted graphs
+- **Kruskal's MST** - Minimum spanning tree with Union-Find
+- **Graph Coloring** - Greedy coloring algorithm visualization
+- **Topological Sort** - Ordering of directed acyclic graphs (DAG)
+
+### Sorting Algorithms
+- **Quick Sort** - Divide-and-conquer with pivot selection
+- **Merge Sort** - Stable sort with merging of subarrays
+- **Heap Sort** - In-place sorting using heap data structure
+
+### Computational Geometry
+- **Convex Hull** - Graham's scan and Jarvis march algorithms
 
 ---
 
