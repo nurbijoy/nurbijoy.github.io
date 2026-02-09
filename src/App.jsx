@@ -23,6 +23,9 @@ import HeapSortSimulator from './components/simulators/HeapSortSimulator'
 import GraphColoringSimulator from './components/simulators/GraphColoringSimulator'
 import ConvexHullSimulator from './components/simulators/ConvexHullSimulator'
 import SnakeGame from './components/games/SnakeGame'
+import TetrisGame from './components/games/TetrisGame'
+import PongGame from './components/games/PongGame'
+import TicTacToeGame from './components/games/TicTacToeGame'
 
 function App() {
   return (
@@ -56,6 +59,9 @@ function App() {
 
         {/* Games */}
         <Route path="/games/snake" element={<SnakeGame />} />
+        <Route path="/games/tetris" element={<TetrisGame />} />
+        <Route path="/games/pong" element={<PongGame />} />
+        <Route path="/games/tictactoe" element={<TicTacToeGame />} />
       </Routes>
     </Router>
   )
