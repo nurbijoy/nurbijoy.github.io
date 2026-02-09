@@ -293,24 +293,24 @@ const TicTacToeGame = () => {
         <div className="flex-1 flex flex-col gap-2 min-h-0">
           {showTouchControls && (
             <div className="flex gap-1 flex-shrink-0">
-            <div className="flex-1 bg-[#112240] rounded p-1 border border-gray-700 text-center">
-              <p className="text-[10px] text-gray">X</p>
-              <p className="text-sm font-bold text-secondary">{scores.x}</p>
+              <div className="flex-1 bg-[#112240] rounded p-1 border border-gray-700 text-center">
+                <p className="text-[10px] text-gray">X</p>
+                <p className="text-sm font-bold text-secondary">{scores.x}</p>
+              </div>
+              <div className="flex-1 bg-[#112240] rounded p-1 border border-gray-700 text-center">
+                <p className="text-[10px] text-gray">O</p>
+                <p className="text-sm font-bold text-warning">{scores.o}</p>
+              </div>
+              <div className="flex-1 bg-[#112240] rounded p-1 border border-gray-700 text-center">
+                <p className="text-[10px] text-gray">Draw</p>
+                <p className="text-sm font-bold text-light">{scores.draw}</p>
+              </div>
+              <button onClick={resetGame} className="px-2 py-1 bg-success text-white text-xs font-semibold rounded">New</button>
+              <button onClick={resetScores} className="px-2 py-1 bg-danger text-white text-xs font-semibold rounded">↻</button>
+              <button onClick={() => { setMode(mode === 'ai' ? '2player' : 'ai'); resetGame(); }} className="px-2 py-1 bg-secondary text-dark text-xs font-semibold rounded">
+                {mode === 'ai' ? 'AI' : '2P'}
+              </button>
             </div>
-            <div className="flex-1 bg-[#112240] rounded p-1 border border-gray-700 text-center">
-              <p className="text-[10px] text-gray">O</p>
-              <p className="text-sm font-bold text-warning">{scores.o}</p>
-            </div>
-            <div className="flex-1 bg-[#112240] rounded p-1 border border-gray-700 text-center">
-              <p className="text-[10px] text-gray">Draw</p>
-              <p className="text-sm font-bold text-light">{scores.draw}</p>
-            </div>
-            <button onClick={resetGame} className="px-2 py-1 bg-success text-white text-xs font-semibold rounded">New</button>
-            <button onClick={resetScores} className="px-2 py-1 bg-danger text-white text-xs font-semibold rounded">↻</button>
-            <button onClick={() => { setMode(mode === 'ai' ? '2player' : 'ai'); resetGame(); }} className="px-2 py-1 bg-secondary text-dark text-xs font-semibold rounded">
-              {mode === 'ai' ? 'AI' : '2P'}
-            </button>
-          </div>
           )}
           <div className="flex-1 flex items-center justify-center min-h-0 relative">
             <canvas ref={canvasRef} onClick={handleCanvasClick} className="border-4 border-secondary/30 rounded-xl shadow-2xl max-w-full max-h-full cursor-pointer" style={{ boxShadow: '0 0 60px rgba(100, 255, 218, 0.3)' }} />

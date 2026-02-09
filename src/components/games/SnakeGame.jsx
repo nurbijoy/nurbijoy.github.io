@@ -276,24 +276,24 @@ const SnakeGame = () => {
         <div className="flex-1 flex flex-col gap-2 min-h-0">
           {showTouchControls && (
             <div className="flex gap-1 flex-shrink-0">
-            <div className="flex-1 bg-[#112240] rounded p-1 border border-gray-700 text-center">
-              <p className="text-[10px] text-gray">Score</p>
-              <p className="text-sm font-bold text-secondary">{score}</p>
+              <div className="flex-1 bg-[#112240] rounded p-1 border border-gray-700 text-center">
+                <p className="text-[10px] text-gray">Score</p>
+                <p className="text-sm font-bold text-secondary">{score}</p>
+              </div>
+              <div className="flex-1 bg-[#112240] rounded p-1 border border-gray-700 text-center">
+                <p className="text-[10px] text-gray">High</p>
+                <p className="text-sm font-bold text-warning">{highScore}</p>
+              </div>
+              <div className="flex-1 bg-[#112240] rounded p-1 border border-gray-700 text-center">
+                <p className="text-[10px] text-gray">Len</p>
+                <p className="text-sm font-bold text-light">{gameRef.current.snake.length}</p>
+              </div>
+              <button onClick={startGame} className="px-2 py-1 bg-success text-white text-xs font-semibold rounded">▶</button>
+              <button onClick={resetGame} className="px-2 py-1 bg-danger text-white text-xs font-semibold rounded">↻</button>
+              {['S', 'N', 'F'].map((s, i) => (
+                <button key={s} onClick={() => setSpeed(['slow', 'normal', 'fast'][i])} className={`px-2 py-1 rounded text-xs font-semibold ${speed === ['slow', 'normal', 'fast'][i] ? 'bg-secondary text-dark' : 'bg-dark/50 text-gray'}`}>{s}</button>
+              ))}
             </div>
-            <div className="flex-1 bg-[#112240] rounded p-1 border border-gray-700 text-center">
-              <p className="text-[10px] text-gray">High</p>
-              <p className="text-sm font-bold text-warning">{highScore}</p>
-            </div>
-            <div className="flex-1 bg-[#112240] rounded p-1 border border-gray-700 text-center">
-              <p className="text-[10px] text-gray">Len</p>
-              <p className="text-sm font-bold text-light">{gameRef.current.snake.length}</p>
-            </div>
-            <button onClick={startGame} className="px-2 py-1 bg-success text-white text-xs font-semibold rounded">▶</button>
-            <button onClick={resetGame} className="px-2 py-1 bg-danger text-white text-xs font-semibold rounded">↻</button>
-            {['S', 'N', 'F'].map((s, i) => (
-              <button key={s} onClick={() => setSpeed(['slow', 'normal', 'fast'][i])} className={`px-2 py-1 rounded text-xs font-semibold ${speed === ['slow', 'normal', 'fast'][i] ? 'bg-secondary text-dark' : 'bg-dark/50 text-gray'}`}>{s}</button>
-            ))}
-          </div>
           )}
           <div className="flex-1 flex items-center justify-center min-h-0 relative">
             <canvas ref={canvasRef} className="border-4 border-secondary/30 rounded-xl shadow-2xl max-w-full max-h-full" style={{ boxShadow: '0 0 60px rgba(100, 255, 218, 0.3)' }} />
@@ -327,57 +327,57 @@ const SnakeGame = () => {
           </div>
           {showTouchControls && (
             <div className="grid grid-cols-3 gap-1 flex-shrink-0">
-            <div></div>
-            <button 
-              onClick={() => {
-                const { direction } = gameRef.current
-                if (direction.y === 0) {
-                  gameRef.current.nextDirection = { x: 0, y: -1 }
-                  if (gameState === 'ready') startGame()
-                }
-              }}
-              className="py-2 bg-secondary/20 active:bg-secondary/40 text-secondary font-bold rounded text-xl"
-            >
-              ▲
-            </button>
-            <div></div>
-            <button 
-              onClick={() => {
-                const { direction } = gameRef.current
-                if (direction.x === 0) {
-                  gameRef.current.nextDirection = { x: -1, y: 0 }
-                  if (gameState === 'ready') startGame()
-                }
-              }}
-              className="py-2 bg-secondary/20 active:bg-secondary/40 text-secondary font-bold rounded text-xl"
-            >
-              ◄
-            </button>
-            <button 
-              onClick={() => {
-                const { direction } = gameRef.current
-                if (direction.y === 0) {
-                  gameRef.current.nextDirection = { x: 0, y: 1 }
-                  if (gameState === 'ready') startGame()
-                }
-              }}
-              className="py-2 bg-secondary/20 active:bg-secondary/40 text-secondary font-bold rounded text-xl"
-            >
-              ▼
-            </button>
-            <button 
-              onClick={() => {
-                const { direction } = gameRef.current
-                if (direction.x === 0) {
-                  gameRef.current.nextDirection = { x: 1, y: 0 }
-                  if (gameState === 'ready') startGame()
-                }
-              }}
-              className="py-2 bg-secondary/20 active:bg-secondary/40 text-secondary font-bold rounded text-xl"
-            >
-              ►
-            </button>
-          </div>
+              <div></div>
+              <button 
+                onClick={() => {
+                  const { direction } = gameRef.current
+                  if (direction.y === 0) {
+                    gameRef.current.nextDirection = { x: 0, y: -1 }
+                    if (gameState === 'ready') startGame()
+                  }
+                }}
+                className="py-2 bg-secondary/20 active:bg-secondary/40 text-secondary font-bold rounded text-xl"
+              >
+                ▲
+              </button>
+              <div></div>
+              <button 
+                onClick={() => {
+                  const { direction } = gameRef.current
+                  if (direction.x === 0) {
+                    gameRef.current.nextDirection = { x: -1, y: 0 }
+                    if (gameState === 'ready') startGame()
+                  }
+                }}
+                className="py-2 bg-secondary/20 active:bg-secondary/40 text-secondary font-bold rounded text-xl"
+              >
+                ◄
+              </button>
+              <button 
+                onClick={() => {
+                  const { direction } = gameRef.current
+                  if (direction.y === 0) {
+                    gameRef.current.nextDirection = { x: 0, y: 1 }
+                    if (gameState === 'ready') startGame()
+                  }
+                }}
+                className="py-2 bg-secondary/20 active:bg-secondary/40 text-secondary font-bold rounded text-xl"
+              >
+                ▼
+              </button>
+              <button 
+                onClick={() => {
+                  const { direction } = gameRef.current
+                  if (direction.x === 0) {
+                    gameRef.current.nextDirection = { x: 1, y: 0 }
+                    if (gameState === 'ready') startGame()
+                  }
+                }}
+                className="py-2 bg-secondary/20 active:bg-secondary/40 text-secondary font-bold rounded text-xl"
+              >
+                ►
+              </button>
+            </div>
           )}
         </div>
         <div className="hidden lg:flex lg:w-64 xl:w-80 flex-col gap-4 overflow-y-auto">

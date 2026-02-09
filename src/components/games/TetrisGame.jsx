@@ -302,21 +302,21 @@ const TetrisGame = () => {
         <div className="flex-1 flex flex-col gap-2 min-h-0">
           {showTouchControls && (
             <div className="flex gap-1 flex-shrink-0">
-            <div className="flex-1 bg-[#112240] rounded p-1 border border-gray-700 text-center">
-              <p className="text-[10px] text-gray">Score</p>
-              <p className="text-sm font-bold text-secondary">{score}</p>
+              <div className="flex-1 bg-[#112240] rounded p-1 border border-gray-700 text-center">
+                <p className="text-[10px] text-gray">Score</p>
+                <p className="text-sm font-bold text-secondary">{score}</p>
+              </div>
+              <div className="flex-1 bg-[#112240] rounded p-1 border border-gray-700 text-center">
+                <p className="text-[10px] text-gray">Lines</p>
+                <p className="text-sm font-bold text-warning">{lines}</p>
+              </div>
+              <div className="flex-1 bg-[#112240] rounded p-1 border border-gray-700 text-center">
+                <p className="text-[10px] text-gray">Lvl</p>
+                <p className="text-sm font-bold text-light">{level}</p>
+              </div>
+              <button onClick={startGame} className="px-2 py-1 bg-success text-white text-xs font-semibold rounded">▶</button>
+              <button onClick={resetGame} className="px-2 py-1 bg-danger text-white text-xs font-semibold rounded">↻</button>
             </div>
-            <div className="flex-1 bg-[#112240] rounded p-1 border border-gray-700 text-center">
-              <p className="text-[10px] text-gray">Lines</p>
-              <p className="text-sm font-bold text-warning">{lines}</p>
-            </div>
-            <div className="flex-1 bg-[#112240] rounded p-1 border border-gray-700 text-center">
-              <p className="text-[10px] text-gray">Lvl</p>
-              <p className="text-sm font-bold text-light">{level}</p>
-            </div>
-            <button onClick={startGame} className="px-2 py-1 bg-success text-white text-xs font-semibold rounded">▶</button>
-            <button onClick={resetGame} className="px-2 py-1 bg-danger text-white text-xs font-semibold rounded">↻</button>
-          </div>
           )}
           <div className="flex-1 flex items-center justify-center min-h-0 relative">
             <canvas ref={canvasRef} className="border-4 border-secondary/30 rounded-xl shadow-2xl max-w-full max-h-full" style={{ boxShadow: '0 0 60px rgba(100, 255, 218, 0.3)' }} />
@@ -350,37 +350,37 @@ const TetrisGame = () => {
           </div>
           {showTouchControls && (
             <div className="grid grid-cols-5 gap-1 flex-shrink-0">
-            <button 
-              onClick={() => move(-1)}
-              className="py-2 bg-secondary/20 active:bg-secondary/40 text-secondary font-bold rounded text-lg"
-            >
-              ◄
-            </button>
-            <button 
-              onClick={() => drop()}
-              className="py-2 bg-success/20 active:bg-success/40 text-success font-bold rounded text-lg"
-            >
-              ▼
-            </button>
-            <button 
-              onClick={() => move(1)}
-              className="py-2 bg-secondary/20 active:bg-secondary/40 text-secondary font-bold rounded text-lg"
-            >
-              ►
-            </button>
-            <button 
-              onClick={() => rotate()}
-              className="py-2 bg-warning/20 active:bg-warning/40 text-warning font-bold rounded text-lg"
-            >
-              ↻
-            </button>
-            <button 
-              onClick={() => hardDrop()}
-              className="py-2 bg-danger/20 active:bg-danger/40 text-danger font-bold rounded text-lg"
-            >
-              ⬇
-            </button>
-          </div>
+              <button 
+                onClick={() => move(-1)}
+                className="py-2 bg-secondary/20 active:bg-secondary/40 text-secondary font-bold rounded text-lg"
+              >
+                ◄
+              </button>
+              <button 
+                onClick={() => drop()}
+                className="py-2 bg-success/20 active:bg-success/40 text-success font-bold rounded text-lg"
+              >
+                ▼
+              </button>
+              <button 
+                onClick={() => move(1)}
+                className="py-2 bg-secondary/20 active:bg-secondary/40 text-secondary font-bold rounded text-lg"
+              >
+                ►
+              </button>
+              <button 
+                onClick={() => rotate()}
+                className="py-2 bg-warning/20 active:bg-warning/40 text-warning font-bold rounded text-lg"
+              >
+                ↻
+              </button>
+              <button 
+                onClick={() => hardDrop()}
+                className="py-2 bg-danger/20 active:bg-danger/40 text-danger font-bold rounded text-lg"
+              >
+                ⬇
+              </button>
+            </div>
           )}
         </div>
         <div className="hidden lg:flex lg:w-64 xl:w-80 flex-col gap-4 overflow-y-auto">
