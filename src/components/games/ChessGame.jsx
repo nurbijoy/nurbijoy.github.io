@@ -13,6 +13,12 @@ const ChessGame = () => {
   const [moveHistory, setMoveHistory] = useState([])
   const [mode, setMode] = useState('ai') // 'ai' or '2player'
   const [difficulty, setDifficulty] = useState('normal')
+  const [enPassantTarget, setEnPassantTarget] = useState(null)
+  const [castlingRights, setCastlingRights] = useState({
+    white: { kingSide: true, queenSide: true },
+    black: { kingSide: true, queenSide: true }
+  })
+  const [promotionPending, setPromotionPending] = useState(null)
   const { showTouchControls, toggleTouchControls } = useInputDevice()
   
   const aiThinkingRef = useRef(false)
@@ -65,11 +71,15 @@ const ChessGame = () => {
     return true
   }
 
-  const isValidMoveBasic = (fromRow, fromCol, toRow, toCol, piece, testBoard) => {
+  const isValidMoveBasic = (fromRow, fromCol, toRow, toCol, piece, testBoard, checkSpecialMoves = true, currentEnPassant = null, currentCastlingRights = null, isKingInCheckFn = null) => {
     if (!testBoard) return false
     if (toRow < 0 || toRow > 7 || toCol < 0 || toCol > 7) return false
     
     const targetPiece = testBoard[toRow][toCol]
+    
+    // FIDE Rule 1.4.1: Capturing the opponent's king is not allowed
+    if (targetPiece && targetPiece.type === 'king') return false
+    
     if (targetPiece && targetPiece.color === piece.color) return false
 
     const rowDiff = toRow - fromRow
@@ -82,11 +92,20 @@ const ChessGame = () => {
         const direction = piece.color === 'white' ? -1 : 1
         const startRow = piece.color === 'white' ? 6 : 1
         
+        // Normal forward move
         if (colDiff === 0 && !targetPiece) {
           if (rowDiff === direction) return true
           if (fromRow === startRow && rowDiff === direction * 2 && !testBoard[fromRow + direction][fromCol]) return true
         }
+        // Normal capture
         if (absColDiff === 1 && rowDiff === direction && targetPiece) return true
+        
+        // En passant
+        if (checkSpecialMoves && absColDiff === 1 && rowDiff === direction && !targetPiece) {
+          if (currentEnPassant && currentEnPassant.row === toRow && currentEnPassant.col === toCol) {
+            return true
+          }
+        }
         return false
       }
       
@@ -106,7 +125,42 @@ const ChessGame = () => {
         return (absRowDiff === 2 && absColDiff === 1) || (absRowDiff === 1 && absColDiff === 2)
       
       case 'king':
-        return absRowDiff <= 1 && absColDiff <= 1
+        // Normal king move
+        if (absRowDiff <= 1 && absColDiff <= 1) return true
+        
+        // Castling
+        if (checkSpecialMoves && absRowDiff === 0 && absColDiff === 2 && currentCastlingRights && isKingInCheckFn) {
+          const rights = currentCastlingRights[piece.color]
+          const kingRow = piece.color === 'white' ? 7 : 0
+          
+          if (fromRow !== kingRow || toRow !== kingRow) return false
+          if (isKingInCheckFn(piece.color, testBoard)) return false // Can't castle out of check
+          
+          // King-side castling
+          if (toCol === 6 && rights.kingSide) {
+            if (testBoard[kingRow][5] || testBoard[kingRow][6]) return false
+            if (testBoard[kingRow][7]?.type !== 'rook') return false
+            // Check if squares king passes through are under attack
+            const tempBoard1 = testBoard.map(r => [...r])
+            tempBoard1[kingRow][5] = tempBoard1[kingRow][4]
+            tempBoard1[kingRow][4] = null
+            if (isKingInCheckFn(piece.color, tempBoard1)) return false
+            return true
+          }
+          
+          // Queen-side castling
+          if (toCol === 2 && rights.queenSide) {
+            if (testBoard[kingRow][1] || testBoard[kingRow][2] || testBoard[kingRow][3]) return false
+            if (testBoard[kingRow][0]?.type !== 'rook') return false
+            // Check if squares king passes through are under attack
+            const tempBoard1 = testBoard.map(r => [...r])
+            tempBoard1[kingRow][3] = tempBoard1[kingRow][4]
+            tempBoard1[kingRow][4] = null
+            if (isKingInCheckFn(piece.color, tempBoard1)) return false
+            return true
+          }
+        }
+        return false
       
       default:
         return false
@@ -127,7 +181,12 @@ const ChessGame = () => {
       if (kingPos) break
     }
     
-    if (!kingPos) return false
+    if (!kingPos) {
+      console.log('isKingInCheck: King not found for', color)
+      return false
+    }
+    
+    console.log('isKingInCheck: Checking', color, 'king at', kingPos)
     
     // Check if any opponent piece can attack the king
     const opponentColor = color === 'white' ? 'black' : 'white'
@@ -135,28 +194,62 @@ const ChessGame = () => {
       for (let col = 0; col < 8; col++) {
         const piece = testBoard[row][col]
         if (piece && piece.color === opponentColor) {
-          if (isValidMoveBasic(row, col, kingPos.row, kingPos.col, piece, testBoard)) {
+          // Check if this piece can attack the king position
+          const rowDiff = kingPos.row - row
+          const colDiff = kingPos.col - col
+          const absRowDiff = Math.abs(rowDiff)
+          const absColDiff = Math.abs(colDiff)
+          
+          let canAttack = false
+          switch (piece.type) {
+            case 'pawn': {
+              // Pawn attacks diagonally in its forward direction
+              const direction = piece.color === 'white' ? -1 : 1
+              // Check if king is one square diagonally forward from the pawn
+              if (absColDiff === 1 && rowDiff === direction) {
+                canAttack = true
+              }
+              break
+            }
+            case 'rook':
+              if ((rowDiff === 0 || colDiff === 0) && isPathClear(row, col, kingPos.row, kingPos.col, testBoard)) {
+                canAttack = true
+              }
+              break
+            case 'bishop':
+              if (absRowDiff === absColDiff && absRowDiff > 0 && isPathClear(row, col, kingPos.row, kingPos.col, testBoard)) {
+                canAttack = true
+              }
+              break
+            case 'queen':
+              if ((rowDiff === 0 || colDiff === 0 || absRowDiff === absColDiff) && 
+                  (absRowDiff > 0 || absColDiff > 0) &&
+                  isPathClear(row, col, kingPos.row, kingPos.col, testBoard)) {
+                canAttack = true
+              }
+              break
+            case 'knight':
+              if ((absRowDiff === 2 && absColDiff === 1) || (absRowDiff === 1 && absColDiff === 2)) {
+                canAttack = true
+              }
+              break
+            case 'king':
+              if (absRowDiff <= 1 && absColDiff <= 1 && (absRowDiff > 0 || absColDiff > 0)) {
+                canAttack = true
+              }
+              break
+          }
+          
+          if (canAttack) {
+            console.log('isKingInCheck: CHECK! by', piece.type, 'at', {row, col})
             return true
           }
         }
       }
     }
+    console.log('isKingInCheck: No check detected')
     return false
   }, [])
-
-  const wouldMoveResultInCheck = useCallback((fromRow, fromCol, toRow, toCol, testBoard) => {
-    const newBoard = testBoard.map(r => [...r])
-    const piece = newBoard[fromRow][fromCol]
-    
-    newBoard[toRow][toCol] = piece
-    newBoard[fromRow][fromCol] = null
-    
-    return isKingInCheck(piece.color, newBoard)
-  }, [isKingInCheck])
-
-  const isValidMove = useCallback((fromRow, fromCol, toRow, toCol, piece, testBoard = board) => {
-    return isValidMoveBasic(fromRow, fromCol, toRow, toCol, piece, testBoard)
-  }, [board])
 
   const getValidMoves = useCallback((row, col) => {
     if (!board) return []
@@ -164,18 +257,25 @@ const ChessGame = () => {
     if (!piece) return []
     
     const moves = []
+    
     for (let r = 0; r < 8; r++) {
       for (let c = 0; c < 8; c++) {
-        if (isValidMove(row, col, r, c, piece)) {
-          // Don't allow moves that would put own king in check
-          if (!wouldMoveResultInCheck(row, col, r, c, board)) {
+        if (isValidMoveBasic(row, col, r, c, piece, board, true, enPassantTarget, castlingRights, isKingInCheck)) {
+          // Test this move by applying it to a temporary board
+          const testBoard = board.map(row => [...row])
+          testBoard[r][c] = testBoard[row][col]
+          testBoard[row][col] = null
+          
+          // Check if this move leaves our king in check
+          if (!isKingInCheck(piece.color, testBoard)) {
             moves.push({ row: r, col: c })
           }
         }
       }
     }
+    
     return moves
-  }, [board, isValidMove, wouldMoveResultInCheck])
+  }, [board, isKingInCheck, enPassantTarget, castlingRights])
 
   const evaluateBoard = useCallback((testBoard) => {
     const pieceValues = {
@@ -208,9 +308,14 @@ const ChessGame = () => {
         if (piece && piece.color === color) {
           for (let r = 0; r < 8; r++) {
             for (let c = 0; c < 8; c++) {
-              if (isValidMove(row, col, r, c, piece, testBoard)) {
-                // Don't allow moves that would put own king in check
-                if (!wouldMoveResultInCheck(row, col, r, c, testBoard)) {
+              if (isValidMoveBasic(row, col, r, c, piece, testBoard, true, enPassantTarget, castlingRights, isKingInCheck)) {
+                // Test this move by applying it to a temporary board
+                const tempBoard = testBoard.map(row => [...row])
+                tempBoard[r][c] = tempBoard[row][col]
+                tempBoard[row][col] = null
+                
+                // Check if this move leaves our king in check
+                if (!isKingInCheck(color, tempBoard)) {
                   moves.push({ from: { row, col }, to: { row: r, col: c }, piece })
                 }
               }
@@ -220,7 +325,7 @@ const ChessGame = () => {
       }
     }
     return moves
-  }, [isValidMove, wouldMoveResultInCheck])
+  }, [isKingInCheck, enPassantTarget, castlingRights])
 
   const checkGameState = useCallback((color, testBoard) => {
     const possibleMoves = getAllPossibleMoves(color, testBoard)
@@ -241,6 +346,70 @@ const ChessGame = () => {
     return 'playing'
   }, [getAllPossibleMoves, isKingInCheck])
 
+  const executeMoveWithSpecialRules = useCallback((fromRow, fromCol, toRow, toCol, newBoard) => {
+    const piece = newBoard[fromRow][fromCol]
+    const capturedPiece = newBoard[toRow][toCol]
+    let specialMove = null
+    
+    // Handle en passant capture
+    if (piece.type === 'pawn' && enPassantTarget && toRow === enPassantTarget.row && toCol === enPassantTarget.col) {
+      const capturedPawnRow = piece.color === 'white' ? toRow + 1 : toRow - 1
+      const capturedPawn = newBoard[capturedPawnRow][toCol]
+      newBoard[capturedPawnRow][toCol] = null
+      specialMove = { type: 'enPassant', capturedPiece: capturedPawn }
+    }
+    
+    // Handle castling
+    if (piece.type === 'king' && Math.abs(toCol - fromCol) === 2) {
+      const kingRow = fromRow
+      if (toCol === 6) { // King-side
+        newBoard[kingRow][5] = newBoard[kingRow][7]
+        newBoard[kingRow][7] = null
+        specialMove = { type: 'castling', side: 'king' }
+      } else if (toCol === 2) { // Queen-side
+        newBoard[kingRow][3] = newBoard[kingRow][0]
+        newBoard[kingRow][0] = null
+        specialMove = { type: 'castling', side: 'queen' }
+      }
+    }
+    
+    // Move the piece
+    newBoard[toRow][toCol] = piece
+    newBoard[fromRow][fromCol] = null
+    
+    // Check for pawn promotion
+    if (piece.type === 'pawn' && (toRow === 0 || toRow === 7)) {
+      specialMove = { type: 'promotion', row: toRow, col: toCol }
+    }
+    
+    // Update en passant target
+    let newEnPassantTarget = null
+    if (piece.type === 'pawn' && Math.abs(toRow - fromRow) === 2) {
+      const direction = piece.color === 'white' ? -1 : 1
+      newEnPassantTarget = { row: fromRow + direction, col: fromCol }
+    }
+    
+    // Update castling rights
+    const newCastlingRights = { ...castlingRights }
+    if (piece.type === 'king') {
+      newCastlingRights[piece.color] = { kingSide: false, queenSide: false }
+    }
+    if (piece.type === 'rook') {
+      if (fromRow === 0 && fromCol === 0) newCastlingRights.black.queenSide = false
+      if (fromRow === 0 && fromCol === 7) newCastlingRights.black.kingSide = false
+      if (fromRow === 7 && fromCol === 0) newCastlingRights.white.queenSide = false
+      if (fromRow === 7 && fromCol === 7) newCastlingRights.white.kingSide = false
+    }
+    
+    return { 
+      board: newBoard, 
+      capturedPiece: specialMove?.capturedPiece || capturedPiece,
+      enPassantTarget: newEnPassantTarget,
+      castlingRights: newCastlingRights,
+      specialMove
+    }
+  }, [enPassantTarget, castlingRights])
+
   const makeAIMove = useCallback(() => {
     if (!board || aiThinkingRef.current || currentPlayer !== 'black' || mode !== 'ai') return
     
@@ -249,7 +418,10 @@ const ChessGame = () => {
     setTimeout(() => {
       const allMoves = getAllPossibleMoves('black', board)
       
+      console.log('AI: Found', allMoves.length, 'possible moves')
+      
       if (allMoves.length === 0) {
+        console.log('AI: No moves available')
         aiThinkingRef.current = false
         return
       }
@@ -259,11 +431,29 @@ const ChessGame = () => {
 
       // Easy: Random move with slight preference for captures
       if (difficulty === 'easy') {
-        const captureMoves = allMoves.filter(m => board[m.to.row][m.to.col] !== null)
-        if (captureMoves.length > 0 && Math.random() > 0.5) {
-          bestMove = captureMoves[Math.floor(Math.random() * captureMoves.length)]
+        const inCheck = isKingInCheck('black', board)
+        
+        // If in check, prioritize moves that escape check
+        if (inCheck) {
+          const escapeMoves = allMoves.filter(m => {
+            const testBoard = board.map(r => [...r])
+            testBoard[m.to.row][m.to.col] = testBoard[m.from.row][m.from.col]
+            testBoard[m.from.row][m.from.col] = null
+            return !isKingInCheck('black', testBoard)
+          })
+          
+          if (escapeMoves.length > 0) {
+            bestMove = escapeMoves[Math.floor(Math.random() * escapeMoves.length)]
+          } else {
+            bestMove = allMoves[Math.floor(Math.random() * allMoves.length)]
+          }
         } else {
-          bestMove = allMoves[Math.floor(Math.random() * allMoves.length)]
+          const captureMoves = allMoves.filter(m => board[m.to.row][m.to.col] !== null)
+          if (captureMoves.length > 0 && Math.random() > 0.5) {
+            bestMove = captureMoves[Math.floor(Math.random() * captureMoves.length)]
+          } else {
+            bestMove = allMoves[Math.floor(Math.random() * allMoves.length)]
+          }
         }
       } 
       // Normal/Hard: Evaluate moves
@@ -272,6 +462,9 @@ const ChessGame = () => {
           Math.min(allMoves.length, 20) : allMoves.length
         
         const shuffledMoves = [...allMoves].sort(() => Math.random() - 0.5)
+        const inCheck = isKingInCheck('black', board)
+        
+        console.log('AI: In check?', inCheck, 'Evaluating', movesToEvaluate, 'moves')
         
         for (let i = 0; i < movesToEvaluate; i++) {
           const move = shuffledMoves[i]
@@ -282,6 +475,16 @@ const ChessGame = () => {
           testBoard[move.from.row][move.from.col] = null
           
           let score = evaluateBoard(testBoard)
+          
+          // CRITICAL: If in check, heavily prioritize moves that get out of check
+          if (inCheck) {
+            const stillInCheck = isKingInCheck('black', testBoard)
+            if (!stillInCheck) {
+              score += 1000 // Massive bonus for escaping check
+            } else {
+              score -= 1000 // Massive penalty for staying in check
+            }
+          }
           
           // Bonus for captures
           if (capturedPiece) {
@@ -298,39 +501,63 @@ const ChessGame = () => {
             bestMove = move
           }
         }
+        
+        console.log('AI: Best move score:', bestScore, 'Move:', bestMove)
       }
 
       if (bestMove) {
+        console.log('AI: Executing move from', bestMove.from, 'to', bestMove.to)
         const newBoard = board.map(r => [...r])
-        const capturedPiece = newBoard[bestMove.to.row][bestMove.to.col]
         
-        if (capturedPiece) {
+        const moveResult = executeMoveWithSpecialRules(
+          bestMove.from.row, bestMove.from.col,
+          bestMove.to.row, bestMove.to.col,
+          newBoard
+        )
+        
+        if (moveResult.capturedPiece) {
           setCapturedPieces(prev => ({
             ...prev,
-            black: [...prev.black, capturedPiece]
+            black: [...prev.black, moveResult.capturedPiece]
           }))
         }
         
-        newBoard[bestMove.to.row][bestMove.to.col] = newBoard[bestMove.from.row][bestMove.from.col]
-        newBoard[bestMove.from.row][bestMove.from.col] = null
+        setBoard(moveResult.board)
+        setEnPassantTarget(moveResult.enPassantTarget)
+        setCastlingRights(moveResult.castlingRights)
         
-        setBoard(newBoard)
         setMoveHistory(prev => [...prev, {
           from: bestMove.from,
           to: bestMove.to,
           piece: bestMove.piece.type,
-          captured: capturedPiece?.type
+          captured: moveResult.capturedPiece?.type,
+          special: moveResult.specialMove?.type
         }])
+        
+        // Handle pawn promotion for AI (always promote to queen)
+        if (moveResult.specialMove?.type === 'promotion') {
+          const promotedBoard = moveResult.board.map(r => [...r])
+          promotedBoard[moveResult.specialMove.row][moveResult.specialMove.col] = {
+            type: 'queen',
+            color: 'black'
+          }
+          setBoard(promotedBoard)
+        }
+        
         setCurrentPlayer('white')
         
         // Check game state after AI move
-        const newGameState = checkGameState('white', newBoard)
+        const newGameState = checkGameState('white', moveResult.board)
         setGameState(newGameState)
+        
+        console.log('AI: Move complete, new game state:', newGameState)
+      } else {
+        console.error('AI: No best move found!')
       }
       
       aiThinkingRef.current = false
     }, 500)
-  }, [board, currentPlayer, mode, difficulty, getAllPossibleMoves, evaluateBoard, checkGameState])
+  }, [board, currentPlayer, mode, difficulty, getAllPossibleMoves, evaluateBoard, checkGameState, isKingInCheck, executeMoveWithSpecialRules, castlingRights, enPassantTarget])
 
   useEffect(() => {
     if (mode === 'ai' && currentPlayer === 'black' && gameState === 'playing') {
@@ -357,6 +584,12 @@ const ChessGame = () => {
         const isLight = (row + col) % 2 === 0
         ctx.fillStyle = isLight ? 'rgba(100, 255, 218, 0.15)' : 'rgba(100, 255, 218, 0.05)'
         
+        // Highlight king in check with red
+        const piece = board[row][col]
+        if (piece && piece.type === 'king' && piece.color === currentPlayer && gameState === 'check') {
+          ctx.fillStyle = 'rgba(239, 68, 68, 0.5)'
+        }
+        
         // Highlight selected square
         if (selectedSquare && selectedSquare.row === row && selectedSquare.col === col) {
           ctx.fillStyle = 'rgba(100, 255, 218, 0.4)'
@@ -370,7 +603,6 @@ const ChessGame = () => {
         ctx.fillRect(col * cellSize, row * cellSize, cellSize, cellSize)
         
         // Draw piece
-        const piece = board[row][col]
         if (piece) {
           ctx.fillStyle = piece.color === 'white' ? '#64ffda' : '#fbb6ce'
           ctx.font = `${cellSize * 0.7}px Arial`
@@ -429,8 +661,27 @@ const ChessGame = () => {
     }
   }, [draw])
 
+  const handlePromotion = (pieceType) => {
+    if (!promotionPending) return
+    
+    const newBoard = board.map(r => [...r])
+    newBoard[promotionPending.row][promotionPending.col] = {
+      type: pieceType,
+      color: promotionPending.color
+    }
+    
+    setBoard(newBoard)
+    setPromotionPending(null)
+    
+    const nextPlayer = currentPlayer === 'white' ? 'black' : 'white'
+    setCurrentPlayer(nextPlayer)
+    
+    const newGameState = checkGameState(nextPlayer, newBoard)
+    setGameState(newGameState)
+  }
+
   const handleCanvasClick = (e) => {
-    if (gameState !== 'playing' || !board) return
+    if (gameState !== 'playing' || !board || promotionPending) return
     if (mode === 'ai' && currentPlayer === 'black') return // Don't allow clicks during AI turn
     
     const canvas = canvasRef.current
@@ -448,35 +699,51 @@ const ChessGame = () => {
         // Make move
         const newBoard = board.map(r => [...r])
         const piece = newBoard[selectedSquare.row][selectedSquare.col]
-        const capturedPiece = newBoard[row][col]
         
-        if (capturedPiece) {
+        const moveResult = executeMoveWithSpecialRules(
+          selectedSquare.row, selectedSquare.col, 
+          row, col, 
+          newBoard
+        )
+        
+        if (moveResult.capturedPiece) {
           setCapturedPieces(prev => ({
             ...prev,
-            [currentPlayer]: [...prev[currentPlayer], capturedPiece]
+            [currentPlayer]: [...prev[currentPlayer], moveResult.capturedPiece]
           }))
         }
         
-        newBoard[row][col] = piece
-        newBoard[selectedSquare.row][selectedSquare.col] = null
+        setBoard(moveResult.board)
+        setEnPassantTarget(moveResult.enPassantTarget)
+        setCastlingRights(moveResult.castlingRights)
         
-        setBoard(newBoard)
         setMoveHistory(prev => [...prev, {
           from: { row: selectedSquare.row, col: selectedSquare.col },
           to: { row, col },
           piece: piece.type,
-          captured: capturedPiece?.type
+          captured: moveResult.capturedPiece?.type,
+          special: moveResult.specialMove?.type
         }])
+        
+        setSelectedSquare(null)
+        setValidMoves([])
+        
+        // Handle pawn promotion
+        if (moveResult.specialMove?.type === 'promotion') {
+          setPromotionPending({ 
+            row: moveResult.specialMove.row, 
+            col: moveResult.specialMove.col,
+            color: piece.color
+          })
+          return // Don't change turn yet
+        }
         
         const nextPlayer = currentPlayer === 'white' ? 'black' : 'white'
         setCurrentPlayer(nextPlayer)
         
         // Check game state after move
-        const newGameState = checkGameState(nextPlayer, newBoard)
+        const newGameState = checkGameState(nextPlayer, moveResult.board)
         setGameState(newGameState)
-        
-        setSelectedSquare(null)
-        setValidMoves([])
       } else if (board[row][col]?.color === currentPlayer) {
         // Select different piece
         setSelectedSquare({ row, col })
@@ -489,8 +756,12 @@ const ChessGame = () => {
     } else {
       const piece = board[row][col]
       if (piece && piece.color === currentPlayer) {
-        setSelectedSquare({ row, col })
-        setValidMoves(getValidMoves(row, col))
+        const moves = getValidMoves(row, col)
+        // Only allow selection if the piece has legal moves
+        if (moves.length > 0) {
+          setSelectedSquare({ row, col })
+          setValidMoves(moves)
+        }
       }
     }
   }
@@ -503,6 +774,12 @@ const ChessGame = () => {
     setCapturedPieces({ white: [], black: [] })
     setGameState('playing')
     setMoveHistory([])
+    setEnPassantTarget(null)
+    setCastlingRights({
+      white: { kingSide: true, queenSide: true },
+      black: { kingSide: true, queenSide: true }
+    })
+    setPromotionPending(null)
     aiThinkingRef.current = false
   }
 
@@ -665,6 +942,26 @@ const ChessGame = () => {
           </div>
         </div>
       </div>
+      
+      {/* Pawn Promotion Dialog */}
+      {promotionPending && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+          <div className="bg-[#112240] rounded-xl p-6 border-2 border-secondary shadow-2xl">
+            <h3 className="text-secondary font-bold text-xl mb-4 text-center">Promote Pawn</h3>
+            <div className="grid grid-cols-4 gap-3">
+              {['queen', 'rook', 'bishop', 'knight'].map(type => (
+                <button
+                  key={type}
+                  onClick={() => handlePromotion(type)}
+                  className="w-16 h-16 bg-dark hover:bg-secondary/20 border-2 border-secondary/50 hover:border-secondary rounded-lg flex items-center justify-center text-4xl transition-all"
+                >
+                  {pieceSymbols[promotionPending.color][type]}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </GameLayout>
   )
 }
