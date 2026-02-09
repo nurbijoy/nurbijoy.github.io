@@ -38,7 +38,7 @@ export const gamesData = [
     description: 'Full chess game with move validation and capture tracking.',
     tags: ['Strategy', 'Logic', '2-Player'],
     emoji: '♟️',
-    implemented: false
+    implemented: true
   },
   {
     id: 'memory',
@@ -46,7 +46,7 @@ export const gamesData = [
     description: 'Test your memory by matching pairs of cards.',
     tags: ['Memory', 'Cards', 'Timer'],
     emoji: '🃏',
-    implemented: false
+    implemented: true
   }
 ]
 

@@ -71,7 +71,11 @@ const SnakeGame = () => {
       gradient.addColorStop(1, `rgba(56, 178, 172, ${alpha * 0.8})`)
       ctx.fillStyle = gradient
       ctx.beginPath()
-      ctx.roundRect(segment.x * gridSize + 2, segment.y * gridSize + 2, gridSize - 4, gridSize - 4, 4)
+      if (ctx.roundRect) {
+        ctx.roundRect(segment.x * gridSize + 2, segment.y * gridSize + 2, gridSize - 4, gridSize - 4, 4)
+      } else {
+        ctx.rect(segment.x * gridSize + 2, segment.y * gridSize + 2, gridSize - 4, gridSize - 4)
+      }
       ctx.fill()
     })
 

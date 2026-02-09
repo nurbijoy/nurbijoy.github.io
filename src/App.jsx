@@ -26,6 +26,8 @@ import SnakeGame from './components/games/SnakeGame'
 import TetrisGame from './components/games/TetrisGame'
 import PongGame from './components/games/PongGame'
 import TicTacToeGame from './components/games/TicTacToeGame'
+import ChessGame from './components/games/ChessGame'
+import MemoryGame from './components/games/MemoryGame'
 
 function App() {
   return (
@@ -62,6 +64,8 @@ function App() {
         <Route path="/games/tetris" element={<TetrisGame />} />
         <Route path="/games/pong" element={<PongGame />} />
         <Route path="/games/tictactoe" element={<TicTacToeGame />} />
+        <Route path="/games/chess" element={<ChessGame />} />
+        <Route path="/games/memory" element={<MemoryGame />} />
       </Routes>
     </Router>
   )
