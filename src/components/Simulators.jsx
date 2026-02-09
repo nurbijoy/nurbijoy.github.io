@@ -2,48 +2,13 @@ import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { useInView } from '../hooks/useInView'
 import { FiExternalLink } from 'react-icons/fi'
+import { getAllSimulators } from '../data/simulatorsData'
 
 const Simulators = () => {
   const [ref, inView] = useInView({ triggerOnce: true, threshold: 0.1 })
 
-  const simulators = [
-    {
-      title: 'A* Search',
-      description: 'Visualize the A* pathfinding algorithm with different heuristics.',
-      tags: ['Pathfinding', 'Heuristics', 'Optimal Path'],
-      link: '/simulators/astar',
-    },
-    {
-      title: 'Binary Search Tree',
-      description: 'Visualize insertion, deletion, and traversal operations on a BST.',
-      tags: ['Search', 'Traversal', 'Balancing'],
-      link: '/simulators/bst',
-    },
-    {
-      title: 'QuickSort',
-      description: 'Dynamic visualization of the QuickSort algorithm with pivot animations.',
-      tags: ['Divide & Conquer', 'Pivot', 'O(n log n)'],
-      link: '/simulators/quicksort',
-    },
-    {
-      title: 'BFS',
-      description: 'Explore level-order traversal and shortest path finding.',
-      tags: ['Shortest Path', 'Queue', 'Level Order'],
-      link: '/simulators/bfs',
-    },
-    {
-      title: 'Dijkstra\'s Algorithm',
-      description: 'Find shortest paths in weighted graphs using Dijkstra\'s algorithm.',
-      tags: ['Shortest Path', 'Weighted Graph', 'Greedy'],
-      link: '/simulators/dijkstra',
-    },
-    {
-      title: 'Merge Sort',
-      description: 'Step-by-step merge sort breakdown with splitting and merging.',
-      tags: ['Divide & Conquer', 'Stable', 'O(n log n)'],
-      link: 'reference/simulators/mergesort.html',
-    },
-  ]
+  const allSimulators = getAllSimulators()
+  const simulators = allSimulators.slice(0, 6)
 
   return (
     <section id="simulators" className="py-20 bg-dark/30">
@@ -65,14 +30,14 @@ const Simulators = () => {
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {simulators.map((simulator, index) => (
               <motion.div
-                key={simulator.title}
+                key={simulator.id}
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={inView ? { opacity: 1, scale: 1 } : {}}
                 transition={{ delay: index * 0.1 }}
                 className="bg-[#112240] rounded-lg overflow-hidden hover:transform hover:-translate-y-2 transition-all duration-300 group"
               >
                 <div className="h-48 bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center">
-                  <div className="text-6xl">📊</div>
+                  <div className="text-6xl">{simulator.emoji || '📊'}</div>
                 </div>
                 
                 <div className="p-6">
@@ -80,20 +45,17 @@ const Simulators = () => {
                     <h3 className="text-xl font-bold text-light group-hover:text-secondary transition-colors">
                       {simulator.title}
                     </h3>
-                    {simulator.link.startsWith('/') ? (
+                    {simulator.implemented ? (
                       <Link
-                        to={simulator.link}
+                        to={`/simulators/${simulator.id}`}
                         className="text-gray hover:text-secondary transition-colors"
                       >
                         <FiExternalLink className="text-xl" />
                       </Link>
                     ) : (
-                      <a
-                        href={simulator.link}
-                        className="text-gray hover:text-secondary transition-colors"
-                      >
-                        <FiExternalLink className="text-xl" />
-                      </a>
+                      <span className="text-xs text-gray bg-dark px-2 py-1 rounded">
+                        Coming Soon
+                      </span>
                     )}
                   </div>
                   

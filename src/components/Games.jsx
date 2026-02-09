@@ -25,7 +25,7 @@ const Games = () => {
           </p>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {gamesData.map((game, index) => (
+            {gamesData.slice(0, 6).map((game, index) => (
               <motion.div
                 key={game.id}
                 initial={{ opacity: 0, scale: 0.9 }}
