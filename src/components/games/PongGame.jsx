@@ -4,10 +4,12 @@ import { FiPlay, FiRotateCcw } from 'react-icons/fi'
 
 const PongGame = () => {
   const canvasRef = useRef(null)
+  const containerRef = useRef(null)
   const [player1Score, setPlayer1Score] = useState(0)
   const [player2Score, setPlayer2Score] = useState(0)
   const [gameRunning, setGameRunning] = useState(false)
   const [winner, setWinner] = useState(null)
+  const [canvasSize, setCanvasSize] = useState({ width: 800, height: 600 })
 
   const PADDLE_WIDTH = 15
   const PADDLE_HEIGHT = 120
@@ -25,11 +27,46 @@ const PongGame = () => {
 
   const resetBall = useCallback(() => {
     gameStateRef.current.ball = {
-      x: 400,
-      y: 300,
+      x: canvasSize.width / 2,
+      y: canvasSize.height / 2,
       dx: (Math.random() > 0.5 ? 1 : -1) * 6,
       dy: (Math.random() - 0.5) * 10
     }
+  }, [canvasSize])
+  
+  useEffect(() => {
+    const updateCanvasSize = () => {
+      if (containerRef.current) {
+        const container = containerRef.current
+        const maxWidth = Math.min(container.clientWidth - 40, 800)
+        const maxHeight = Math.min(container.clientHeight - 40, 600)
+        const aspectRatio = 4 / 3
+        
+        let width = maxWidth
+        let height = width / aspectRatio
+        
+        if (height > maxHeight) {
+          height = maxHeight
+          width = height * aspectRatio
+        }
+        
+        setCanvasSize({ width: Math.floor(width), height: Math.floor(height) })
+        
+        // Update game state positions proportionally
+        const scaleX = width / 800
+        const scaleY = height / 600
+        gameStateRef.current.player1.x = 30 * scaleX
+        gameStateRef.current.player1.y = 300 * scaleY
+        gameStateRef.current.player2.x = (770 * scaleX)
+        gameStateRef.current.player2.y = 300 * scaleY
+        gameStateRef.current.ball.x = width / 2
+        gameStateRef.current.ball.y = height / 2
+      }
+    }
+    
+    updateCanvasSize()
+    window.addEventListener('resize', updateCanvasSize)
+    return () => window.removeEventListener('resize', updateCanvasSize)
   }, [])
 
   const draw = useCallback(() => {
@@ -250,19 +287,19 @@ const PongGame = () => {
 
   return (
     <GameLayout title="🏓 Pong" leftPanel={leftPanel} rightPanel={rightPanel}>
-      <div className="relative">
+      <div ref={containerRef} className="relative w-full h-full flex items-center justify-center">
         <canvas
           ref={canvasRef}
-          width={800}
-          height={600}
-          className="border-4 border-success rounded-lg shadow-2xl"
+          width={canvasSize.width}
+          height={canvasSize.height}
+          className="border-4 border-success rounded-lg shadow-2xl max-w-full max-h-full"
           style={{ boxShadow: '0 0 30px rgba(56, 161, 105, 0.4)' }}
         />
         {winner && (
           <div className="absolute inset-0 bg-black/80 flex items-center justify-center rounded-lg">
-            <div className="bg-[#112240] p-8 rounded-xl text-center">
-              <h2 className="text-3xl font-bold text-secondary mb-4">{winner} Wins!</h2>
-              <p className="text-xl text-light mb-6">
+            <div className="bg-[#112240] p-4 sm:p-8 rounded-xl text-center max-w-md mx-4">
+              <h2 className="text-2xl sm:text-3xl font-bold text-secondary mb-4">{winner} Wins!</h2>
+              <p className="text-lg sm:text-xl text-light mb-6">
                 Final Score: {player1Score} - {player2Score}
               </p>
               <button

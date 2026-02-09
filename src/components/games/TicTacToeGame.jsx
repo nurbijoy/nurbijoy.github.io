@@ -209,16 +209,16 @@ const TicTacToeGame = () => {
 
   return (
     <GameLayout title="⭕ Tic Tac Toe" leftPanel={leftPanel} rightPanel={rightPanel}>
-      <div className="relative">
-        <div className="grid grid-cols-3 gap-4">
+      <div className="relative w-full h-full flex items-center justify-center p-4">
+        <div className="grid grid-cols-3 gap-2 sm:gap-4 max-w-lg w-full aspect-square">
           {board.map((cell, index) => (
             <button
               key={index}
               onClick={() => handleCellClick(index)}
               disabled={cell !== '' || !gameActive}
               className={`
-                w-40 h-40 bg-[#1e3a5f] border-4 border-gray/30 rounded-xl
-                flex items-center justify-center text-7xl font-bold
+                bg-[#1e3a5f] border-2 sm:border-4 border-gray/30 rounded-lg sm:rounded-xl
+                flex items-center justify-center text-4xl sm:text-6xl md:text-7xl font-bold
                 transition-all duration-300
                 ${cell === '' && gameActive ? 'hover:bg-[#2a4a7f] hover:scale-105 cursor-pointer' : 'cursor-not-allowed'}
                 ${cell === 'X' ? 'text-blue-400' : cell === 'O' ? 'text-green-400' : ''}
@@ -231,9 +231,9 @@ const TicTacToeGame = () => {
         </div>
 
         {winner && (
-          <div className="absolute inset-0 bg-black/80 flex items-center justify-center rounded-lg -m-20">
-            <div className="bg-[#112240] p-8 rounded-xl text-center">
-              <h2 className="text-3xl font-bold text-secondary mb-6">{winner}</h2>
+          <div className="absolute inset-0 bg-black/80 flex items-center justify-center rounded-lg">
+            <div className="bg-[#112240] p-4 sm:p-8 rounded-xl text-center max-w-md mx-4">
+              <h2 className="text-2xl sm:text-3xl font-bold text-secondary mb-6">{winner}</h2>
               <button
                 onClick={resetGame}
                 className="flex items-center justify-center gap-2 px-6 py-3 bg-success hover:bg-success/80 text-white rounded-lg transition-all mx-auto"

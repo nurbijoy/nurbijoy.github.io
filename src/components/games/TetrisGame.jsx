@@ -20,16 +20,33 @@ const COLORS = [
 const TetrisGame = () => {
   const canvasRef = useRef(null)
   const nextCanvasRef = useRef(null)
+  const containerRef = useRef(null)
   const [score, setScore] = useState(0)
   const [level, setLevel] = useState(1)
   const [lines, setLines] = useState(0)
   const [gameRunning, setGameRunning] = useState(false)
   const [paused, setPaused] = useState(false)
   const [gameOver, setGameOver] = useState(false)
+  const [blockSize, setBlockSize] = useState(35)
 
   const COLS = 10
   const ROWS = 20
-  const BLOCK_SIZE = 35
+  
+  useEffect(() => {
+    const updateBlockSize = () => {
+      if (containerRef.current) {
+        const container = containerRef.current
+        const maxWidth = Math.min(container.clientWidth - 40, 350)
+        const maxHeight = Math.min(container.clientHeight - 40, 700)
+        const size = Math.min(Math.floor(maxWidth / COLS), Math.floor(maxHeight / ROWS))
+        setBlockSize(Math.max(size, 15))
+      }
+    }
+    
+    updateBlockSize()
+    window.addEventListener('resize', updateBlockSize)
+    return () => window.removeEventListener('resize', updateBlockSize)
+  }, [])
 
   const gameStateRef = useRef({
     board: Array(ROWS).fill().map(() => Array(COLS).fill(0)),
@@ -52,7 +69,8 @@ const TetrisGame = () => {
     }
   }, [])
 
-  const drawBlock = useCallback((ctx, x, y, color, blockSize = BLOCK_SIZE) => {
+  const drawBlock = useCallback((ctx, x, y, color, size) => {
+    const blockSize = size || blockSize
     ctx.fillStyle = color
     ctx.fillRect(x * blockSize, y * blockSize, blockSize, blockSize)
     ctx.strokeStyle = '#000'
@@ -83,15 +101,16 @@ const TetrisGame = () => {
     }
   }, [drawBlock])
 
-  const drawPiece = useCallback((piece, ctx, offsetX = 0, offsetY = 0, blockSize = BLOCK_SIZE) => {
+  const drawPiece = useCallback((piece, ctx, offsetX = 0, offsetY = 0, size) => {
+    const useBlockSize = size || blockSize
     piece.shape.forEach((row, y) => {
       row.forEach((value, x) => {
         if (value) {
-          drawBlock(ctx, piece.x + x + offsetX, piece.y + y + offsetY, piece.color, blockSize)
+          drawBlock(ctx, piece.x + x + offsetX, piece.y + y + offsetY, piece.color, useBlockSize)
         }
       })
     })
-  }, [drawBlock])
+  }, [drawBlock, blockSize])
 
   const drawNext = useCallback(() => {
     const canvas = nextCanvasRef.current
@@ -241,11 +260,11 @@ const TetrisGame = () => {
 
     drawBoard()
     if (gameStateRef.current.currentPiece) {
-      drawPiece(gameStateRef.current.currentPiece, canvasRef.current.getContext('2d'))
+      drawPiece(gameStateRef.current.currentPiece, canvasRef.current.getContext('2d'), 0, 0, blockSize)
     }
 
     gameLoopRef.current = requestAnimationFrame(update)
-  }, [paused, gameRunning, drop, drawBoard, drawPiece])
+  }, [paused, gameRunning, drop, drawBoard, drawPiece, blockSize])
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -375,19 +394,19 @@ const TetrisGame = () => {
 
   return (
     <GameLayout title="🧱 Tetris" leftPanel={leftPanel} rightPanel={rightPanel}>
-      <div className="relative">
+      <div ref={containerRef} className="relative w-full h-full flex items-center justify-center">
         <canvas
           ref={canvasRef}
-          width={COLS * BLOCK_SIZE}
-          height={ROWS * BLOCK_SIZE}
-          className="border-4 border-secondary rounded-lg shadow-2xl"
+          width={COLS * blockSize}
+          height={ROWS * blockSize}
+          className="border-4 border-secondary rounded-lg shadow-2xl max-w-full max-h-full"
           style={{ boxShadow: '0 0 30px rgba(100, 255, 218, 0.4)' }}
         />
         {gameOver && (
           <div className="absolute inset-0 bg-black/80 flex items-center justify-center rounded-lg">
-            <div className="bg-[#112240] p-8 rounded-xl text-center">
-              <h2 className="text-3xl font-bold text-danger mb-4">Game Over!</h2>
-              <p className="text-xl text-light mb-6">Final Score: <span className="text-secondary font-bold">{score}</span></p>
+            <div className="bg-[#112240] p-4 sm:p-8 rounded-xl text-center max-w-md mx-4">
+              <h2 className="text-2xl sm:text-3xl font-bold text-danger mb-4">Game Over!</h2>
+              <p className="text-lg sm:text-xl text-light mb-6">Final Score: <span className="text-secondary font-bold">{score}</span></p>
               <button
                 onClick={startGame}
                 className="flex items-center justify-center gap-2 px-6 py-3 bg-success hover:bg-success/80 text-white rounded-lg transition-all mx-auto"

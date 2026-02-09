@@ -4,6 +4,7 @@ import { FiPlay, FiPause, FiRotateCcw } from 'react-icons/fi'
 
 const SnakeGame = () => {
   const canvasRef = useRef(null)
+  const containerRef = useRef(null)
   const [score, setScore] = useState(0)
   const [highScore, setHighScore] = useState(() => {
     return parseInt(localStorage.getItem('snakeHighScore')) || 0
@@ -14,6 +15,7 @@ const SnakeGame = () => {
   const [gameSpeed, setGameSpeed] = useState('normal')
   const [logs, setLogs] = useState([{ time: '[System]', message: 'Ready to play!' }])
   const [gameOver, setGameOver] = useState(false)
+  const [canvasSize, setCanvasSize] = useState(800)
 
   const gameStateRef = useRef({
     snake: [{ x: 15, y: 15 }],
@@ -23,6 +25,21 @@ const SnakeGame = () => {
     gridSize: 25,
     tileCount: 32
   })
+  
+  useEffect(() => {
+    const updateCanvasSize = () => {
+      if (containerRef.current) {
+        const container = containerRef.current
+        const maxSize = Math.min(container.clientWidth - 40, container.clientHeight - 40, 800)
+        setCanvasSize(Math.floor(maxSize))
+        gameStateRef.current.gridSize = Math.floor(maxSize / 32)
+      }
+    }
+    
+    updateCanvasSize()
+    window.addEventListener('resize', updateCanvasSize)
+    return () => window.removeEventListener('resize', updateCanvasSize)
+  }, [])
 
   const speedMap = { slow: 150, normal: 100, fast: 50 }
   const gameLoopRef = useRef(null)
@@ -378,20 +395,20 @@ const SnakeGame = () => {
 
   return (
     <GameLayout title="🐍 Snake Game" leftPanel={leftPanel} rightPanel={rightPanel}>
-      <div className="relative">
+      <div ref={containerRef} className="relative w-full h-full flex items-center justify-center">
         <canvas
           ref={canvasRef}
-          width={800}
-          height={800}
-          className="border-4 border-success rounded-lg shadow-2xl"
+          width={canvasSize}
+          height={canvasSize}
+          className="border-4 border-success rounded-lg shadow-2xl max-w-full max-h-full"
           style={{ boxShadow: '0 0 30px rgba(56, 161, 105, 0.4)' }}
         />
         {gameOver && (
           <div className="absolute inset-0 bg-black/80 flex items-center justify-center rounded-lg">
-            <div className="bg-[#112240] p-8 rounded-xl text-center">
-              <h2 className="text-3xl font-bold text-danger mb-4">Game Over!</h2>
-              <p className="text-xl text-light mb-2">Final Score: <span className="text-secondary font-bold">{score}</span></p>
-              <p className="text-xl text-light mb-6">Snake Length: <span className="text-secondary font-bold">{length}</span></p>
+            <div className="bg-[#112240] p-4 sm:p-8 rounded-xl text-center max-w-md mx-4">
+              <h2 className="text-2xl sm:text-3xl font-bold text-danger mb-4">Game Over!</h2>
+              <p className="text-lg sm:text-xl text-light mb-2">Final Score: <span className="text-secondary font-bold">{score}</span></p>
+              <p className="text-lg sm:text-xl text-light mb-6">Snake Length: <span className="text-secondary font-bold">{length}</span></p>
               <button
                 onClick={resetGame}
                 className="flex items-center justify-center gap-2 px-6 py-3 bg-success hover:bg-success/80 text-white rounded-lg transition-all mx-auto"
