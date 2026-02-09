@@ -50,7 +50,22 @@ const ChessGame = () => {
     setBoard(initializeBoard())
   }, [initializeBoard])
 
-  const isValidMove = useCallback((fromRow, fromCol, toRow, toCol, piece, testBoard = board) => {
+  const isPathClear = (fromRow, fromCol, toRow, toCol, testBoard) => {
+    const rowStep = toRow > fromRow ? 1 : toRow < fromRow ? -1 : 0
+    const colStep = toCol > fromCol ? 1 : toCol < fromCol ? -1 : 0
+    
+    let currentRow = fromRow + rowStep
+    let currentCol = fromCol + colStep
+    
+    while (currentRow !== toRow || currentCol !== toCol) {
+      if (testBoard[currentRow][currentCol]) return false
+      currentRow += rowStep
+      currentCol += colStep
+    }
+    return true
+  }
+
+  const isValidMoveBasic = (fromRow, fromCol, toRow, toCol, piece, testBoard) => {
     if (!testBoard) return false
     if (toRow < 0 || toRow > 7 || toCol < 0 || toCol > 7) return false
     
@@ -96,22 +111,52 @@ const ChessGame = () => {
       default:
         return false
     }
-  }, [board])
-
-  const isPathClear = (fromRow, fromCol, toRow, toCol, testBoard) => {
-    const rowStep = toRow > fromRow ? 1 : toRow < fromRow ? -1 : 0
-    const colStep = toCol > fromCol ? 1 : toCol < fromCol ? -1 : 0
-    
-    let currentRow = fromRow + rowStep
-    let currentCol = fromCol + colStep
-    
-    while (currentRow !== toRow || currentCol !== toCol) {
-      if (testBoard[currentRow][currentCol]) return false
-      currentRow += rowStep
-      currentCol += colStep
-    }
-    return true
   }
+
+  const isKingInCheck = useCallback((color, testBoard) => {
+    // Find the king
+    let kingPos = null
+    for (let row = 0; row < 8; row++) {
+      for (let col = 0; col < 8; col++) {
+        const piece = testBoard[row][col]
+        if (piece && piece.type === 'king' && piece.color === color) {
+          kingPos = { row, col }
+          break
+        }
+      }
+      if (kingPos) break
+    }
+    
+    if (!kingPos) return false
+    
+    // Check if any opponent piece can attack the king
+    const opponentColor = color === 'white' ? 'black' : 'white'
+    for (let row = 0; row < 8; row++) {
+      for (let col = 0; col < 8; col++) {
+        const piece = testBoard[row][col]
+        if (piece && piece.color === opponentColor) {
+          if (isValidMoveBasic(row, col, kingPos.row, kingPos.col, piece, testBoard)) {
+            return true
+          }
+        }
+      }
+    }
+    return false
+  }, [])
+
+  const wouldMoveResultInCheck = useCallback((fromRow, fromCol, toRow, toCol, testBoard) => {
+    const newBoard = testBoard.map(r => [...r])
+    const piece = newBoard[fromRow][fromCol]
+    
+    newBoard[toRow][toCol] = piece
+    newBoard[fromRow][fromCol] = null
+    
+    return isKingInCheck(piece.color, newBoard)
+  }, [isKingInCheck])
+
+  const isValidMove = useCallback((fromRow, fromCol, toRow, toCol, piece, testBoard = board) => {
+    return isValidMoveBasic(fromRow, fromCol, toRow, toCol, piece, testBoard)
+  }, [board])
 
   const getValidMoves = useCallback((row, col) => {
     if (!board) return []
@@ -122,12 +167,15 @@ const ChessGame = () => {
     for (let r = 0; r < 8; r++) {
       for (let c = 0; c < 8; c++) {
         if (isValidMove(row, col, r, c, piece)) {
-          moves.push({ row: r, col: c })
+          // Don't allow moves that would put own king in check
+          if (!wouldMoveResultInCheck(row, col, r, c, board)) {
+            moves.push({ row: r, col: c })
+          }
         }
       }
     }
     return moves
-  }, [board, isValidMove])
+  }, [board, isValidMove, wouldMoveResultInCheck])
 
   const evaluateBoard = useCallback((testBoard) => {
     const pieceValues = {
@@ -161,7 +209,10 @@ const ChessGame = () => {
           for (let r = 0; r < 8; r++) {
             for (let c = 0; c < 8; c++) {
               if (isValidMove(row, col, r, c, piece, testBoard)) {
-                moves.push({ from: { row, col }, to: { row: r, col: c }, piece })
+                // Don't allow moves that would put own king in check
+                if (!wouldMoveResultInCheck(row, col, r, c, testBoard)) {
+                  moves.push({ from: { row, col }, to: { row: r, col: c }, piece })
+                }
               }
             }
           }
@@ -169,7 +220,26 @@ const ChessGame = () => {
       }
     }
     return moves
-  }, [isValidMove])
+  }, [isValidMove, wouldMoveResultInCheck])
+
+  const checkGameState = useCallback((color, testBoard) => {
+    const possibleMoves = getAllPossibleMoves(color, testBoard)
+    const inCheck = isKingInCheck(color, testBoard)
+    
+    if (possibleMoves.length === 0) {
+      if (inCheck) {
+        return 'checkmate' // Checkmate - opponent wins
+      } else {
+        return 'stalemate' // Stalemate - draw
+      }
+    }
+    
+    if (inCheck) {
+      return 'check' // King is in check but has moves
+    }
+    
+    return 'playing'
+  }, [getAllPossibleMoves, isKingInCheck])
 
   const makeAIMove = useCallback(() => {
     if (!board || aiThinkingRef.current || currentPlayer !== 'black' || mode !== 'ai') return
@@ -252,11 +322,15 @@ const ChessGame = () => {
           captured: capturedPiece?.type
         }])
         setCurrentPlayer('white')
+        
+        // Check game state after AI move
+        const newGameState = checkGameState('white', newBoard)
+        setGameState(newGameState)
       }
       
       aiThinkingRef.current = false
     }, 500)
-  }, [board, currentPlayer, mode, difficulty, getAllPossibleMoves, evaluateBoard])
+  }, [board, currentPlayer, mode, difficulty, getAllPossibleMoves, evaluateBoard, checkGameState])
 
   useEffect(() => {
     if (mode === 'ai' && currentPlayer === 'black' && gameState === 'playing') {
@@ -285,12 +359,12 @@ const ChessGame = () => {
         
         // Highlight selected square
         if (selectedSquare && selectedSquare.row === row && selectedSquare.col === col) {
-          ctx.fillStyle = 'rgba(251, 191, 36, 0.4)'
+          ctx.fillStyle = 'rgba(100, 255, 218, 0.4)'
         }
         
         // Highlight valid moves
         if (validMoves.some(m => m.row === row && m.col === col)) {
-          ctx.fillStyle = 'rgba(100, 255, 218, 0.3)'
+          ctx.fillStyle = 'rgba(100, 255, 218, 0.5)'
         }
         
         ctx.fillRect(col * cellSize, row * cellSize, cellSize, cellSize)
@@ -393,7 +467,14 @@ const ChessGame = () => {
           piece: piece.type,
           captured: capturedPiece?.type
         }])
-        setCurrentPlayer(currentPlayer === 'white' ? 'black' : 'white')
+        
+        const nextPlayer = currentPlayer === 'white' ? 'black' : 'white'
+        setCurrentPlayer(nextPlayer)
+        
+        // Check game state after move
+        const newGameState = checkGameState(nextPlayer, newBoard)
+        setGameState(newGameState)
+        
         setSelectedSquare(null)
         setValidMoves([])
       } else if (board[row][col]?.color === currentPlayer) {
@@ -496,9 +577,18 @@ const ChessGame = () => {
             <div className="flex gap-1 flex-shrink-0">
               <div className="flex-1 bg-[#112240] rounded p-1 border border-gray-700 text-center">
                 <p className="text-[10px] text-gray">Turn</p>
-                <p className={`text-sm font-bold ${currentPlayer === 'white' ? 'text-secondary' : 'text-warning'}`}>
-                  {mode === 'ai' && currentPlayer === 'black' ? '🤖 AI' : currentPlayer === 'white' ? '♔ White' : '♚ Black'}
-                </p>
+                {gameState === 'checkmate' ? (
+                  <p className="text-xs font-bold text-success">Checkmate!</p>
+                ) : gameState === 'stalemate' ? (
+                  <p className="text-xs font-bold text-warning">Stalemate!</p>
+                ) : (
+                  <div>
+                    <p className={`text-sm font-bold ${currentPlayer === 'white' ? 'text-secondary' : 'text-warning'}`}>
+                      {mode === 'ai' && currentPlayer === 'black' ? '🤖 AI' : currentPlayer === 'white' ? '♔ White' : '♚ Black'}
+                    </p>
+                    {gameState === 'check' && <p className="text-[10px] text-danger font-bold">Check!</p>}
+                  </div>
+                )}
               </div>
               <div className="flex-1 bg-[#112240] rounded p-1 border border-gray-700 text-center">
                 <p className="text-[10px] text-gray">Moves</p>
@@ -531,11 +621,28 @@ const ChessGame = () => {
           <div className="bg-[#112240] rounded-xl p-4 border border-gray-700">
             <h3 className="text-secondary font-bold text-lg mb-3">Current Turn</h3>
             <div className="bg-dark/50 rounded-lg p-3 text-center">
-              <p className={`text-3xl font-bold ${currentPlayer === 'white' ? 'text-secondary' : 'text-warning'}`}>
-                {mode === 'ai' && currentPlayer === 'black' ? '🤖 AI' : currentPlayer === 'white' ? '♔ White' : '♚ Black'}
-              </p>
-              {mode === 'ai' && currentPlayer === 'black' && aiThinkingRef.current && (
-                <p className="text-sm text-gray mt-2">Thinking...</p>
+              {gameState === 'checkmate' ? (
+                <div>
+                  <p className="text-3xl font-bold text-success mb-2">Checkmate!</p>
+                  <p className="text-lg text-gray">{currentPlayer === 'white' ? 'Black' : 'White'} Wins!</p>
+                </div>
+              ) : gameState === 'stalemate' ? (
+                <div>
+                  <p className="text-3xl font-bold text-warning mb-2">Stalemate!</p>
+                  <p className="text-lg text-gray">Draw</p>
+                </div>
+              ) : (
+                <div>
+                  <p className={`text-3xl font-bold ${currentPlayer === 'white' ? 'text-secondary' : 'text-warning'}`}>
+                    {mode === 'ai' && currentPlayer === 'black' ? '🤖 AI' : currentPlayer === 'white' ? '♔ White' : '♚ Black'}
+                  </p>
+                  {gameState === 'check' && (
+                    <p className="text-sm text-danger mt-2 font-bold">⚠️ Check!</p>
+                  )}
+                  {mode === 'ai' && currentPlayer === 'black' && aiThinkingRef.current && (
+                    <p className="text-sm text-gray mt-2">Thinking...</p>
+                  )}
+                </div>
               )}
             </div>
           </div>
