@@ -12,7 +12,7 @@ const TicTacToeGame = () => {
   const [difficulty, setDifficulty] = useState('hard')
   const [scores, setScores] = useState({ x: 0, o: 0, draw: 0 })
   const [gameState, setGameState] = useState('playing')
-  const { showTouchControls } = useInputDevice()
+  const { showTouchControls, toggleTouchControls } = useInputDevice()
 
   const winPatterns = [
     [0, 1, 2], [3, 4, 5], [6, 7, 8],
@@ -257,6 +257,9 @@ const TicTacToeGame = () => {
             <div className="space-y-2">
               <button onClick={resetGame} className="w-full px-4 py-2.5 bg-success hover:bg-success/80 text-white font-semibold rounded-lg transition-all">New Game</button>
               <button onClick={resetScores} className="w-full px-4 py-2.5 bg-danger hover:bg-danger/80 text-white font-semibold rounded-lg transition-all">Reset Scores</button>
+              <button onClick={toggleTouchControls} className="w-full px-4 py-2.5 bg-secondary hover:bg-secondary/80 text-dark font-semibold rounded-lg transition-all">
+                {showTouchControls ? '🎮 Hide Touch Controls' : '🎮 Show Touch Controls'}
+              </button>
             </div>
           </div>
           <div className="bg-[#112240] rounded-xl p-4 border border-gray-700">
@@ -314,6 +317,16 @@ const TicTacToeGame = () => {
           )}
           <div className="flex-1 flex items-center justify-center min-h-0 relative">
             <canvas ref={canvasRef} onClick={handleCanvasClick} className="border-4 border-secondary/30 rounded-xl shadow-2xl max-w-full max-h-full cursor-pointer" style={{ boxShadow: '0 0 60px rgba(100, 255, 218, 0.3)' }} />
+            
+            {/* Floating toggle button for mobile */}
+            <button 
+              onClick={toggleTouchControls}
+              className="lg:hidden absolute top-2 right-2 p-2 bg-secondary/80 hover:bg-secondary text-dark rounded-lg shadow-lg z-10 text-xs font-semibold"
+              title={showTouchControls ? 'Hide touch controls' : 'Show touch controls'}
+            >
+              🎮
+            </button>
+
             {gameState === 'playing' && (
               <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-black/80 backdrop-blur-sm px-6 py-3 rounded-lg">
                 <p className="text-lg font-bold text-center">

@@ -10,7 +10,7 @@ const SnakeGame = () => {
   })
   const [gameState, setGameState] = useState('ready')
   const [speed, setSpeed] = useState('normal')
-  const { showTouchControls } = useInputDevice()
+  const { showTouchControls, toggleTouchControls } = useInputDevice()
 
   const speedMap = { slow: 150, normal: 100, fast: 60 }
   const tileCount = 25
@@ -252,6 +252,9 @@ const SnakeGame = () => {
             <div className="space-y-2">
               <button onClick={startGame} className="w-full px-4 py-2.5 bg-success hover:bg-success/80 text-white font-semibold rounded-lg transition-all">Start Game</button>
               <button onClick={resetGame} className="w-full px-4 py-2.5 bg-danger hover:bg-danger/80 text-white font-semibold rounded-lg transition-all">Reset</button>
+              <button onClick={toggleTouchControls} className="w-full px-4 py-2.5 bg-secondary hover:bg-secondary/80 text-dark font-semibold rounded-lg transition-all">
+                {showTouchControls ? '🎮 Hide Touch Controls' : '🎮 Show Touch Controls'}
+              </button>
             </div>
           </div>
           <div className="bg-[#112240] rounded-xl p-4 border border-gray-700">
@@ -297,6 +300,16 @@ const SnakeGame = () => {
           )}
           <div className="flex-1 flex items-center justify-center min-h-0 relative">
             <canvas ref={canvasRef} className="border-4 border-secondary/30 rounded-xl shadow-2xl max-w-full max-h-full" style={{ boxShadow: '0 0 60px rgba(100, 255, 218, 0.3)' }} />
+            
+            {/* Floating toggle button for mobile */}
+            <button 
+              onClick={toggleTouchControls}
+              className="lg:hidden absolute top-2 right-2 p-2 bg-secondary/80 hover:bg-secondary text-dark rounded-lg shadow-lg z-10 text-xs font-semibold"
+              title={showTouchControls ? 'Hide touch controls' : 'Show touch controls'}
+            >
+              🎮
+            </button>
+
             {gameState === 'ready' && (
               <div className="absolute top-0 left-0 right-0 bottom-0 bg-black/80 backdrop-blur-sm rounded-xl flex items-center justify-center">
                 <div className="text-center p-4">
