@@ -349,20 +349,22 @@ const BSTSimulator = () => {
         </div>
 
         {/* Canvas */}
-        <div className="flex-1 bg-[#0a192f] relative">
-          <canvas
-            ref={canvasRef}
-            className="w-full h-full"
-          />
-          
-          {!root && (
-            <div className="absolute inset-0 flex items-center justify-center text-gray-500">
-              <div className="text-center">
-                <div className="text-4xl mb-2">🌳</div>
-                <p>Tree is empty. Insert values to get started!</p>
+        <div className="flex-1 bg-[#0a192f] p-4">
+          <div className="w-full h-full border-2 border-red-500 rounded relative">
+            <canvas
+              ref={canvasRef}
+              className="w-full h-full"
+            />
+            
+            {!root && (
+              <div className="absolute inset-0 flex items-center justify-center text-gray-500">
+                <div className="text-center">
+                  <div className="text-4xl mb-2">🌳</div>
+                  <p>Tree is empty. Insert values to get started!</p>
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
         {/* Info Modal */}

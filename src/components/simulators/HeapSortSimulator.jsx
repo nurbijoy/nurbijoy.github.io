@@ -232,8 +232,8 @@ const HeapSortSimulator = () => {
           </div>
         </div>
 
-        <div className="flex-1 flex items-end justify-center bg-[#0a192f]">
-          <div className="flex items-end justify-center gap-px h-full w-full px-2">
+        <div className="flex-1 flex items-end justify-center bg-[#0a192f] p-4">
+          <div className="flex items-end justify-center gap-px h-full w-full px-2 border-2 border-red-500 rounded">
             {array.map((value, index) => (
               <div
                 key={index}

@@ -230,8 +230,9 @@ const HashTableSimulator = () => {
         </div>
 
         {/* Visualization */}
-        <div className="flex-1 bg-[#0a192f] overflow-auto px-4 py-4">
-          <div className="w-full">
+        <div className="flex-1 bg-[#0a192f] p-4">
+          <div className="w-full h-full border-2 border-red-500 rounded overflow-auto px-4 py-4">
+            <div className="w-full">
             <div className="grid gap-3">
               {table.map((bucket, index) => (
                 <div
@@ -270,6 +271,7 @@ const HashTableSimulator = () => {
                   )}
                 </div>
               ))}
+            </div>
             </div>
           </div>
         </div>

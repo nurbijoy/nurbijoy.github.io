@@ -146,8 +146,9 @@ const StackSimulator = () => {
         </div>
 
         {/* Visualization */}
-        <div className="flex-1 flex items-center justify-center bg-[#0a192f]">
-          <div className="flex flex-col-reverse items-center gap-2 max-h-full overflow-auto px-4">
+        <div className="flex-1 flex items-center justify-center bg-[#0a192f] p-4">
+          <div className="w-full h-full border-2 border-red-500 rounded flex items-center justify-center overflow-auto">
+            <div className="flex flex-col-reverse items-center gap-2 max-h-full overflow-auto px-4">
             {stack.length === 0 ? (
               <div className="text-gray-500 text-center py-20">
                 <div className="text-6xl mb-4">📚</div>
@@ -177,6 +178,7 @@ const StackSimulator = () => {
                 <div className="text-gray-400 text-sm">BOTTOM</div>
               </>
             )}
+            </div>
           </div>
         </div>
 

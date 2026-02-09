@@ -44,7 +44,7 @@ npm run deploy
 
 ```bash
 # One line code
-git add . && git commit -m "Updated games" && git push origin main && npm run deploy
+git add . && git commit -m "Updated simulators" && git push origin main && npm run deploy
 ```
 
 Your site will be live at: **https://nurbijoy.github.io**

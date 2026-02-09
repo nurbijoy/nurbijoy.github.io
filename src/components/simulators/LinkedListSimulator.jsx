@@ -277,8 +277,9 @@ const LinkedListSimulator = () => {
         </div>
 
         {/* Visualization */}
-        <div className="flex-1 flex items-center justify-center bg-[#0a192f]">
-          <div className="flex flex-col items-center gap-6 w-full px-4">
+        <div className="flex-1 flex items-center justify-center bg-[#0a192f] p-4">
+          <div className="w-full h-full border-2 border-red-500 rounded flex items-center justify-center">
+            <div className="flex flex-col items-center gap-6 w-full px-4">
             {list.length === 0 ? (
               <div className="text-gray-500 text-center py-20">
                 <div className="text-6xl mb-4">🔗</div>
@@ -320,6 +321,7 @@ const LinkedListSimulator = () => {
                 </div>
               </>
             )}
+            </div>
           </div>
         </div>
 

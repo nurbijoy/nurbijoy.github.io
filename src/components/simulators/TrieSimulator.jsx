@@ -262,7 +262,8 @@ const TrieSimulator = () => {
         </div>
 
         <div className="flex-1 flex overflow-hidden">
-          <div className="flex-1 bg-[#0a192f] overflow-auto px-4 py-4">
+          <div className="flex-1 bg-[#0a192f] p-4">
+            <div className="w-full h-full border-2 border-red-500 rounded overflow-auto px-4 py-4">
             {words.length === 0 ? (
               <div className="flex items-center justify-center h-full text-gray-500">
                 <div className="text-center">
@@ -274,6 +275,7 @@ const TrieSimulator = () => {
             ) : (
               renderTrie()
             )}
+            </div>
           </div>
 
           <div className="w-80 bg-[#112240] border-l border-gray-700 p-4 overflow-auto">
