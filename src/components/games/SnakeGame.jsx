@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import GameLayout from './GameLayout'
+import { useInputDevice } from '../../hooks/useInputDevice'
 
 const SnakeGame = () => {
   const canvasRef = useRef(null)
@@ -9,6 +10,7 @@ const SnakeGame = () => {
   })
   const [gameState, setGameState] = useState('ready')
   const [speed, setSpeed] = useState('normal')
+  const { showTouchControls } = useInputDevice()
 
   const speedMap = { slow: 150, normal: 100, fast: 60 }
   const tileCount = 25
@@ -142,8 +144,58 @@ const SnakeGame = () => {
       else if (e.key === 'ArrowLeft' && direction.x === 0) gameRef.current.nextDirection = { x: -1, y: 0 }
       else if (e.key === 'ArrowRight' && direction.x === 0) gameRef.current.nextDirection = { x: 1, y: 0 }
     }
+    
+    // Touch swipe controls
+    let touchStartX = 0
+    let touchStartY = 0
+    
+    const handleTouchStart = (e) => {
+      touchStartX = e.touches[0].clientX
+      touchStartY = e.touches[0].clientY
+    }
+    
+    const handleTouchEnd = (e) => {
+      const touchEndX = e.changedTouches[0].clientX
+      const touchEndY = e.changedTouches[0].clientY
+      const deltaX = touchEndX - touchStartX
+      const deltaY = touchEndY - touchStartY
+      const { direction } = gameRef.current
+      
+      if (Math.abs(deltaX) > Math.abs(deltaY)) {
+        // Horizontal swipe
+        if (deltaX > 30 && direction.x === 0) {
+          gameRef.current.nextDirection = { x: 1, y: 0 }
+          if (gameState === 'ready') startGame()
+        } else if (deltaX < -30 && direction.x === 0) {
+          gameRef.current.nextDirection = { x: -1, y: 0 }
+          if (gameState === 'ready') startGame()
+        }
+      } else {
+        // Vertical swipe
+        if (deltaY > 30 && direction.y === 0) {
+          gameRef.current.nextDirection = { x: 0, y: 1 }
+          if (gameState === 'ready') startGame()
+        } else if (deltaY < -30 && direction.y === 0) {
+          gameRef.current.nextDirection = { x: 0, y: -1 }
+          if (gameState === 'ready') startGame()
+        }
+      }
+    }
+    
+    const canvas = canvasRef.current
     window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
+    if (canvas) {
+      canvas.addEventListener('touchstart', handleTouchStart)
+      canvas.addEventListener('touchend', handleTouchEnd)
+    }
+    
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+      if (canvas) {
+        canvas.removeEventListener('touchstart', handleTouchStart)
+        canvas.removeEventListener('touchend', handleTouchEnd)
+      }
+    }
   }, [gameState])
 
   useEffect(() => {
@@ -221,21 +273,28 @@ const SnakeGame = () => {
             </div>
           </div>
         </div>
-        <div className="flex-1 flex flex-col gap-4 min-h-0">
-          <div className="lg:hidden flex gap-2 flex-shrink-0">
-            <div className="flex-1 bg-[#112240] rounded-lg p-2 border border-gray-700 text-center">
-              <p className="text-xs text-gray">Score</p>
-              <p className="text-lg font-bold text-secondary">{score}</p>
+        <div className="flex-1 flex flex-col gap-2 min-h-0">
+          {showTouchControls && (
+            <div className="flex gap-1 flex-shrink-0">
+            <div className="flex-1 bg-[#112240] rounded p-1 border border-gray-700 text-center">
+              <p className="text-[10px] text-gray">Score</p>
+              <p className="text-sm font-bold text-secondary">{score}</p>
             </div>
-            <div className="flex-1 bg-[#112240] rounded-lg p-2 border border-gray-700 text-center">
-              <p className="text-xs text-gray">High</p>
-              <p className="text-lg font-bold text-warning">{highScore}</p>
+            <div className="flex-1 bg-[#112240] rounded p-1 border border-gray-700 text-center">
+              <p className="text-[10px] text-gray">High</p>
+              <p className="text-sm font-bold text-warning">{highScore}</p>
             </div>
-            <div className="flex-1 bg-[#112240] rounded-lg p-2 border border-gray-700 text-center">
-              <p className="text-xs text-gray">Length</p>
-              <p className="text-lg font-bold text-light">{gameRef.current.snake.length}</p>
+            <div className="flex-1 bg-[#112240] rounded p-1 border border-gray-700 text-center">
+              <p className="text-[10px] text-gray">Len</p>
+              <p className="text-sm font-bold text-light">{gameRef.current.snake.length}</p>
             </div>
+            <button onClick={startGame} className="px-2 py-1 bg-success text-white text-xs font-semibold rounded">▶</button>
+            <button onClick={resetGame} className="px-2 py-1 bg-danger text-white text-xs font-semibold rounded">↻</button>
+            {['S', 'N', 'F'].map((s, i) => (
+              <button key={s} onClick={() => setSpeed(['slow', 'normal', 'fast'][i])} className={`px-2 py-1 rounded text-xs font-semibold ${speed === ['slow', 'normal', 'fast'][i] ? 'bg-secondary text-dark' : 'bg-dark/50 text-gray'}`}>{s}</button>
+            ))}
           </div>
+          )}
           <div className="flex-1 flex items-center justify-center min-h-0 relative">
             <canvas ref={canvasRef} className="border-4 border-secondary/30 rounded-xl shadow-2xl max-w-full max-h-full" style={{ boxShadow: '0 0 60px rgba(100, 255, 218, 0.3)' }} />
             {gameState === 'ready' && (
@@ -266,13 +325,60 @@ const SnakeGame = () => {
               </div>
             )}
           </div>
-          <div className="lg:hidden flex gap-2 flex-shrink-0">
-            <button onClick={startGame} className="flex-1 px-4 py-2.5 bg-success hover:bg-success/80 text-white font-semibold rounded-lg transition-all">Start</button>
-            <button onClick={resetGame} className="flex-1 px-4 py-2.5 bg-danger hover:bg-danger/80 text-white font-semibold rounded-lg transition-all">Reset</button>
-            {['slow', 'normal', 'fast'].map(s => (
-              <button key={s} onClick={() => setSpeed(s)} className={`px-3 py-2.5 rounded-lg font-semibold text-xs transition-all ${speed === s ? 'bg-secondary text-dark' : 'bg-dark/50 text-gray'}`}>{s[0].toUpperCase()}</button>
-            ))}
+          {showTouchControls && (
+            <div className="grid grid-cols-3 gap-1 flex-shrink-0">
+            <div></div>
+            <button 
+              onClick={() => {
+                const { direction } = gameRef.current
+                if (direction.y === 0) {
+                  gameRef.current.nextDirection = { x: 0, y: -1 }
+                  if (gameState === 'ready') startGame()
+                }
+              }}
+              className="py-2 bg-secondary/20 active:bg-secondary/40 text-secondary font-bold rounded text-xl"
+            >
+              ▲
+            </button>
+            <div></div>
+            <button 
+              onClick={() => {
+                const { direction } = gameRef.current
+                if (direction.x === 0) {
+                  gameRef.current.nextDirection = { x: -1, y: 0 }
+                  if (gameState === 'ready') startGame()
+                }
+              }}
+              className="py-2 bg-secondary/20 active:bg-secondary/40 text-secondary font-bold rounded text-xl"
+            >
+              ◄
+            </button>
+            <button 
+              onClick={() => {
+                const { direction } = gameRef.current
+                if (direction.y === 0) {
+                  gameRef.current.nextDirection = { x: 0, y: 1 }
+                  if (gameState === 'ready') startGame()
+                }
+              }}
+              className="py-2 bg-secondary/20 active:bg-secondary/40 text-secondary font-bold rounded text-xl"
+            >
+              ▼
+            </button>
+            <button 
+              onClick={() => {
+                const { direction } = gameRef.current
+                if (direction.x === 0) {
+                  gameRef.current.nextDirection = { x: 1, y: 0 }
+                  if (gameState === 'ready') startGame()
+                }
+              }}
+              className="py-2 bg-secondary/20 active:bg-secondary/40 text-secondary font-bold rounded text-xl"
+            >
+              ►
+            </button>
           </div>
+          )}
         </div>
         <div className="hidden lg:flex lg:w-64 xl:w-80 flex-col gap-4 overflow-y-auto">
           <div className="bg-[#112240] rounded-xl p-4 border border-gray-700">

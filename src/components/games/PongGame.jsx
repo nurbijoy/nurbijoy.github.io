@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import GameLayout from './GameLayout'
+import { useInputDevice } from '../../hooks/useInputDevice'
 
 const PongGame = () => {
   const canvasRef = useRef(null)
@@ -8,6 +9,7 @@ const PongGame = () => {
   const [gameState, setGameState] = useState('ready')
   const [mode, setMode] = useState('ai') // 'ai' or '2player'
   const [difficulty, setDifficulty] = useState('normal')
+  const { showTouchControls } = useInputDevice()
   
   const difficultyMap = { easy: 0.03, normal: 0.06, hard: 0.1 }
   
@@ -301,17 +303,24 @@ const PongGame = () => {
             </div>
           </div>
         </div>
-        <div className="flex-1 flex flex-col gap-4 min-h-0">
-          <div className="lg:hidden flex gap-2 flex-shrink-0">
-            <div className="flex-1 bg-[#112240] rounded-lg p-2 border border-gray-700 text-center">
-              <p className="text-xs text-gray">Player 1</p>
-              <p className="text-2xl font-bold text-secondary">{scoreLeft}</p>
+        <div className="flex-1 flex flex-col gap-2 min-h-0">
+          {showTouchControls && (
+            <div className="flex gap-1 flex-shrink-0">
+            <div className="flex-1 bg-[#112240] rounded p-1 border border-gray-700 text-center">
+              <p className="text-[10px] text-gray">P1</p>
+              <p className="text-lg font-bold text-secondary">{scoreLeft}</p>
             </div>
-            <div className="flex-1 bg-[#112240] rounded-lg p-2 border border-gray-700 text-center">
-              <p className="text-xs text-gray">{mode === 'ai' ? 'AI' : 'Player 2'}</p>
-              <p className="text-2xl font-bold text-warning">{scoreRight}</p>
+            <div className="flex-1 bg-[#112240] rounded p-1 border border-gray-700 text-center">
+              <p className="text-[10px] text-gray">{mode === 'ai' ? 'AI' : 'P2'}</p>
+              <p className="text-lg font-bold text-warning">{scoreRight}</p>
             </div>
-          </div>
+            <button onClick={startGame} className="px-2 py-1 bg-success text-white text-xs font-semibold rounded">▶</button>
+            <button onClick={resetGame} className="px-2 py-1 bg-danger text-white text-xs font-semibold rounded">↻</button>
+            <button onClick={() => setMode(mode === 'ai' ? '2player' : 'ai')} className="px-2 py-1 bg-secondary text-dark text-xs font-semibold rounded">
+              {mode === 'ai' ? 'AI' : '2P'}
+            </button>
+            </div>
+          )}
           <div className="flex-1 flex items-center justify-center min-h-0 relative">
             <canvas ref={canvasRef} className="border-4 border-secondary/30 rounded-xl shadow-2xl max-w-full max-h-full" style={{ boxShadow: '0 0 60px rgba(100, 255, 218, 0.3)' }} />
             {gameState === 'ready' && (
@@ -332,24 +341,16 @@ const PongGame = () => {
               </div>
             )}
           </div>
-          <div className="lg:hidden flex gap-2 flex-shrink-0">
-            <button onClick={startGame} className="flex-1 px-4 py-2.5 bg-success hover:bg-success/80 text-white font-semibold rounded-lg transition-all">Start</button>
-            <button onClick={resetGame} className="flex-1 px-4 py-2.5 bg-danger hover:bg-danger/80 text-white font-semibold rounded-lg transition-all">Reset</button>
-            <button onClick={() => setMode(mode === 'ai' ? '2player' : 'ai')} className="px-4 py-2.5 bg-secondary hover:bg-secondary/80 text-dark font-semibold rounded-lg transition-all text-sm">
-              {mode === 'ai' ? 'AI' : '2P'}
-            </button>
-          </div>
-          {mode === '2player' && (
-            <div className="lg:hidden grid grid-cols-2 gap-2 flex-shrink-0">
-              <div className="space-y-2">
-                <p className="text-xs text-center text-gray">Player 1</p>
+          {showTouchControls && mode === '2player' && (
+            <div className="grid grid-cols-2 gap-1 flex-shrink-0">
+              <div className="flex gap-1">
                 <button 
                   onTouchStart={() => gameRef.current.keys['w'] = true}
                   onTouchEnd={() => gameRef.current.keys['w'] = false}
                   onMouseDown={() => gameRef.current.keys['w'] = true}
                   onMouseUp={() => gameRef.current.keys['w'] = false}
                   onMouseLeave={() => gameRef.current.keys['w'] = false}
-                  className="w-full px-4 py-3 bg-secondary/20 hover:bg-secondary/30 text-secondary font-semibold rounded-lg transition-all active:bg-secondary/40"
+                  className="flex-1 py-2 bg-secondary/20 active:bg-secondary/40 text-secondary font-bold rounded"
                 >
                   ▲
                 </button>
@@ -359,20 +360,19 @@ const PongGame = () => {
                   onMouseDown={() => gameRef.current.keys['s'] = true}
                   onMouseUp={() => gameRef.current.keys['s'] = false}
                   onMouseLeave={() => gameRef.current.keys['s'] = false}
-                  className="w-full px-4 py-3 bg-secondary/20 hover:bg-secondary/30 text-secondary font-semibold rounded-lg transition-all active:bg-secondary/40"
+                  className="flex-1 py-2 bg-secondary/20 active:bg-secondary/40 text-secondary font-bold rounded"
                 >
                   ▼
                 </button>
               </div>
-              <div className="space-y-2">
-                <p className="text-xs text-center text-gray">Player 2</p>
+              <div className="flex gap-1">
                 <button 
                   onTouchStart={() => gameRef.current.keys['arrowup'] = true}
                   onTouchEnd={() => gameRef.current.keys['arrowup'] = false}
                   onMouseDown={() => gameRef.current.keys['arrowup'] = true}
                   onMouseUp={() => gameRef.current.keys['arrowup'] = false}
                   onMouseLeave={() => gameRef.current.keys['arrowup'] = false}
-                  className="w-full px-4 py-3 bg-warning/20 hover:bg-warning/30 text-warning font-semibold rounded-lg transition-all active:bg-warning/40"
+                  className="flex-1 py-2 bg-warning/20 active:bg-warning/40 text-warning font-bold rounded"
                 >
                   ▲
                 </button>
@@ -382,38 +382,35 @@ const PongGame = () => {
                   onMouseDown={() => gameRef.current.keys['arrowdown'] = true}
                   onMouseUp={() => gameRef.current.keys['arrowdown'] = false}
                   onMouseLeave={() => gameRef.current.keys['arrowdown'] = false}
-                  className="w-full px-4 py-3 bg-warning/20 hover:bg-warning/30 text-warning font-semibold rounded-lg transition-all active:bg-warning/40"
+                  className="flex-1 py-2 bg-warning/20 active:bg-warning/40 text-warning font-bold rounded"
                 >
                   ▼
                 </button>
               </div>
             </div>
           )}
-          {mode === 'ai' && (
-            <div className="lg:hidden space-y-2 flex-shrink-0">
-              <p className="text-xs text-center text-gray">Your Controls</p>
-              <div className="grid grid-cols-2 gap-2">
-                <button 
-                  onTouchStart={() => gameRef.current.keys['w'] = true}
-                  onTouchEnd={() => gameRef.current.keys['w'] = false}
-                  onMouseDown={() => gameRef.current.keys['w'] = true}
-                  onMouseUp={() => gameRef.current.keys['w'] = false}
-                  onMouseLeave={() => gameRef.current.keys['w'] = false}
-                  className="px-4 py-3 bg-secondary/20 hover:bg-secondary/30 text-secondary font-semibold rounded-lg transition-all active:bg-secondary/40"
-                >
-                  ▲ Up
-                </button>
-                <button 
-                  onTouchStart={() => gameRef.current.keys['s'] = true}
-                  onTouchEnd={() => gameRef.current.keys['s'] = false}
-                  onMouseDown={() => gameRef.current.keys['s'] = true}
-                  onMouseUp={() => gameRef.current.keys['s'] = false}
-                  onMouseLeave={() => gameRef.current.keys['s'] = false}
-                  className="px-4 py-3 bg-secondary/20 hover:bg-secondary/30 text-secondary font-semibold rounded-lg transition-all active:bg-secondary/40"
-                >
-                  ▼ Down
-                </button>
-              </div>
+          {showTouchControls && mode === 'ai' && (
+            <div className="flex gap-1 flex-shrink-0">
+              <button 
+                onTouchStart={() => gameRef.current.keys['w'] = true}
+                onTouchEnd={() => gameRef.current.keys['w'] = false}
+                onMouseDown={() => gameRef.current.keys['w'] = true}
+                onMouseUp={() => gameRef.current.keys['w'] = false}
+                onMouseLeave={() => gameRef.current.keys['w'] = false}
+                className="flex-1 py-2 bg-secondary/20 active:bg-secondary/40 text-secondary font-bold rounded"
+              >
+                ▲ Up
+              </button>
+              <button 
+                onTouchStart={() => gameRef.current.keys['s'] = true}
+                onTouchEnd={() => gameRef.current.keys['s'] = false}
+                onMouseDown={() => gameRef.current.keys['s'] = true}
+                onMouseUp={() => gameRef.current.keys['s'] = false}
+                onMouseLeave={() => gameRef.current.keys['s'] = false}
+                className="flex-1 py-2 bg-secondary/20 active:bg-secondary/40 text-secondary font-bold rounded"
+              >
+                ▼ Down
+              </button>
             </div>
           )}
         </div>
