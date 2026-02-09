@@ -47,6 +47,30 @@ export const gamesData = [
     tags: ['Memory', 'Cards', 'Timer'],
     emoji: '🃏',
     implemented: true
+  },
+  {
+    id: 'flappy',
+    title: 'Flappy Bird',
+    description: 'Navigate through pipes by tapping to fly. How far can you go?',
+    tags: ['Arcade', 'Timing', 'High Score'],
+    emoji: '🐦',
+    implemented: true
+  },
+  {
+    id: 'breakout',
+    title: 'Brick Breaker',
+    description: 'Break all the bricks with your paddle and ball.',
+    tags: ['Arcade', 'Paddle', 'Power-ups'],
+    emoji: '🧱',
+    implemented: true
+  },
+  {
+    id: 'invaders',
+    title: 'Space Invaders',
+    description: 'Defend Earth from alien invaders in this classic shooter.',
+    tags: ['Shooter', 'Arcade', 'Waves'],
+    emoji: '👾',
+    implemented: true
   }
 ]
 
