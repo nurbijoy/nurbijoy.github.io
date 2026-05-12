@@ -170,10 +170,10 @@ const BBSeatFinder = () => {
           {/* Header */}
           <div className="text-center mb-8">
             <div className="text-6xl mb-3">🏦</div>
-            <h1 className="text-2xl md:text-3xl font-bold text-green-800 mb-2">
+            <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-3">
               Bangladesh Bank Seat Finder
             </h1>
-            <p className="text-gray-600 text-sm">
+            <p className="text-gray-800 text-lg font-semibold">
               Find your exam center for Bangladesh Bank recruitment exams
             </p>
           </div>
@@ -181,7 +181,7 @@ const BBSeatFinder = () => {
           {/* Exam Selection Dropdown */}
           {exams.length > 0 && (
             <div className="mb-6">
-              <label htmlFor="exam-select" className="block text-gray-800 font-semibold mb-3 text-sm">
+              <label htmlFor="exam-select" className="block text-gray-900 font-bold mb-3 text-base">
                 Select Exam
               </label>
               <select
@@ -194,7 +194,7 @@ const BBSeatFinder = () => {
                   setError('')
                   setRollNumber('')
                 }}
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl text-base focus:border-green-600 focus:outline-none transition-colors bg-white"
+                className="w-full px-4 py-3 border-2 border-gray-400 rounded-xl text-base font-medium text-gray-900 focus:border-green-600 focus:outline-none transition-colors bg-white"
               >
                 {exams.map((exam) => (
                   <option key={exam.id} value={exam.id}>
@@ -207,24 +207,24 @@ const BBSeatFinder = () => {
 
           {/* Exam Info */}
           {selectedExam && (
-            <div className="bg-green-50 border-2 border-green-200 rounded-xl p-4 mb-8">
-              <div className="flex flex-wrap items-center justify-center gap-4 text-sm text-green-800">
+            <div className="bg-green-50 border-2 border-green-300 rounded-xl p-4 mb-8">
+              <div className="flex flex-wrap items-center justify-center gap-4 text-sm text-green-900 font-medium">
                 <div className="flex items-center gap-2">
-                  <FiCalendar className="text-lg" />
+                  <FiCalendar className="text-lg text-green-700" />
                   <span>
-                    <strong>{selectedExam.examDate}</strong> ({selectedExam.examDay})
+                    <strong className="font-bold">{selectedExam.examDate}</strong> ({selectedExam.examDay})
                   </span>
                 </div>
-                <span className="hidden sm:inline text-green-400">|</span>
+                <span className="hidden sm:inline text-green-500">|</span>
                 <div className="flex items-center gap-2">
-                  <FiClock className="text-lg" />
-                  <span>{selectedExam.examTime}</span>
+                  <FiClock className="text-lg text-green-700" />
+                  <span className="font-medium">{selectedExam.examTime}</span>
                 </div>
-                <span className="hidden sm:inline text-green-400">|</span>
+                <span className="hidden sm:inline text-green-500">|</span>
                 <div className="flex items-center gap-2">
-                  <FiBriefcase className="text-lg" />
+                  <FiBriefcase className="text-lg text-green-700" />
                   <span>
-                    Job ID: <strong>{selectedExam.jobId}</strong> | {selectedExam.grade}
+                    Job ID: <strong className="font-bold">{selectedExam.jobId}</strong> | {selectedExam.grade}
                   </span>
                 </div>
               </div>
@@ -234,7 +234,7 @@ const BBSeatFinder = () => {
           {/* Input Section */}
           {selectedExam && (
             <div className="mb-6">
-              <label htmlFor="roll" className="block text-gray-800 font-semibold mb-3 text-sm">
+              <label htmlFor="roll" className="block text-gray-900 font-bold mb-3 text-base">
                 Enter Your Roll Number
               </label>
               <div className="flex gap-3">
@@ -245,12 +245,12 @@ const BBSeatFinder = () => {
                   onChange={(e) => setRollNumber(e.target.value)}
                   onKeyPress={handleKeyPress}
                   placeholder="e.g. 142000"
-                  className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-xl text-lg tracking-wider focus:border-green-600 focus:outline-none transition-colors"
+                  className="flex-1 px-4 py-3 border-2 border-gray-400 rounded-xl text-lg text-gray-900 font-medium tracking-wider focus:border-green-600 focus:outline-none transition-colors placeholder:text-gray-400"
                 />
                 <button
                   onClick={findSeat}
                   disabled={searching}
-                  className="px-6 py-3 bg-green-700 hover:bg-green-800 text-white font-semibold rounded-xl transition-colors whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-6 py-3 bg-green-700 hover:bg-green-800 text-white font-bold rounded-xl transition-colors whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
                 >
                   {searching ? '⏳' : '🔍'} Find
                 </button>
@@ -270,30 +270,30 @@ const BBSeatFinder = () => {
           {/* Result Section */}
           {result && (
             <div className="bg-green-50 border-2 border-green-600 rounded-xl p-6 animate-fadeIn">
-              <div className="text-xs font-bold text-green-700 uppercase tracking-wider mb-4">
-                ✅ Exam Center Found
+              <div className="text-xs font-bold text-green-800 uppercase tracking-wider mb-4">
+                ✅ EXAM CENTER FOUND
               </div>
               <div className="mb-4">
                 <h2 className="text-xl font-bold text-gray-900 mb-2 flex items-start gap-2">
-                  <FiMapPin className="text-green-600 mt-1 flex-shrink-0" />
+                  <FiMapPin className="text-green-700 mt-1 flex-shrink-0 text-2xl" />
                   <span>{result.name}</span>
                 </h2>
-                <p className="text-gray-600 text-sm ml-7">{result.address}</p>
+                <p className="text-gray-700 text-base font-medium ml-7">{result.address}</p>
               </div>
               <div className="flex flex-wrap gap-2 mb-4">
-                <span className="bg-green-700 text-white px-3 py-1 rounded-full text-xs font-semibold">
+                <span className="bg-green-700 text-white px-3 py-1 rounded-full text-sm font-bold">
                   Roll: {rollNumber}
                 </span>
-                <span className="bg-gray-600 text-white px-3 py-1 rounded-full text-xs font-semibold">
+                <span className="bg-gray-700 text-white px-3 py-1 rounded-full text-sm font-bold">
                   Center No. {result.sl}
                 </span>
-                <span className="bg-gray-600 text-white px-3 py-1 rounded-full text-xs font-semibold">
+                <span className="bg-gray-700 text-white px-3 py-1 rounded-full text-sm font-bold">
                   Range: {result.start.toLocaleString()} – {result.end.toLocaleString()}
                 </span>
               </div>
               <button
                 onClick={openInMaps}
-                className="text-green-700 hover:text-green-800 font-semibold text-sm hover:underline"
+                className="text-green-800 hover:text-green-900 font-bold text-base hover:underline"
               >
                 🗺️ Open in Google Maps →
               </button>
@@ -312,7 +312,7 @@ const BBSeatFinder = () => {
 
           {/* Footer */}
           {selectedExam && (
-            <div className="text-center mt-8 text-xs text-gray-400">
+            <div className="text-center mt-8 text-sm text-gray-600 font-medium">
               Data source: {selectedExam.noticeNo} — Bangladesh Bank
             </div>
           )}
