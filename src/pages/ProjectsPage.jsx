@@ -110,14 +110,23 @@ const ProjectsPage = () => {
                   >
                     <FiGithub /> Code
                   </a>
-                  <a
-                    href={project.demo}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-2 flex-1 px-4 py-3 bg-secondary hover:bg-secondary/80 text-dark font-semibold rounded-lg transition-all"
-                  >
-                    <FiExternalLink /> Demo
-                  </a>
+                  {project.demo.startsWith('/') ? (
+                    <Link
+                      to={project.demo}
+                      className="flex items-center justify-center gap-2 flex-1 px-4 py-3 bg-secondary hover:bg-secondary/80 text-dark font-semibold rounded-lg transition-all"
+                    >
+                      <FiExternalLink /> Demo
+                    </Link>
+                  ) : (
+                    <a
+                      href={project.demo}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-2 flex-1 px-4 py-3 bg-secondary hover:bg-secondary/80 text-dark font-semibold rounded-lg transition-all"
+                    >
+                      <FiExternalLink /> Demo
+                    </a>
+                  )}
                 </div>
               </div>
             </motion.div>

@@ -32,6 +32,7 @@ import MemoryGame from './components/games/MemoryGame'
 import FlappyGame from './components/games/FlappyGame'
 import BreakoutGame from './components/games/BreakoutGame'
 import InvadersGame from './components/games/InvadersGame'
+import BBSeatFinder from './components/projects/BBSeatFinder'
 
 function App() {
   return (
@@ -74,6 +75,9 @@ function App() {
         <Route path="/games/flappy" element={<FlappyGame />} />
         <Route path="/games/breakout" element={<BreakoutGame />} />
         <Route path="/games/invaders" element={<InvadersGame />} />
+
+        {/* Projects */}
+        <Route path="/projects/bb-seat-finder" element={<BBSeatFinder />} />
       </Routes>
     </Router>
   )

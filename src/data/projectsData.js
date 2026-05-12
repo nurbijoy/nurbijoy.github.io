@@ -47,7 +47,7 @@ export const projectsData = [
     tags: ['React JS', 'Node.js', 'MongoDB', 'Express', 'Web Scraping'],
     category: 'Education',
     github: '#',
-    demo: '#',
+    demo: '/projects/bb-seat-finder',
     emoji: '📝',
     image: '/projects/bb-exam.jpg',
     features: [
