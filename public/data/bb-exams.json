@@ -15,14 +15,14 @@
         {
           "sl": 1,
           "name": "Banani Model School",
-          "address": "Plot No # 13, Road No-03, Block # 7, Banani, Dhaka",
+          "address": "Plot No # 13, Road No.-05, Block # F, Banani, Dhaka 1",
           "start": 300001,
           "end": 302569
         },
         {
           "sl": 2,
           "name": "Green Field School & College",
-          "address": "House-7, Block-C, Kewatali, Mirpur-10, Dhaka 1216",
+          "address": "Plot-3, Block-C, Avenue-2, Mirpur-10, Dhaka 1216",
           "start": 302570,
           "end": 304827
         },
@@ -31,61 +31,61 @@
           "name": "Sher-E-Bangla Nagar Govt. Girls' High School",
           "address": "Sher-E-Bangla Nagar, Dhaka-1207",
           "start": 304828,
-          "end": 308382
+          "end": 308582
         },
         {
           "sl": 4,
-          "name": "Sarkarbari High School",
-          "address": "13, Ramcharan Roy Road, Paribagh, Shyampur, Dhaka 1204",
-          "start": 308383,
+          "name": "Faridabad High School",
+          "address": "15, Haricharan Roy Road, Faridabad, Shyampur, Dhaka 1204",
+          "start": 308583,
           "end": 311611
         },
         {
           "sl": 5,
-          "name": "Motijheel Govt. Boys' High School",
-          "address": "Motijheel, Dhaka 1000",
+          "name": "Dhaka Cotton Mill Adarsha High School",
+          "address": "Posthakhowla, Dhaka 1204",
           "start": 311612,
-          "end": 314294
+          "end": 314261
         },
         {
           "sl": 6,
-          "name": "Shaheed Lal Jakhira School & College",
-          "address": "49, North Biswa Road, Lal Jakhira, Gendaria, Dhaka 1204",
-          "start": 314295,
+          "name": "Kishori Lal Jubilee School & College",
+          "address": "39, North Brook Hall Road, Banglabazar, Dhaka 1100",
+          "start": 314262,
           "end": 316779
         },
         {
           "sl": 7,
-          "name": "Dhaka Mohanogor Mohila College",
-          "address": "6 Naz Sultana Plaza, Arambag Avenue, Lalbag, Dhaka 1211",
+          "name": "Dhaka Mohanagar Mohila College",
+          "address": "6 No. Subhash Bose Avenue, Laxmi Bazar, Sutrapur, Dhaka-1100",
           "start": 316780,
           "end": 321181
         },
         {
           "sl": 8,
-          "name": "Viqarunnl Abedin Aziz School & College",
+          "name": "Madertek Abdul Aziz School & College",
           "address": "Bashabo, Sabujbagh, Dhaka 1214",
           "start": 321182,
-          "end": 324738
+          "end": 324928
         },
         {
           "sl": 9,
           "name": "Sabujbagh Government College",
           "address": "70/3, South Basabo, Sabujbagh, Dhaka 1214",
-          "start": 324739,
-          "end": 328616
+          "start": 324929,
+          "end": 329876
         },
         {
           "sl": 10,
-          "name": "Khilgaon Govt. High School",
+          "name": "Ali Ahmed School & College",
           "address": "Goran, Khilgaon, Dhaka 1219",
           "start": 329877,
-          "end": 333204
+          "end": 333594
         },
         {
           "sl": 11,
           "name": "Kadamtala Purba Basabo School & College",
-          "address": "26/1, Kadamtala, Basabo, Dhaka 1214",
+          "address": "28/3, Kadamtala, Basabo, Dhaka 1214",
           "start": 333595,
           "end": 338363
         },
@@ -101,13 +101,13 @@
           "name": "Khilgaon Govt. Colony School & College",
           "address": "560/C, Khilgaon, Dhaka 1219",
           "start": 343942,
-          "end": 347151
+          "end": 347351
         },
         {
           "sl": 14,
-          "name": "Monipur High School & College",
-          "address": "11/C, Monipur, Dhaka 1216",
-          "start": 347152,
+          "name": "Khilgaon School and College",
+          "address": "711/C, Khilgaon, Dhaka 1219",
+          "start": 347352,
           "end": 352362
         },
         {
@@ -115,104 +115,104 @@
           "name": "Kamalapur Sher-E-Bangla Railway School & College",
           "address": "Kamalapur, Dhaka 1217",
           "start": 352363,
-          "end": 354909
+          "end": 354999
         },
         {
           "sl": 16,
-          "name": "Motijheel Govt. Girls High School",
+          "name": "Motijheel Colony High School",
           "address": "Motijheel, Dhaka",
           "start": 355000,
           "end": 358754
         },
         {
           "sl": 17,
-          "name": "Dania College",
-          "address": "Dania, Dhaka 1302",
+          "name": "Demra College",
+          "address": "Demra, Dhaka 1360",
           "start": 358755,
-          "end": 362561
+          "end": 362505
         },
         {
           "sl": 18,
-          "name": "Banani Ideal School and College",
-          "address": "Banani, Demra, Dhaka 1361",
-          "start": 362566,
-          "end": 364453
+          "name": "Bamoil Ideal High School and College",
+          "address": "Bamoil, Demra, Dhaka 1361",
+          "start": 362506,
+          "end": 364455
         },
         {
           "sl": 19,
-          "name": "Matuail Govt. Primary School",
-          "address": "23, Kamaranga, Demra, Dhaka 1360",
-          "start": 364454,
-          "end": 370404
+          "name": "Bawany School & College",
+          "address": "27, Kamargop, Demra, Dhaka 1360",
+          "start": 364456,
+          "end": 370040
         },
         {
           "sl": 20,
-          "name": "Matuail High Abdul Latif Bhuyan College",
-          "address": "Matuail Thakdari Para, College Road, Jatrabari, Dhaka",
-          "start": 370645,
-          "end": 372169
+          "name": "Matuail Haji Abdul Latif Bhuiyan College",
+          "address": "Matuail Dakkhin Para, College Road, Demra, Jatrabari, Dhaka",
+          "start": 370041,
+          "end": 372309
         },
         {
           "sl": 21,
-          "name": "Shekhar Abdullah Mohila High School",
-          "address": "Dania, Jatrabari, Dhaka 1362",
+          "name": "Shekhdi Abdullah Mollah High School",
+          "address": "Shekhdi, Jatrabari, Dhaka 1362",
           "start": 372310,
-          "end": 375133
+          "end": 375155
         },
         {
           "sl": 22,
-          "name": "Demra Govt. High School",
+          "name": "Barnamala Adarsha School And College",
           "address": "Dania, Jatrabari, Dhaka-1236",
           "start": 375156,
-          "end": 379425
+          "end": 379525
         },
         {
           "sl": 23,
           "name": "Jatrabari Ideal School & College",
-          "address": "Jatrabari, Dhaka 1212",
+          "address": "Jatrabari, Dhaka 1232",
           "start": 379528,
-          "end": 383118
+          "end": 383218
         },
         {
           "sl": 24,
-          "name": "Dania College (Main Campus)",
+          "name": "A. K. High School & College (Main Campus)",
           "address": "Dania, Dhaka-1236",
-          "start": 383217,
-          "end": 387136
+          "start": 383219,
+          "end": 387156
         },
         {
           "sl": 25,
-          "name": "Dania School & College (New Campus)",
+          "name": "A.K. High School & College (New Campus)",
           "address": "Dania, Dhaka-1236",
-          "start": 387139,
-          "end": 389449
+          "start": 387158,
+          "end": 389406
         },
         {
           "sl": 26,
-          "name": "Barnamala Adarsha High School",
-          "address": "3/4, Uttar Para, Dania 1203",
-          "start": 389467,
-          "end": 392310
+          "name": "City Corporation Adarsha High School",
+          "address": "3/4, Dhalpur, Wari, Dhaka 1203",
+          "start": 389407,
+          "end": 392100
         },
         {
           "sl": 27,
           "name": "Ahmed Bawany Academy School & College",
-          "address": "3-5, K.P. Ghosh Street Armanitola, Babubazar, Dhaka-1100",
+          "address": "3,4,5, K.P. Ghosh Street, Armanitola, Babubazar, Dhaka-1100",
           "start": 392101,
-          "end": 393020
+          "end": 397070
         },
         {
           "sl": 28,
           "name": "Armanitola Govt. High School, Dhaka",
-          "address": "1/B, Abdul Kayeum Road, Armanitola, Dhaka 1100",
-          "start": 393071,
-          "end": 400354
+          "address": "1 No Abul Khayrath Road, Dhaka 1100",
+          "start": 397071,
+          "end": 400524
         },
         {
           "sl": 29,
           "name": "Anandamoyee Girls' High School",
           "address": "17/18, Kazimuddin Siddiki Lane, Armanitola, Dhaka-1100",
-          "start": 400355,
+          "start": 400525,
           "end": 404033
         },
         {
@@ -224,37 +224,37 @@
         },
         {
           "sl": 31,
-          "name": "Atarikhat Girish College",
-          "address": "Manikganj, Dhaka 1217",
+          "name": "Abudharr Ghifari College",
+          "address": "Malibag, Dhaka 1217",
           "start": 407383,
-          "end": 411133
+          "end": 411115
         },
         {
           "sl": 32,
-          "name": "Azimpur Govt. Girls School",
-          "address": "Azimpur, Dhaka 1217",
-          "start": 411136,
-          "end": 414493
+          "name": "BTCL Ideal School",
+          "address": "Moghbazar, Dhaka 1217",
+          "start": 411116,
+          "end": 414893
         },
         {
           "sl": 33,
-          "name": "Mogbazar Girls' High School",
-          "address": "52, Siddheswari, Ramna, Dhaka 1217",
-          "start": 414496,
-          "end": 418612
+          "name": "Maghbazar Girls' High School",
+          "address": "52, Siddirswari, Ramna, Dhaka 1217",
+          "start": 414896,
+          "end": 418619
         },
         {
           "sl": 34,
           "name": "Siddheswari College",
-          "address": "25, Shahid Shangbadik Selina Parveen Sarak, Moghbazar, Dhaka 1217",
-          "start": 418613,
-          "end": 423394
+          "address": "25, Shahid Shangbadik Selina Parveen Sarak, Moghbazar, Dhaka-1217",
+          "start": 418620,
+          "end": 423594
         },
         {
           "sl": 35,
           "name": "Mohammadpur Girls' High School",
-          "address": "Mohammadpur Road, Mohammadpur, Dhaka 1207",
-          "start": 423395,
+          "address": "Noorjahan Road, Mohammadpur, Dhaka 1207",
+          "start": 423595,
           "end": 426699
         },
         {
@@ -266,43 +266,43 @@
         },
         {
           "sl": 37,
-          "name": "Tejgaon Govt. Girls' High School",
-          "address": "Kawranbazar, Tejgaon, Dhaka 1215",
+          "name": "Tejgaon Model High School",
+          "address": "Tejkonipara, Tejgaon, Dhaka 1215",
           "start": 429798,
-          "end": 433327
+          "end": 433522
         },
         {
           "sl": 38,
           "name": "Tejgaon Adarsha School & College",
           "address": "446, Tejgaon I/A, Dhaka-1208",
-          "start": 433328,
+          "start": 433524,
           "end": 437281
         },
         {
           "sl": 39,
-          "name": "Lalmatia High School & College",
+          "name": "Kakoli High School & College",
           "address": "179, Sat Masjid Road, Dhanmondi, Dhaka 1209",
           "start": 437282,
-          "end": 440183
+          "end": 440123
         },
         {
           "sl": 40,
-          "name": "Dhanmondi Govt. Boys' High School",
-          "address": "31/A, Masjidganj Residential Area, Dhaka 1209",
-          "start": 440184,
+          "name": "Dhanmondi Govt. Girl's High School",
+          "address": "11/A, Dhanmondi Residential Area, Dhaka 1209",
+          "start": 440124,
           "end": 443231
         },
         {
           "sl": 41,
-          "name": "Farmersit Govt. Boys High School",
-          "address": "Farmersit, Mirpur Road, Dhaka",
+          "name": "Dhanmondi Govt. Boys High School",
+          "address": "3, Sobhanbag, Mirpur Road, Dhaka 1207",
           "start": 443232,
-          "end": 446753
+          "end": 446755
         },
         {
           "sl": 42,
           "name": "Begum Rahima Adarsha Balika Uchcha Biddalay",
-          "address": "27/8-A, Topkhana Road, Shegungbagicha, Dhaka 1000",
+          "address": "27/4-A, Topkhana Road, Shegunbagicha, Dhaka 1000",
           "start": 446756,
           "end": 449265
         },
@@ -316,7 +316,7 @@
         {
           "sl": 44,
           "name": "Rayhan School and College",
-          "address": "378-A, Azimpur, Dhaka",
+          "address": "37/6-A, Azimpur, Dhaka",
           "start": 452347,
           "end": 453263
         }
