@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BB Exam Data Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2d5016;
+        }
+        .exam-card {
+            border: 2px solid #4caf50;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            background: #f1f8f4;
+        }
+        .center {
+            background: white;
+            padding: 10px;
+            margin: 5px 0;
+            border-left: 3px solid #4caf50;
+        }
+        .error {
+            color: red;
+            padding: 20px;
+            background: #ffebee;
+            border-radius: 5px;
+        }
+        .success {
+            color: green;
+            padding: 20px;
+            background: #e8f5e9;
+            border-radius: 5px;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 18px;
+            color: #666;
+        }
+        pre {
+            background: #263238;
+            color: #aed581;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏦 BB Exam Data Test Page</h1>
+        <p>This page tests if the exam data is loading correctly.</p>
+        
+        <div id="status" class="loading">Loading exam data...</div>
+        <div id="content"></div>
+    </div>
+
+    <script>
+        async function loadExamData() {
+            const statusDiv = document.getElementById('status');
+            const contentDiv = document.getElementById('content');
+            
+            try {
+                const response = await fetch('/data/bb-exams.json');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                // Success
+                statusDiv.className = 'success';
+                statusDiv.innerHTML = `
+                    ✅ <strong>Success!</strong> Loaded ${data.exams.length} exam(s)<br>
+                    Last Updated: ${new Date(data.lastUpdated).toLocaleString()}
+                `;
+                
+                // Display exams
+                let html = '<h2>Available Exams</h2>';
+                
+                data.exams.forEach((exam, index) => {
+                    html += `
+                        <div class="exam-card">
+                            <h3>${index + 1}. ${exam.title}</h3>
+                            <p><strong>Job ID:</strong> ${exam.jobId} | <strong>Grade:</strong> ${exam.grade}</p>
+                            <p><strong>Date:</strong> ${exam.examDate} (${exam.examDay})</p>
+                            <p><strong>Time:</strong> ${exam.examTime}</p>
+                            <p><strong>Notice:</strong> ${exam.noticeNo}</p>
+                            <p><strong>Centers:</strong> ${exam.centers.length}</p>
+                            
+                            <details>
+                                <summary style="cursor: pointer; color: #2d5016; font-weight: bold;">
+                                    View Centers (${exam.centers.length})
+                                </summary>
+                                <div style="margin-top: 10px;">
+                                    ${exam.centers.slice(0, 5).map(center => `
+                                        <div class="center">
+                                            <strong>${center.sl}. ${center.name}</strong><br>
+                                            ${center.address}<br>
+                                            <small>Roll Range: ${center.start.toLocaleString()} - ${center.end.toLocaleString()}</small>
+                                        </div>
+                                    `).join('')}
+                                    ${exam.centers.length > 5 ? `<p><em>... and ${exam.centers.length - 5} more centers</em></p>` : ''}
+                                </div>
+                            </details>
+                        </div>
+                    `;
+                });
+                
+                // Show raw JSON
+                html += `
+                    <h2>Raw JSON Data</h2>
+                    <details>
+                        <summary style="cursor: pointer; color: #2d5016; font-weight: bold;">
+                            View Raw JSON
+                        </summary>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    </details>
+                `;
+                
+                contentDiv.innerHTML = html;
+                
+            } catch (error) {
+                statusDiv.className = 'error';
+                statusDiv.innerHTML = `
+                    ❌ <strong>Error loading exam data:</strong><br>
+                    ${error.message}<br><br>
+                    <strong>Possible causes:</strong>
+                    <ul>
+                        <li>File not found: Check if <code>/data/bb-exams.json</code> exists</li>
+                        <li>Invalid JSON: Check file syntax</li>
+                        <li>Server not running: Make sure dev server is running</li>
+                    </ul>
+                `;
+                console.error('Error:', error);
+            }
+        }
+        
+        // Load data when page loads
+        loadExamData();
+    </script>
+</body>
+</html>

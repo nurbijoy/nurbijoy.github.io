@@ -1,0 +1,51 @@
+name: Update BB Exam Data
+
+on:
+  schedule:
+    # Run every day at 6 AM Bangladesh Time (UTC+6 = 00:00 UTC)
+    - cron: '0 0 * * *'
+  workflow_dispatch:  # Allow manual trigger from GitHub Actions tab
+
+jobs:
+  update-exam-data:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      
+      - name: Install dependencies
+        run: |
+          pip install -r scripts/requirements.txt
+      
+      - name: Run BB exam scraper
+        run: |
+          python scripts/fetch_bb_exams.py
+        continue-on-error: true
+      
+      - name: Check for changes
+        id: git-check
+        run: |
+          git diff --exit-code public/data/bb-exams.json || echo "changed=true" >> $GITHUB_OUTPUT
+      
+      - name: Commit and push if changed
+        if: steps.git-check.outputs.changed == 'true'
+        run: |
+          git config --local user.name "GitHub Action"
+          git config --local user.email "action@github.com"
+          git add public/data/bb-exams.json
+          git commit -m "🤖 Auto-update: BB exam data [$(date +'%Y-%m-%d %H:%M:%S')]"
+          git push
+      
+      - name: No changes detected
+        if: steps.git-check.outputs.changed != 'true'
+        run: |
+          echo "No changes detected in exam data"
