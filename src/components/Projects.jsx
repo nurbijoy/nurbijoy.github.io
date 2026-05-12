@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import { useInView } from '../hooks/useInView'
-import { FiGithub, FiExternalLink, FiFolder } from 'react-icons/fi'
+import { FiGithub, FiExternalLink, FiFolder, FiArrowRight } from 'react-icons/fi'
+import { Link } from 'react-router-dom'
 
 const Projects = () => {
   const [ref, inView] = useInView({ triggerOnce: true, threshold: 0.1 })
@@ -21,9 +22,9 @@ const Projects = () => {
       demo: '#',
     },
     {
-      title: 'Agrani Chatbot',
-      description: 'AI based chat application built for future customer service automation using NLP and machine learning.',
-      tags: ['Machine Learning', 'AI', 'Django', 'React', 'Flask'],
+      title: 'BB Exam Schedule Finder',
+      description: 'A web application to help students find and track Bangladesh Bank exam schedules with automated notifications.',
+      tags: ['React JS', 'Node.js', 'MongoDB', 'Express'],
       github: '#',
       demo: '#',
     },
@@ -89,6 +90,22 @@ const Projects = () => {
               </motion.div>
             ))}
           </div>
+
+          {/* View All Projects Button */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={inView ? { opacity: 1 } : {}}
+            transition={{ delay: 0.4 }}
+            className="text-center mt-12"
+          >
+            <Link
+              to="/projects"
+              className="inline-flex items-center px-6 py-3 bg-transparent border-2 border-secondary text-secondary rounded-lg hover:bg-secondary hover:text-primary transition-all duration-300 font-semibold"
+            >
+              View All Projects
+              <FiArrowRight className="ml-2" />
+            </Link>
+          </motion.div>
         </motion.div>
       </div>
     </section>

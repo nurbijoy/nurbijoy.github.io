@@ -1,9 +1,12 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
+import { Link, useLocation } from 'react-router-dom'
 
 const Navbar = ({ activeSection }) => {
   const [scrolled, setScrolled] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
+  const location = useLocation()
+  const isHomePage = location.pathname === '/'
 
   useEffect(() => {
     const handleScroll = () => {
@@ -14,14 +17,104 @@ const Navbar = ({ activeSection }) => {
   }, [])
 
   const navItems = [
-    { name: 'Home', href: '#home' },
-    { name: 'About', href: '#about' },
-    { name: 'Skills', href: '#skills' },
-    { name: 'Projects', href: '#projects' },
-    { name: 'Games', href: '#games' },
-    { name: 'Simulators', href: '#simulators' },
-    { name: 'Contact', href: '#contact' },
+    { name: 'Home', href: '/', type: 'route' },
+    { name: 'About', href: '#about', type: 'hash' },
+    { name: 'Skills', href: '#skills', type: 'hash' },
+    { name: 'Projects', href: '/projects', type: 'route' },
+    { name: 'Games', href: '/games', type: 'route' },
+    { name: 'Simulators', href: '/simulators', type: 'route' },
+    { name: 'Contact', href: '#contact', type: 'hash' },
   ]
+
+  const renderNavLink = (item) => {
+    if (item.type === 'route') {
+      return (
+        <Link
+          key={item.name}
+          to={item.href}
+          className={`relative text-sm lg:text-base transition-colors ${
+            location.pathname === item.href
+              ? 'text-secondary'
+              : 'text-light hover:text-secondary'
+          }`}
+        >
+          {item.name}
+          {location.pathname === item.href && (
+            <motion.div
+              layoutId="activeSection"
+              className="absolute -bottom-1 left-0 right-0 h-0.5 bg-secondary"
+            />
+          )}
+        </Link>
+      )
+    } else {
+      return (
+        <a
+          key={item.name}
+          href={isHomePage ? item.href : `/${item.href}`}
+          onClick={(e) => {
+            if (!isHomePage) {
+              e.preventDefault()
+              window.location.href = `/${item.href}`
+            }
+          }}
+          className={`relative text-sm lg:text-base transition-colors ${
+            activeSection === item.href.slice(1)
+              ? 'text-secondary'
+              : 'text-light hover:text-secondary'
+          }`}
+        >
+          {item.name}
+          {activeSection === item.href.slice(1) && isHomePage && (
+            <motion.div
+              layoutId="activeSection"
+              className="absolute -bottom-1 left-0 right-0 h-0.5 bg-secondary"
+            />
+          )}
+        </a>
+      )
+    }
+  }
+
+  const renderMobileNavLink = (item) => {
+    if (item.type === 'route') {
+      return (
+        <Link
+          key={item.name}
+          to={item.href}
+          onClick={() => setIsOpen(false)}
+          className={`block py-2 text-sm ${
+            location.pathname === item.href
+              ? 'text-secondary'
+              : 'text-light hover:text-secondary'
+          }`}
+        >
+          {item.name}
+        </Link>
+      )
+    } else {
+      return (
+        <a
+          key={item.name}
+          href={isHomePage ? item.href : `/${item.href}`}
+          onClick={(e) => {
+            setIsOpen(false)
+            if (!isHomePage) {
+              e.preventDefault()
+              window.location.href = `/${item.href}`
+            }
+          }}
+          className={`block py-2 text-sm ${
+            activeSection === item.href.slice(1)
+              ? 'text-secondary'
+              : 'text-light hover:text-secondary'
+          }`}
+        >
+          {item.name}
+        </a>
+      )
+    }
+  }
 
   return (
     <motion.nav
@@ -33,35 +126,18 @@ const Navbar = ({ activeSection }) => {
     >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16 md:h-20">
-          <motion.a
-            href="#home"
+          <Link
+            to="/"
             className="text-2xl font-bold text-secondary"
-            whileHover={{ scale: 1.05 }}
           >
-            NB
-          </motion.a>
+            <motion.span whileHover={{ scale: 1.05 }}>
+              NB
+            </motion.span>
+          </Link>
 
           {/* Desktop Menu */}
           <div className="hidden md:flex space-x-8">
-            {navItems.map((item) => (
-              <a
-                key={item.name}
-                href={item.href}
-                className={`relative text-sm lg:text-base transition-colors ${
-                  activeSection === item.href.slice(1)
-                    ? 'text-secondary'
-                    : 'text-light hover:text-secondary'
-                }`}
-              >
-                {item.name}
-                {activeSection === item.href.slice(1) && (
-                  <motion.div
-                    layoutId="activeSection"
-                    className="absolute -bottom-1 left-0 right-0 h-0.5 bg-secondary"
-                  />
-                )}
-              </a>
-            ))}
+            {navItems.map((item) => renderNavLink(item))}
           </div>
 
           {/* Mobile Menu Button */}
@@ -101,20 +177,7 @@ const Navbar = ({ activeSection }) => {
             animate={{ opacity: 1, y: 0 }}
             className="md:hidden pb-4"
           >
-            {navItems.map((item) => (
-              <a
-                key={item.name}
-                href={item.href}
-                onClick={() => setIsOpen(false)}
-                className={`block py-2 text-sm ${
-                  activeSection === item.href.slice(1)
-                    ? 'text-secondary'
-                    : 'text-light hover:text-secondary'
-                }`}
-              >
-                {item.name}
-              </a>
-            ))}
+            {navItems.map((item) => renderMobileNavLink(item))}
           </motion.div>
         )}
       </div>
