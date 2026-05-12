@@ -154,34 +154,34 @@ const BBSeatFinder = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-900 via-green-800 to-green-900 py-12 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-green-900 via-green-800 to-green-900 py-6 sm:py-12 px-3 sm:px-4">
       <div className="container mx-auto max-w-2xl">
         {/* Back Button */}
         <Link
           to="/projects"
-          className="inline-flex items-center text-white/80 hover:text-white mb-8 transition-colors"
+          className="inline-flex items-center text-white/80 hover:text-white mb-6 sm:mb-8 transition-colors text-sm sm:text-base"
         >
           <FiArrowLeft className="mr-2" />
           Back to Projects
         </Link>
 
         {/* Main Card */}
-        <div className="bg-white rounded-2xl shadow-2xl p-8 md:p-10">
+        <div className="bg-white rounded-xl sm:rounded-2xl shadow-2xl p-4 sm:p-8 md:p-10">
           {/* Header */}
-          <div className="text-center mb-8">
-            <div className="text-6xl mb-3">🏦</div>
-            <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-3">
+          <div className="text-center mb-6 sm:mb-8">
+            <div className="text-5xl sm:text-6xl mb-2 sm:mb-3">🏦</div>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-gray-900 mb-2 sm:mb-3 leading-tight">
               Bangladesh Bank Seat Finder
             </h1>
-            <p className="text-gray-800 text-lg font-semibold">
+            <p className="text-gray-800 text-sm sm:text-base md:text-lg font-semibold px-2">
               Find your exam center for Bangladesh Bank recruitment exams
             </p>
           </div>
 
           {/* Exam Selection Dropdown */}
           {exams.length > 0 && (
-            <div className="mb-6">
-              <label htmlFor="exam-select" className="block text-gray-900 font-bold mb-3 text-base">
+            <div className="mb-5 sm:mb-6">
+              <label htmlFor="exam-select" className="block text-gray-900 font-extrabold mb-2 sm:mb-3 text-base sm:text-lg">
                 Select Exam
               </label>
               <select
@@ -194,7 +194,7 @@ const BBSeatFinder = () => {
                   setError('')
                   setRollNumber('')
                 }}
-                className="w-full px-4 py-3 border-2 border-gray-400 rounded-xl text-base font-medium text-gray-900 focus:border-green-600 focus:outline-none transition-colors bg-white"
+                className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-500 rounded-lg sm:rounded-xl text-sm sm:text-base md:text-lg font-bold text-gray-900 focus:border-green-600 focus:outline-none transition-colors bg-white"
               >
                 {exams.map((exam) => (
                   <option key={exam.id} value={exam.id}>
@@ -207,24 +207,24 @@ const BBSeatFinder = () => {
 
           {/* Exam Info */}
           {selectedExam && (
-            <div className="bg-green-50 border-2 border-green-300 rounded-xl p-4 mb-8">
-              <div className="flex flex-wrap items-center justify-center gap-4 text-sm text-green-900 font-medium">
+            <div className="bg-green-100 border-2 border-green-400 rounded-lg sm:rounded-xl p-3 sm:p-5 mb-5 sm:mb-8">
+              <div className="flex flex-col sm:flex-row sm:flex-wrap items-center justify-center gap-2 sm:gap-4 text-xs sm:text-sm md:text-base text-gray-900 font-bold">
                 <div className="flex items-center gap-2">
-                  <FiCalendar className="text-lg text-green-700" />
-                  <span>
-                    <strong className="font-bold">{selectedExam.examDate}</strong> ({selectedExam.examDay})
+                  <FiCalendar className="text-base sm:text-lg md:text-xl text-green-800 flex-shrink-0" />
+                  <span className="text-center sm:text-left">
+                    <strong className="font-extrabold">{selectedExam.examDate}</strong> ({selectedExam.examDay})
                   </span>
                 </div>
-                <span className="hidden sm:inline text-green-500">|</span>
+                <span className="hidden sm:inline text-gray-700">|</span>
                 <div className="flex items-center gap-2">
-                  <FiClock className="text-lg text-green-700" />
-                  <span className="font-medium">{selectedExam.examTime}</span>
+                  <FiClock className="text-base sm:text-lg md:text-xl text-green-800 flex-shrink-0" />
+                  <span className="font-bold">{selectedExam.examTime}</span>
                 </div>
-                <span className="hidden sm:inline text-green-500">|</span>
+                <span className="hidden sm:inline text-gray-700">|</span>
                 <div className="flex items-center gap-2">
-                  <FiBriefcase className="text-lg text-green-700" />
+                  <FiBriefcase className="text-base sm:text-lg md:text-xl text-green-800 flex-shrink-0" />
                   <span>
-                    Job ID: <strong className="font-bold">{selectedExam.jobId}</strong> | {selectedExam.grade}
+                    Job ID: <strong className="font-extrabold">{selectedExam.jobId}</strong> | {selectedExam.grade}
                   </span>
                 </div>
               </div>
@@ -233,11 +233,11 @@ const BBSeatFinder = () => {
 
           {/* Input Section */}
           {selectedExam && (
-            <div className="mb-6">
-              <label htmlFor="roll" className="block text-gray-900 font-bold mb-3 text-base">
+            <div className="mb-5 sm:mb-6">
+              <label htmlFor="roll" className="block text-gray-900 font-extrabold mb-2 sm:mb-3 text-base sm:text-lg">
                 Enter Your Roll Number
               </label>
-              <div className="flex gap-3">
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                 <input
                   type="number"
                   id="roll"
@@ -245,12 +245,12 @@ const BBSeatFinder = () => {
                   onChange={(e) => setRollNumber(e.target.value)}
                   onKeyPress={handleKeyPress}
                   placeholder="e.g. 142000"
-                  className="flex-1 px-4 py-3 border-2 border-gray-400 rounded-xl text-lg text-gray-900 font-medium tracking-wider focus:border-green-600 focus:outline-none transition-colors placeholder:text-gray-400"
+                  className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-500 rounded-lg sm:rounded-xl text-lg sm:text-xl text-gray-900 font-bold tracking-wider focus:border-green-600 focus:outline-none transition-colors placeholder:text-gray-500"
                 />
                 <button
                   onClick={findSeat}
                   disabled={searching}
-                  className="px-6 py-3 bg-green-700 hover:bg-green-800 text-white font-bold rounded-xl transition-colors whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+                  className="w-full sm:w-auto px-6 py-2.5 sm:py-3 bg-green-700 hover:bg-green-800 text-white font-extrabold text-base sm:text-lg rounded-lg sm:rounded-xl transition-colors whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
                 >
                   {searching ? '⏳' : '🔍'} Find
                 </button>
@@ -260,40 +260,40 @@ const BBSeatFinder = () => {
 
           {/* No Exams Available */}
           {exams.length === 0 && (
-            <div className="bg-yellow-50 border-2 border-yellow-500 rounded-xl p-6 text-center">
-              <div className="text-4xl mb-3">📋</div>
-              <p className="text-yellow-800 font-semibold mb-2">No exams available at the moment</p>
-              <p className="text-yellow-700 text-sm">Please check back later for upcoming exam schedules.</p>
+            <div className="bg-yellow-50 border-2 border-yellow-500 rounded-lg sm:rounded-xl p-4 sm:p-6 text-center">
+              <div className="text-3xl sm:text-4xl mb-2 sm:mb-3">📋</div>
+              <p className="text-yellow-800 font-semibold mb-1 sm:mb-2 text-sm sm:text-base">No exams available at the moment</p>
+              <p className="text-yellow-700 text-xs sm:text-sm">Please check back later for upcoming exam schedules.</p>
             </div>
           )}
 
           {/* Result Section */}
           {result && (
-            <div className="bg-green-50 border-2 border-green-600 rounded-xl p-6 animate-fadeIn">
-              <div className="text-xs font-bold text-green-800 uppercase tracking-wider mb-4">
+            <div className="bg-green-50 border-2 border-green-600 rounded-lg sm:rounded-xl p-4 sm:p-6 animate-fadeIn">
+              <div className="text-xs font-bold text-green-800 uppercase tracking-wider mb-3 sm:mb-4">
                 ✅ EXAM CENTER FOUND
               </div>
-              <div className="mb-4">
-                <h2 className="text-xl font-bold text-gray-900 mb-2 flex items-start gap-2">
-                  <FiMapPin className="text-green-700 mt-1 flex-shrink-0 text-2xl" />
-                  <span>{result.name}</span>
+              <div className="mb-3 sm:mb-4">
+                <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 flex items-start gap-2">
+                  <FiMapPin className="text-green-700 mt-1 flex-shrink-0 text-xl sm:text-2xl" />
+                  <span className="leading-tight">{result.name}</span>
                 </h2>
-                <p className="text-gray-700 text-base font-medium ml-7">{result.address}</p>
+                <p className="text-gray-700 text-sm sm:text-base font-medium ml-7 sm:ml-8">{result.address}</p>
               </div>
-              <div className="flex flex-wrap gap-2 mb-4">
-                <span className="bg-green-700 text-white px-3 py-1 rounded-full text-sm font-bold">
+              <div className="flex flex-wrap gap-2 mb-3 sm:mb-4">
+                <span className="bg-green-700 text-white px-2.5 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-bold">
                   Roll: {rollNumber}
                 </span>
-                <span className="bg-gray-700 text-white px-3 py-1 rounded-full text-sm font-bold">
+                <span className="bg-gray-700 text-white px-2.5 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-bold">
                   Center No. {result.sl}
                 </span>
-                <span className="bg-gray-700 text-white px-3 py-1 rounded-full text-sm font-bold">
+                <span className="bg-gray-700 text-white px-2.5 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-bold">
                   Range: {result.start.toLocaleString()} – {result.end.toLocaleString()}
                 </span>
               </div>
               <button
                 onClick={openInMaps}
-                className="text-green-800 hover:text-green-900 font-bold text-base hover:underline"
+                className="text-green-800 hover:text-green-900 font-bold text-sm sm:text-base hover:underline inline-flex items-center gap-1"
               >
                 🗺️ Open in Google Maps →
               </button>
@@ -302,17 +302,17 @@ const BBSeatFinder = () => {
 
           {/* Error Section */}
           {error && (
-            <div className="bg-red-50 border-2 border-red-500 rounded-xl p-6 animate-fadeIn">
-              <div className="text-xs font-bold text-red-700 uppercase tracking-wider mb-4">
+            <div className="bg-red-50 border-2 border-red-500 rounded-lg sm:rounded-xl p-4 sm:p-6 animate-fadeIn">
+              <div className="text-xs font-bold text-red-700 uppercase tracking-wider mb-3 sm:mb-4">
                 ⚠️ {result === null && rollNumber ? 'Not Found' : 'Invalid Input'}
               </div>
-              <p className="text-red-700 font-semibold mb-2">{error}</p>
+              <p className="text-red-700 font-semibold text-sm sm:text-base mb-2">{error}</p>
             </div>
           )}
 
           {/* Footer */}
           {selectedExam && (
-            <div className="text-center mt-8 text-sm text-gray-600 font-medium">
+            <div className="text-center mt-6 sm:mt-8 text-xs sm:text-sm md:text-base text-gray-800 font-bold px-2">
               Data source: {selectedExam.noticeNo} — Bangladesh Bank
             </div>
           )}
