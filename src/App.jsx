@@ -33,6 +33,7 @@ import FlappyGame from './components/games/FlappyGame'
 import BreakoutGame from './components/games/BreakoutGame'
 import InvadersGame from './components/games/InvadersGame'
 import BBSeatFinder from './components/projects/BBSeatFinder'
+import HealthIndex from './components/projects/HealthIndex'
 
 function App() {
   return (
@@ -78,6 +79,7 @@ function App() {
 
         {/* Projects */}
         <Route path="/projects/bb-seat-finder" element={<BBSeatFinder />} />
+        <Route path="/projects/health-index" element={<HealthIndex />} />
       </Routes>
     </Router>
   )

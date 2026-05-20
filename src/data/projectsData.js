@@ -40,6 +40,26 @@ export const projectsData = [
     ]
   },
   {
+    id: 'health-index',
+    title: 'Health Index Calculator',
+    description: 'A comprehensive health metrics calculator featuring BMI, BMR, body fat percentage, ideal weight, and water intake calculations.',
+    longDescription: 'An all-in-one health calculator that helps users track and understand their health metrics. Features scientifically-backed calculations including BMI (Body Mass Index), BMR & TDEE (Basal Metabolic Rate & Total Daily Energy Expenditure), body fat percentage estimation, ideal weight calculation, and daily water intake recommendations. Provides personalized results based on gender, age, and activity level.',
+    tags: ['React', 'Framer Motion', 'Tailwind CSS', 'Health Analytics'],
+    category: 'Personal',
+    github: '#',
+    demo: '/projects/health-index',
+    emoji: '💪',
+    image: '/projects/health-index.jpg',
+    features: [
+      'BMI Calculator with health categories',
+      'BMR & TDEE with activity levels',
+      'Body fat percentage estimation',
+      'Ideal weight calculation',
+      'Daily water intake recommendations',
+      'Gender-specific calculations'
+    ]
+  },
+  {
     id: 'bb-exam',
     title: 'BB Exam Schedule Finder',
     description: 'A web application to help students find and track Bangladesh Bank exam schedules with automated notifications.',

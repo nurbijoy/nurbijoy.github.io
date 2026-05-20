@@ -71,7 +71,7 @@ const BBSeatFinder = () => {
     }, 300)
   }
 
-  const handleKeyPress = (e) => {
+  const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
       findSeat()
     }
@@ -96,16 +96,22 @@ const BBSeatFinder = () => {
   }
 
   return (
-    <div className="min-h-screen bg-primary py-6 sm:py-12 px-3 sm:px-4">
-      <div className="container mx-auto max-w-2xl">
-        {/* Back Button */}
-        <Link
-          to="/projects"
-          className="inline-flex items-center text-gray hover:text-secondary mb-6 sm:mb-8 transition-colors text-sm sm:text-base"
-        >
-          <FiArrowLeft className="mr-2" />
-          Back to Projects
-        </Link>
+    <div className="min-h-screen bg-primary">
+      {/* Header with Back Button */}
+      <header className="bg-[#112240] border-b border-gray/20 px-6 py-4 sticky top-0 z-50">
+        <div className="container mx-auto">
+          <Link
+            to="/projects"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-[#1e3a5f] hover:bg-[#2a4a7f] text-light rounded-lg transition-colors"
+          >
+            <FiArrowLeft className="text-lg" />
+            <span>Back to Projects</span>
+          </Link>
+        </div>
+      </header>
+
+      <div className="py-6 sm:py-8 px-3 sm:px-4">
+        <div className="container mx-auto max-w-2xl">
 
         {/* Main Card */}
         <div className="bg-dark border border-secondary/20 rounded-xl sm:rounded-2xl shadow-2xl p-4 sm:p-8 md:p-10">
@@ -185,7 +191,7 @@ const BBSeatFinder = () => {
                   id="roll"
                   value={rollNumber}
                   onChange={(e) => setRollNumber(e.target.value)}
-                  onKeyPress={handleKeyPress}
+                  onKeyDown={handleKeyDown}
                   placeholder="e.g. 142000"
                   className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 border border-secondary/30 rounded-lg sm:rounded-xl text-lg sm:text-xl text-light font-bold tracking-wider focus:border-secondary focus:outline-none transition-colors bg-primary placeholder:text-gray/50"
                 />
@@ -259,6 +265,7 @@ const BBSeatFinder = () => {
             </div>
           )}
         </div>
+      </div>
       </div>
     </div>
   )
