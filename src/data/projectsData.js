@@ -1,42 +1,22 @@
 export const projectsData = [
   {
-    id: 'dms',
-    title: 'Document Management System',
-    description: 'A full fledged DMS Solution to excel banking documentations with secure file handling and version control.',
-    longDescription: 'A comprehensive Document Management System designed specifically for banking operations. Features include secure file upload/download, version control, role-based access control, document categorization, advanced search capabilities, and audit trails. Built with enterprise-grade security and scalability in mind.',
-    tags: ['Django', 'React JS', 'PostgreSQL', 'Redis', 'Docker'],
-    category: 'Enterprise',
+    id: 'interest-calculator',
+    title: 'Interest Calculator App',
+    description: 'A comprehensive financial calculator for computing simple interest, compound interest, and investment growth projections.',
+    longDescription: 'An intuitive interest calculator that helps users make informed financial decisions. Features include simple interest calculation, compound interest with multiple compounding frequencies, investment growth projections, and detailed breakdowns. Provides visual charts and comprehensive reports to understand how investments grow over time.',
+    tags: ['React', 'Tailwind CSS', 'Framer Motion', 'Financial Analytics'],
+    category: 'Finance',
     github: '#',
-    demo: '#',
-    emoji: '📁',
-    image: '/projects/dms.jpg',
+    demo: '/projects/interest-calculator',
+    emoji: '💰',
+    image: '/projects/interest-calculator.jpg',
     features: [
-      'Secure file handling with encryption',
-      'Version control and document history',
-      'Role-based access control',
-      'Advanced search and filtering',
-      'Audit trails and logging',
-      'Document categorization and tagging'
-    ]
-  },
-  {
-    id: 'lms',
-    title: 'Leave Management System',
-    description: 'A productivity application built to manage leaves at Agrani Bank PLC with automated approval workflows.',
-    longDescription: 'A modern leave management system that streamlines the leave application and approval process. Features automated workflows, email notifications, leave balance tracking, calendar integration, and comprehensive reporting. Designed to improve HR efficiency and employee satisfaction.',
-    tags: ['React JS', 'Vite', 'PostgreSQL', 'Django', 'REST API'],
-    category: 'Productivity',
-    github: '#',
-    demo: '#',
-    emoji: '📅',
-    image: '/projects/lms.jpg',
-    features: [
-      'Automated approval workflows',
-      'Email notifications',
-      'Leave balance tracking',
-      'Calendar integration',
-      'Comprehensive reporting',
-      'Mobile responsive design'
+      'Simple interest calculation',
+      'Compound interest with multiple frequencies',
+      'Investment growth projections',
+      'Loan EMI calculator',
+      'Detailed breakdown reports',
+      'Interactive financial planning'
     ]
   },
   {
@@ -141,4 +121,4 @@ export const projectsData = [
   }
 ]
 
-export const categories = ['All', 'Enterprise', 'Productivity', 'Education', 'Personal', 'E-Commerce']
+export const categories = ['All', 'Finance', 'Productivity', 'Education', 'Personal', 'E-Commerce']
