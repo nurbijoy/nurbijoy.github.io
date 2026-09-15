@@ -112,18 +112,22 @@ Your site will be live at: **https://nurbijoy.github.io**
 │   │   ├── Hero.jsx
 │   │   ├── About.jsx
 │   │   ├── Skills.jsx
+│   │   ├── ProjectGrabLink.jsx
 │   │   ├── Projects.jsx
 │   │   ├── Games.jsx
 │   │   ├── Simulators.jsx
 │   │   ├── Contact.jsx
 │   │   └── Footer.jsx
 │   ├── data/                # Centralized data management
+│   │   ├── projectsData.js
 │   │   ├── gamesData.js
 │   │   └── simulatorsData.js
 │   ├── hooks/               # Custom React hooks
 │   │   ├── useInputDevice.js
 │   │   └── useInView.js
 │   ├── pages/               # Route pages
+│   │   ├── ProjectsPage.jsx
+│   │   ├── ReleasePage.jsx
 │   │   ├── HomePage.jsx
 │   │   ├── GamesPage.jsx
 │   │   └── SimulatorsPage.jsx
@@ -158,8 +162,10 @@ Your site will be live at: **https://nurbijoy.github.io**
 **Skills** (`src/components/Skills.jsx`):
 - Lines 8-17: Your skills and levels
 
-**Projects** (`src/components/Projects.jsx`):
-- Lines 8-30: Your projects
+**Projects** (`src/data/projectsData.js`):
+- Update the shared project titles, descriptions, tags, and categories here.
+- `src/components/ProjectGrabLink.jsx` sends every Grab Now link to `/release`.
+- `src/pages/ReleasePage.jsx` contains the animated release notice.
 
 **Contact** (`src/components/Contact.jsx`):
 - Lines 10-22: Your contact info

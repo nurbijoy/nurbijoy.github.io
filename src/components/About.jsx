@@ -56,8 +56,8 @@ const About = () => {
               <p className="leading-relaxed">
                 My tech journey started in the world of backend development, and over time, I've 
                 grown into full-stack web development with a strong focus on Django and React. 
-                Lately, I've been working on enterprise-grade Document and Leave Management Systems, 
-                aiming to bring modern solutions into traditional infrastructures.
+                My projects include IBA Coach for admission preparation, LitePDF for reading PDFs,
+                and XeonExplorer for managing files on Android.
               </p>
               <p className="leading-relaxed">
                 I believe in writing code that's not just functional, but also maintainable and 

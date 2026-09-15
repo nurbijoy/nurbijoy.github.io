@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import HomePage from './pages/HomePage'
 import SimulatorsPage from './pages/SimulatorsPage'
 import GamesPage from './pages/GamesPage'
@@ -33,9 +33,6 @@ import MemoryGame from './components/games/MemoryGame'
 import FlappyGame from './components/games/FlappyGame'
 import BreakoutGame from './components/games/BreakoutGame'
 import InvadersGame from './components/games/InvadersGame'
-import BBSeatFinder from './components/projects/BBSeatFinder'
-import HealthIndex from './components/projects/HealthIndex'
-import InterestCalculator from './components/projects/InterestCalculator'
 
 function App() {
   return (
@@ -80,10 +77,8 @@ function App() {
         <Route path="/games/breakout" element={<BreakoutGame />} />
         <Route path="/games/invaders" element={<InvadersGame />} />
 
-        {/* Projects */}
-        <Route path="/projects/bb-seat-finder" element={<BBSeatFinder />} />
-        <Route path="/projects/health-index" element={<HealthIndex />} />
-        <Route path="/projects/interest-calculator" element={<InterestCalculator />} />
+        {/* Keep old project bookmarks pointed at the current catalog. */}
+        <Route path="/projects/*" element={<Navigate to="/projects" replace />} />
       </Routes>
     </Router>
   )
