@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { FiArrowLeft, FiGithub, FiExternalLink } from 'react-icons/fi'
+import { FiArrowLeft } from 'react-icons/fi'
 import { projectsData, categories } from '../data/projectsData'
+import ProjectGrabLink from '../components/ProjectGrabLink'
 
 const ProjectsPage = () => {
   const [selectedCategory, setSelectedCategory] = useState('All')
@@ -39,8 +40,7 @@ const ProjectsPage = () => {
           className="mb-12 text-center"
         >
           <p className="text-gray text-lg max-w-3xl mx-auto">
-            A collection of web applications and software solutions I've built.
-            From enterprise systems to personal projects, each showcases different technologies and problem-solving approaches.
+            Explore the apps I've built for admission preparation, reading PDFs, and managing files.
           </p>
         </motion.div>
 
@@ -69,7 +69,7 @@ const ProjectsPage = () => {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: index * 0.1 }}
-              className="bg-[#112240] rounded-xl overflow-hidden hover:transform hover:-translate-y-2 transition-all duration-300 group"
+              className="bg-[#112240] rounded-xl overflow-hidden flex flex-col hover:transform hover:-translate-y-2 transition-all duration-300 group"
             >
               {/* Project Image/Icon */}
               <div className="h-56 bg-gradient-to-br from-secondary/20 to-purple-500/20 flex items-center justify-center relative overflow-hidden">
@@ -79,7 +79,7 @@ const ProjectsPage = () => {
               </div>
 
               {/* Project Content */}
-              <div className="p-6">
+              <div className="p-6 flex flex-col flex-1">
                 <h3 className="text-2xl font-bold text-light mb-3 group-hover:text-secondary transition-colors">
                   {project.title}
                 </h3>
@@ -100,38 +100,13 @@ const ProjectsPage = () => {
                   ))}
                 </div>
 
-                {/* Action Buttons */}
-                <div className="flex gap-3">
-                  <a
-                    href={project.github}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-2 flex-1 px-4 py-3 bg-[#1e3a5f] hover:bg-[#2a4a7f] text-light font-semibold rounded-lg transition-all"
-                  >
-                    <FiGithub /> Code
-                  </a>
-                  {project.demo.startsWith('/') ? (
-                    <Link
-                      to={project.demo}
-                      className="flex items-center justify-center gap-2 flex-1 px-4 py-3 bg-secondary hover:bg-secondary/80 text-dark font-semibold rounded-lg transition-all"
-                    >
-                      <FiExternalLink /> Demo
-                    </Link>
-                  ) : (
-                    <a
-                      href={project.demo}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-center gap-2 flex-1 px-4 py-3 bg-secondary hover:bg-secondary/80 text-dark font-semibold rounded-lg transition-all"
-                    >
-                      <FiExternalLink /> Demo
-                    </a>
-                  )}
-                </div>
+                <ProjectGrabLink project={project} />
               </div>
             </motion.div>
           ))}
         </div>
+
+        <p className="text-gray text-center mt-12">More projects are coming. Stay tuned.</p>
 
         {/* No Results */}
         {filteredProjects.length === 0 && (

@@ -3,6 +3,7 @@ import HomePage from './pages/HomePage'
 import SimulatorsPage from './pages/SimulatorsPage'
 import GamesPage from './pages/GamesPage'
 import ProjectsPage from './pages/ProjectsPage'
+import ReleasePage from './pages/ReleasePage'
 import BFSSimulator from './components/simulators/BFSSimulator'
 import DFSSimulator from './components/simulators/DFSSimulator'
 import AStarSimulator from './components/simulators/AStarSimulator'
@@ -44,6 +45,7 @@ function App() {
         <Route path="/simulators" element={<SimulatorsPage />} />
         <Route path="/games" element={<GamesPage />} />
         <Route path="/projects" element={<ProjectsPage />} />
+        <Route path="/release" element={<ReleasePage />} />
         
         {/* Implemented Simulators */}
         <Route path="/simulators/bfs" element={<BFSSimulator />} />

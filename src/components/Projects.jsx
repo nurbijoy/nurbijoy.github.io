@@ -1,34 +1,13 @@
 import { motion } from 'framer-motion'
 import { useInView } from '../hooks/useInView'
-import { FiGithub, FiExternalLink, FiFolder, FiArrowRight } from 'react-icons/fi'
+import { FiFolder, FiArrowRight } from 'react-icons/fi'
 import { Link } from 'react-router-dom'
+import { projectsData } from '../data/projectsData'
+import ProjectGrabLink from './ProjectGrabLink'
 
 const Projects = () => {
   const [ref, inView] = useInView({ triggerOnce: true, threshold: 0.1 })
 
-  const projects = [
-    {
-      title: 'Document Management System',
-      description: 'A full fledged DMS Solution to excel banking documentations with secure file handling and version control.',
-      tags: ['Django', 'React JS', 'PostgreSQL'],
-      github: '#',
-      demo: '#',
-    },
-    {
-      title: 'Leave Management System',
-      description: 'A productivity application built to manage leaves at Agrani Bank PLC with automated approval workflows.',
-      tags: ['React JS', 'Vite', 'PostgreSQL', 'Django'],
-      github: '#',
-      demo: '#',
-    },
-    {
-      title: 'BB Exam Schedule Finder',
-      description: 'A web application to help students find and track Bangladesh Bank exam schedules with automated notifications.',
-      tags: ['React JS', 'Node.js', 'MongoDB', 'Express'],
-      github: '#',
-      demo: '#',
-    },
-  ]
 
   return (
     <section id="projects" className="py-20 bg-dark/30">
@@ -44,30 +23,17 @@ const Projects = () => {
           </h2>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {projects.map((project, index) => (
+            {projectsData.map((project, index) => (
               <motion.div
                 key={project.title}
                 initial={{ opacity: 0, y: 50 }}
                 animate={inView ? { opacity: 1, y: 0 } : {}}
                 transition={{ delay: index * 0.1 }}
-                className="bg-[#112240] rounded-lg p-6 hover:transform hover:-translate-y-2 transition-all duration-300 group"
+                className="bg-[#112240] rounded-lg p-6 flex flex-col hover:transform hover:-translate-y-2 transition-all duration-300 group"
               >
                 <div className="flex justify-between items-start mb-4">
                   <FiFolder className="text-secondary text-4xl" />
-                  <div className="flex space-x-3">
-                    <a
-                      href={project.github}
-                      className="text-gray hover:text-secondary transition-colors"
-                    >
-                      <FiGithub className="text-xl" />
-                    </a>
-                    <a
-                      href={project.demo}
-                      className="text-gray hover:text-secondary transition-colors"
-                    >
-                      <FiExternalLink className="text-xl" />
-                    </a>
-                  </div>
+
                 </div>
 
                 <h3 className="text-xl font-bold text-light mb-3 group-hover:text-secondary transition-colors">
@@ -77,7 +43,7 @@ const Projects = () => {
                   {project.description}
                 </p>
 
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2 mb-5">
                   {project.tags.map((tag) => (
                     <span
                       key={tag}
@@ -87,9 +53,12 @@ const Projects = () => {
                     </span>
                   ))}
                 </div>
+                <ProjectGrabLink project={project} />
               </motion.div>
             ))}
           </div>
+
+          <p className="text-gray text-center mt-8">More projects are coming. Stay tuned.</p>
 
           {/* View All Projects Button */}
           <motion.div
