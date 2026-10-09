@@ -411,6 +411,8 @@ MIT License - Free to use for personal and commercial projects
 ## 👤 Author
 
 **Nur Mohammad Bijoy**
+- Software Engineer at Agrani Bank PLC
+- M.Sc. Engg in Information Security (InfoSec), Bangladesh University of Engineering and Technology (BUET)
 - GitHub: [@nurbijoy](https://github.com/nurbijoy)
 - Email: nurmdbijoy@gmail.com
 - Location: Dhaka, Bangladesh

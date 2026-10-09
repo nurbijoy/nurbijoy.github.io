@@ -50,9 +50,11 @@ const Hero = () => {
               transition={{ delay: 0.5 }}
               className="text-gray max-w-xl mb-8 leading-relaxed"
             >
-              I'm a full-stack developer specializing in building exceptional digital experiences. 
-              Currently focused on creating accessible, human-centered products at{' '}
-              <span className="text-secondary">Agrani Bank PLC</span>.
+              I'm a Software Engineer at{' '}
+              <span className="text-secondary">Agrani Bank PLC</span>, specializing in building secure, 
+              scalable systems and currently pursuing an{' '}
+              <span className="text-secondary">M.Sc. Engg in Information Security (InfoSec)</span> at{' '}
+              <span className="text-secondary">Bangladesh University of Engineering and Technology (BUET)</span>.
             </motion.p>
             
             <motion.div

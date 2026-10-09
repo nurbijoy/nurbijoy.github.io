@@ -7,13 +7,15 @@ const About = () => {
   const technologiesCol1 = [
     'Django & Django REST Framework',
     'React with Vite',
+    'Information Security & Cryptography',
     'SQLite, MySQL & PostgreSQL',
   ]
 
   const technologiesCol2 = [
-    'HTML5, CSS3, Bootstrap',
-    'JavaScript (ES6+)',
     'Python',
+    'Network & Application Security',
+    'JavaScript (ES6+)',
+    'HTML5, CSS3, Tailwind CSS',
   ]
 
   return (
@@ -49,24 +51,48 @@ const About = () => {
             {/* Text - Right side */}
             <div className="lg:col-span-8 space-y-4 text-gray font-bold">
               <p className="leading-relaxed">
-                Hey there! I'm Bijoy — a Software Engineer at Agrani Bank PLC, where I build 
-                secure, scalable systems that power real-world banking operations. I'm passionate 
-                about solving problems with clean code and thoughtful design.
+                Hey there! I'm Bijoy — a Software Engineer at Agrani Bank PLC and currently pursuing 
+                my <span className="text-secondary font-semibold">M.Sc. Engg in Information Security (InfoSec)</span> at{' '}
+                <span className="text-secondary font-semibold">Bangladesh University of Engineering and Technology (BUET)</span>. 
+                I build secure, scalable systems that power real-world operations, bridging robust backend architecture 
+                with modern cybersecurity principles.
               </p>
               <p className="leading-relaxed">
-                My tech journey started in the world of backend development, and over time, I've 
-                grown into full-stack web development with a strong focus on Django and React. 
-                My projects include IBA Coach for admission preparation, LitePDF for reading PDFs,
+                My tech journey started in backend engineering, evolving into full-stack development with a strong focus 
+                on Python, Django, and React. My projects include IBA Coach for admission preparation, LitePDF for reading PDFs, 
                 and XeonExplorer for managing files on Android.
               </p>
               <p className="leading-relaxed">
-                I believe in writing code that's not just functional, but also maintainable and 
-                future-proof — especially for mission-critical environments like banking. On weekends, 
-                you'll find me sharpening my skills in AI/ML, exploring Flutter, or preparing for BCS 
-                and other competitive exams.
+                I believe in writing code that's not just functional, but also resilient, maintainable, and secure by design — 
+                especially for mission-critical banking environments. Alongside my software development work, my academic pursuits 
+                revolve around information security, cryptography, and defensive system architecture.
               </p>
-              <p className="text-gray leading-relaxed">
-                Here are a few technologies I've been working with recently:
+
+              {/* Education Highlight Card */}
+              <div className="p-4 sm:p-5 rounded-xl bg-dark/70 border border-secondary/30 backdrop-blur-sm relative overflow-hidden group hover:border-secondary/60 transition-all duration-300 my-4">
+                <div className="flex items-start gap-4">
+                  <div className="p-3 rounded-lg bg-secondary/10 text-secondary text-2xl flex-shrink-0">
+                    🎓
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="text-xs uppercase tracking-wider font-semibold px-2.5 py-0.5 rounded-full bg-secondary/20 text-secondary border border-secondary/40">
+                        Currently Pursuing
+                      </span>
+                      <span className="text-xs text-secondary font-mono">Postgraduate</span>
+                    </div>
+                    <h3 className="text-light font-bold text-lg mt-1.5">
+                      M.Sc. Engg in Information Security (InfoSec)
+                    </h3>
+                    <p className="text-gray text-sm mt-0.5 font-normal">
+                      Bangladesh University of Engineering and Technology (BUET)
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <p className="text-gray leading-relaxed pt-2">
+                Here are a few technologies and domains I've been working with recently:
               </p>
               <div className="grid md:grid-cols-2 gap-4 mt-4">
                 <ul className="space-y-2 list-disc list-inside text-gray font-bold">
