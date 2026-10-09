@@ -59,8 +59,11 @@ const About = () => {
               </p>
               <p className="leading-relaxed">
                 My tech journey started in backend engineering, evolving into full-stack development with a strong focus 
-                on Python, Django, and React. My projects include IBA Coach for admission preparation, LitePDF for reading PDFs, 
-                and XeonExplorer for managing files on Android.
+                on Python, Django, and React. My projects include{' '}
+                <a href="https://ibacoach.onrender.com/" target="_blank" rel="noopener noreferrer" className="text-secondary hover:underline">IBA Coach</a>{' '}
+                for admission preparation,{' '}
+                <a href="https://github.com/nurbijoy/LitePDF" target="_blank" rel="noopener noreferrer" className="text-secondary hover:underline">LitePDF</a>{' '}
+                for reading PDFs, and XeonExplorer for managing files on Android.
               </p>
               <p className="leading-relaxed">
                 I believe in writing code that's not just functional, but also resilient, maintainable, and secure by design — 

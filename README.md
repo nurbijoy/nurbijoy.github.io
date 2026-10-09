@@ -59,6 +59,7 @@ Your site will be live at: **https://nurbijoy.github.io**
 - 📱 Fully responsive design
 - ⚡ Fast performance with Vite
 - 🎭 Smooth animations with Framer Motion
+- 💼 Featured project showcases: [IBA Coach](https://ibacoach.onrender.com/) and [LitePDF](https://github.com/nurbijoy/LitePDF)
 - 🎮 9 interactive games with full-screen layouts
 - 📊 20+ algorithm simulators with step-by-step visualizations
 - 🧭 Multi-page routing with React Router

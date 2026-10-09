@@ -30,10 +30,15 @@ const ReleasePage = () => {
         <p className="text-secondary text-sm font-semibold tracking-widest uppercase mb-4">Coming soon</p>
         <h1 className="text-4xl sm:text-5xl font-bold text-light mb-6">Wait for release</h1>
         <p className="text-gray text-lg leading-relaxed mb-4">
-          IBA Coach, LitePDF, and XeonExplorer are waiting for their public release.
-          Download and access links will be available here when they launch.
+          XeonExplorer is currently preparing for its public release.
+          Download and access links will be available here when it launches.
         </p>
-        <p className="text-gray leading-relaxed mb-10">Thanks for your interest. Check back for release updates—and more projects to come.</p>
+        <p className="text-gray leading-relaxed mb-10">
+          In the meantime, check out available projects like{' '}
+          <a href="https://ibacoach.onrender.com/" target="_blank" rel="noopener noreferrer" className="text-secondary hover:underline font-semibold">IBA Coach</a>{' '}
+          and{' '}
+          <a href="https://github.com/nurbijoy/LitePDF" target="_blank" rel="noopener noreferrer" className="text-secondary hover:underline font-semibold">LitePDF</a>.
+        </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Link to="/projects" className="inline-flex justify-center items-center gap-2 px-6 py-3 bg-secondary text-dark font-semibold rounded-lg hover:bg-secondary/80 transition-colors">
             <FiArrowLeft aria-hidden="true" /> Explore Projects

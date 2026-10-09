@@ -6,6 +6,7 @@ export const projectsData = [
     tags: ['Admission Preparation', 'MBA', 'BBA'],
     category: 'Education',
     emoji: '🎓',
+    liveUrl: 'https://ibacoach.onrender.com/',
   },
   {
     id: 'litepdf',
@@ -14,6 +15,7 @@ export const projectsData = [
     tags: ['Windows', 'Native OCR', 'Android Coming Soon'],
     category: 'Productivity',
     emoji: '📄',
+    githubUrl: 'https://github.com/nurbijoy/LitePDF',
   },
   {
     id: 'xeon-explorer',

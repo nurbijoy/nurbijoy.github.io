@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { FiArrowLeft } from 'react-icons/fi'
+import { FiArrowLeft, FiGithub, FiExternalLink } from 'react-icons/fi'
 import { projectsData, categories } from '../data/projectsData'
 import ProjectGrabLink from '../components/ProjectGrabLink'
 
@@ -80,9 +80,35 @@ const ProjectsPage = () => {
 
               {/* Project Content */}
               <div className="p-6 flex flex-col flex-1">
-                <h3 className="text-2xl font-bold text-light mb-3 group-hover:text-secondary transition-colors">
-                  {project.title}
-                </h3>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-2xl font-bold text-light group-hover:text-secondary transition-colors">
+                    {project.title}
+                  </h3>
+                  <div className="flex items-center gap-3 text-light">
+                    {project.githubUrl && (
+                      <a
+                        href={project.githubUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="hover:text-secondary text-xl transition-colors"
+                        aria-label={`GitHub repo for ${project.title}`}
+                      >
+                        <FiGithub />
+                      </a>
+                    )}
+                    {project.liveUrl && (
+                      <a
+                        href={project.liveUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="hover:text-secondary text-xl transition-colors"
+                        aria-label={`Live demo for ${project.title}`}
+                      >
+                        <FiExternalLink />
+                      </a>
+                    )}
+                  </div>
+                </div>
                 
                 <p className="text-gray mb-4 leading-relaxed">
                   {project.description}

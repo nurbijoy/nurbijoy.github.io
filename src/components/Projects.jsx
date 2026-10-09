@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { useInView } from '../hooks/useInView'
-import { FiFolder, FiArrowRight } from 'react-icons/fi'
+import { FiFolder, FiArrowRight, FiGithub, FiExternalLink } from 'react-icons/fi'
 import { Link } from 'react-router-dom'
 import { projectsData } from '../data/projectsData'
 import ProjectGrabLink from './ProjectGrabLink'
@@ -33,6 +33,30 @@ const Projects = () => {
               >
                 <div className="flex justify-between items-start mb-4">
                   <FiFolder className="text-secondary text-4xl" />
+                  <div className="flex items-center gap-3 text-light">
+                    {project.githubUrl && (
+                      <a
+                        href={project.githubUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="hover:text-secondary text-xl transition-colors"
+                        aria-label={`GitHub repo for ${project.title}`}
+                      >
+                        <FiGithub />
+                      </a>
+                    )}
+                    {project.liveUrl && (
+                      <a
+                        href={project.liveUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="hover:text-secondary text-xl transition-colors"
+                        aria-label={`Live demo for ${project.title}`}
+                      >
+                        <FiExternalLink />
+                      </a>
+                    )}
+                  </div>
 
                 </div>
 
