@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Nur Mohammad Bijoy — Software Engineer &amp; Information Security</title>
+    <meta
+      name="description"
+      content="Personal website of Nur Mohammad Bijoy: software engineer building secure systems. Projects, research, advanced skills and live open-source activity."
+    />
+    <meta name="author" content="Nur Mohammad Bijoy" />
+    <link rel="canonical" href="https://nurbijoy.github.io/" />
+
+    <meta name="theme-color" content="#0d0d0d" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#f9f9f7" media="(prefers-color-scheme: light)" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Nur Mohammad Bijoy — Software Engineer &amp; Information Security" />
+    <meta
+      property="og:description"
+      content="Software engineer building secure systems. Projects, research, skills and live open-source activity."
+    />
+    <meta property="og:url" content="https://nurbijoy.github.io/" />
+    <meta name="twitter:card" content="summary" />
+
+    <!-- Apply the saved (or system) theme before first paint to avoid a flash. -->
+    <script>
+      try {
+        var t = localStorage.getItem('theme')
+        if (t !== 'light' && t !== 'dark') {
+          t = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'
+        }
+        document.documentElement.dataset.theme = t
+      } catch (e) {
+        document.documentElement.dataset.theme = 'dark'
+      }
+    </script>
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Person",
+        "name": "Nur Mohammad Bijoy",
+        "url": "https://nurbijoy.github.io/",
+        "jobTitle": "Software Engineer",
+        "sameAs": ["https://github.com/nurbijoy"],
+        "knowsAbout": ["Software engineering", "Information security", "Cryptography", "Web development"]
+      }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <noscript>
+      <p style="font-family: system-ui, sans-serif; padding: 2rem; max-width: 40rem; margin: 0 auto">
+        <strong>Nur Mohammad Bijoy</strong> — software engineer building secure systems. This site needs
+        JavaScript; find me on <a href="https://github.com/nurbijoy">GitHub</a>.
+      </p>
+    </noscript>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
