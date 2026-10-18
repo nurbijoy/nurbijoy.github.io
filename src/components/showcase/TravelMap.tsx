@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useState } from 'react'
+import { memo, useCallback, useEffect, useMemo, useState } from 'react'
 import { Download, Eraser, ImageDown, ListChecks, Search, X, ZoomIn } from 'lucide-react'
 import { Modal } from '@/components/ui/Modal'
 import { DivisionPicker } from './DivisionPicker'
@@ -23,6 +23,7 @@ import {
   TOTAL_DISTRICTS,
 } from '@/lib/travelMap'
 import { toBn } from '@/lib/bangla'
+import { bestLabelLayout, type LabelItem } from '@/lib/districtLabels'
 import './TravelMap.css'
 
 const STORAGE_KEY = 'bangladesh-travel-map'
@@ -37,6 +38,18 @@ const INPUT_MODES: { id: InputMode; label: string }[] = [
   { id: 'search', label: 'খুঁজে যোগ করুন' },
   { id: 'division', label: 'বিভাগ অনুযায়ী' },
 ]
+
+const LABEL_ITEMS: LabelItem[] = districts.map((d) => ({ id: d.id, text: d.nameBn, x: d.label[0], y: d.label[1] }))
+
+let measureContext: CanvasRenderingContext2D | null | undefined
+
+/** Width of a name in map units, measured with the Bangla font the names are drawn in. */
+function canvasMeasure(text: string, size: number): number {
+  if (measureContext === undefined) measureContext = document.createElement('canvas').getContext('2d')
+  if (!measureContext) return text.length * size * 0.6
+  measureContext.font = `700 ${size}px "Hind Siliguri", sans-serif`
+  return measureContext.measureText(text).width
+}
 
 /** Storage can be blocked (private windows, strict settings). Then the map is simply not remembered. */
 function readSaved() {
@@ -101,6 +114,17 @@ export function TravelMap() {
   const [image, setImage] = useState<{ url: string; signature: string } | null>(null)
   const [drawing, setDrawing] = useState(false)
   const [failed, setFailed] = useState(false)
+  // Names are placed once the Bangla font is ready, so that they are measured correctly.
+  const [fontsReady, setFontsReady] = useState(false)
+  useEffect(() => {
+    const done = () => setFontsReady(true)
+    if (!('fonts' in document)) return done()
+    document.fonts.load('700 18px "Hind Siliguri"', districts.map((d) => d.nameBn).join('')).then(done, done)
+  }, [])
+  const labels = useMemo(
+    () => (fontsReady ? bestLabelLayout(LABEL_ITEMS, canvasMeasure, { width: MAP_WIDTH, height: MAP_HEIGHT }) : null),
+    [fontsReady],
+  )
   const [viewing, setViewing] = useState(false)
   const closeView = useCallback(() => setViewing(false), [])
   const [mode, setMode] = useState<InputMode>('tap')
@@ -178,9 +202,29 @@ export function TravelMap() {
                   onHover={setHovered}
                 />
               ))}
+              {labels &&
+                labels.placed.map((p) => (
+                  <text
+                    key={p.id}
+                    x={p.x}
+                    y={p.y}
+                    fontSize={labels.size}
+                    textAnchor="middle"
+                    dominantBaseline="central"
+                    className={visited.has(p.id) ? 'map-label is-on' : 'map-label'}
+                    aria-hidden="true"
+                  >
+                    {p.text}
+                  </text>
+                ))}
             </svg>
           </div>
           <p className="bn mt-4 min-h-6 text-sm text-ink-2">{readout}</p>
+          {labels && labels.hidden.length > 0 && (
+            <p className="bn mt-1 text-xs text-ink-3">
+              {toBn(labels.hidden.length)}টি জেলার নাম জায়গা না পাওয়ায় মানচিত্রে দেখানো যায়নি। জেলায় ক্লিক করলে নাম দেখাবে।
+            </p>
+          )}
           <p className="mt-1 text-xs text-ink-3">সীমানা: geoBoundaries, BBS ২০২০ (CC BY 3.0 IGO)।</p>
         </div>
 
