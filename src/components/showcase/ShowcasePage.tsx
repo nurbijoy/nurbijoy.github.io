@@ -43,7 +43,7 @@ export function ShowcasePage() {
         </div>
       </header>
 
-      <main id="main" className="container-x section">
+      <main id="main" className="container-x pt-8 pb-12 sm:pt-10">
         <p className="eyebrow flex items-center gap-3">
           <span className="text-accent-ink">শোকেস</span>
           <span aria-hidden className="h-px w-10 bg-line-strong" />
@@ -54,12 +54,9 @@ export function ShowcasePage() {
           <br />
           <span className="text-accent-ink">এখানেই চালিয়ে দেখুন।</span>
         </h1>
-        <p className="lede mt-6 max-w-2xl">
-          নিজের বানানো কাজের টুল, স্ক্রিনশট নয়। প্রতিটি সরাসরি আপনার ব্রাউজারে চলে, কিছু ইনস্টল বা সাইন-আপ লাগে না।
-        </p>
 
         {showcase.length > 1 && (
-          <div role="group" aria-label="চলমান প্রকল্প" className="mt-10 flex flex-wrap gap-2">
+          <div role="group" aria-label="চলমান প্রকল্প" className="mt-6 flex flex-wrap gap-2">
             {showcase.map((p) => (
               <button
                 key={p.id}
@@ -74,7 +71,7 @@ export function ShowcasePage() {
           </div>
         )}
 
-        <article className="card mt-12 p-5 sm:p-8">
+        <article className="card mt-8 p-5 sm:p-8">
           <header className="mb-8 max-w-3xl">
             <div className="flex flex-wrap items-center gap-2">
               <span className="tag gap-1.5">
@@ -100,7 +97,7 @@ export function ShowcasePage() {
         </article>
       </main>
 
-      <footer className="container-x flex flex-col gap-3 pt-16 pb-10 text-xs text-ink-3 sm:flex-row sm:items-center sm:justify-between">
+      <footer className="container-x flex flex-col gap-3 pt-10 pb-8 text-xs text-ink-3 sm:flex-row sm:items-center sm:justify-between">
         <p>
           © {toBn(new Date().getFullYear())} {site.name}। হাতে তৈরি।
         </p>

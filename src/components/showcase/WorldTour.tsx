@@ -163,30 +163,32 @@ export function WorldTour() {
 
   return (
     <div>
-      <div className="rounded-2xl border border-line bg-surface-2/40 p-3 sm:p-5">
-        <svg
-          viewBox={`0 0 ${WORLD_WIDTH} ${WORLD_HEIGHT}`}
-          role="group"
-          aria-label="বিশ্বের দেশের মানচিত্র"
-          className="block h-auto w-full"
-        >
-          <rect x={-WORLD_WIDTH} y={0} width={WORLD_WIDTH * 3} height={WORLD_HEIGHT} fill="var(--surface)" />
-          {countries.map((c) => (
-            <CountryShape
-              key={c.id}
-              country={c}
-              on={visited.has(c.id)}
-              colour={colour}
-              onToggle={toggle}
-              onHover={setHovered}
-            />
-          ))}
-        </svg>
-      </div>
-      <p className="bn mt-4 min-h-6 text-sm text-ink-2">{readout}</p>
-      <p className="mt-1 text-xs text-ink-3">মানচিত্র: Natural Earth (public domain)।</p>
+      <div className="grid gap-8 lg:grid-cols-2 lg:items-start">
+        <div>
+          <div className="flex justify-center rounded-2xl border border-line bg-surface-2/40 p-4 sm:p-6">
+            <svg
+              viewBox={`0 0 ${WORLD_WIDTH} ${WORLD_HEIGHT}`}
+              role="group"
+              aria-label="বিশ্বের দেশের মানচিত্র"
+              className="block h-auto w-full"
+            >
+              <rect x={-WORLD_WIDTH} y={0} width={WORLD_WIDTH * 3} height={WORLD_HEIGHT} fill="var(--surface)" />
+              {countries.map((c) => (
+                <CountryShape
+                  key={c.id}
+                  country={c}
+                  on={visited.has(c.id)}
+                  colour={colour}
+                  onToggle={toggle}
+                  onHover={setHovered}
+                />
+              ))}
+            </svg>
+          </div>
+          <p className="bn mt-4 min-h-6 text-sm text-ink-2">{readout}</p>
+          <p className="mt-1 text-xs text-ink-3">মানচিত্র: Natural Earth (public domain)।</p>
+        </div>
 
-      <div className="mt-8 grid gap-8 lg:grid-cols-2 lg:items-start">
         <div className="space-y-6">
           <div>
             <div role="group" aria-label="দেশ যোগ করার উপায়" className="seg flex w-full">
@@ -296,9 +298,7 @@ export function WorldTour() {
               className="bn mt-3 w-full rounded-xl border border-line-strong bg-surface px-4 py-3 text-base text-ink placeholder:text-ink-3 focus:border-accent-ink focus:outline-none"
             />
           </div>
-        </div>
 
-        <div className="space-y-6">
           <div className="flex items-end justify-between gap-4">
             <div>
               <p className="eyebrow">ভ্রমণ করা দেশ</p>
