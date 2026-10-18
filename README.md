@@ -16,7 +16,7 @@ All content is typed data in [`src/data`](src/data). No component needs touching
 
 | To change… | Edit | Notes |
 | --- | --- | --- |
-| Name, tagline, roles, links, education | `site.ts` | The graduate programme lives **only** in `education`; a test fails if it appears anywhere else. |
+| Name, tagline, roles, links | `site.ts` | Profile, quick facts and navigation. |
 | Projects | `projects.ts` | Optional: `image`, `status`, `role`, `case` (opens a case-study dialog), `featured`, `repo` (live GitHub stars). |
 | Publications / talks | `publications.ts` | Cards, timeline, abstracts, links and a generated BibTeX **Cite** button. Leave `[]` for an empty state. |
 | Research directions + concept map | `research.ts` | The constellation chart is drawn from `graphNodes` / `graphLinks`. |
@@ -43,7 +43,7 @@ All content is typed data in [`src/data`](src/data). No component needs touching
 - **No layout shift from fonts.** The two critical fonts are preloaded, and the fallbacks are Arial rescaled to the real fonts' measured metrics, so the web-font swap moves nothing (headline box 317 px vs 317 px).
 - **Measured on the production build** (localhost, unthrottled): FCP/LCP well under a second, no long tasks in steady state, ~59 fps under pointer interaction, worst frame 40 ms.
 - **Accessible.** Skip link, visible focus, keyboard-operable palette and dialogs with focus trapping, `prefers-reduced-motion` respected, WCAG AA contrast verified for every text pair in both themes.
-- **Tested.** `npm test` covers the data layer's integrity (unique ids, valid graph edges, advanced-only skills), heatmap binning, BibTeX and formatting, plus the "programme mentioned only in Education" rule.
+- **Tested.** `npm test` covers the data layer's integrity (unique ids, valid graph edges, advanced-only skills), heatmap binning, BibTeX and formatting, plus a rule that the graduate programme is never named.
 
 ## Deploying
 

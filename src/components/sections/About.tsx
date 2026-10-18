@@ -1,10 +1,8 @@
 import { useState } from 'react'
-import { GraduationCap, MapPin } from 'lucide-react'
-import { education, facts, now, site } from '@/data/site'
+import { MapPin } from 'lucide-react'
+import { facts, site } from '@/data/site'
 import { Reveal } from '@/components/ui/Reveal'
-import { SampleTag } from '@/components/ui/SampleTag'
 import { SectionHeading } from '@/components/ui/SectionHeading'
-import { cn } from '@/lib/cn'
 import { onSpotMove } from '@/lib/spotlight'
 
 function Avatar() {
@@ -26,45 +24,6 @@ function Avatar() {
           className="absolute inset-0 size-full object-cover"
         />
       )}
-    </div>
-  )
-}
-
-/** Earliest first: a node per degree, joined by a line that runs sideways on wide screens. */
-function EducationTimeline() {
-  return (
-    <div className="card spot p-6 sm:p-8" onPointerMove={onSpotMove}>
-      <h3 className="eyebrow">Education</h3>
-      <ol className="mt-8 grid gap-10 md:grid-cols-2 md:gap-0">
-        {education.map((e, i) => {
-          const latest = i === education.length - 1
-          const hasNext = i < education.length - 1
-          return (
-            <li key={e.degree} className="relative">
-              {/* vertical connector on narrow screens */}
-              {hasNext && <span aria-hidden className="absolute top-12 left-[1.35rem] h-[calc(100%-1.5rem)] w-px bg-line-strong md:hidden" />}
-              <div className="flex items-center gap-4">
-                <span
-                  className={cn(
-                    'grid size-11 shrink-0 place-items-center rounded-xl border',
-                    latest ? 'border-accent/50 bg-accent/15 text-accent-ink' : 'border-line-strong bg-surface-2 text-ink-2',
-                  )}
-                >
-                  <GraduationCap size={20} />
-                </span>
-                {/* horizontal connector on wide screens */}
-                {hasNext && <span aria-hidden className="hidden h-px flex-1 bg-gradient-to-r from-line-strong to-accent/60 md:block" />}
-              </div>
-              <div className="mt-4 pl-[3.75rem] md:pr-10 md:pl-0">
-                <p className="font-display text-[clamp(1.3rem,2vw,1.75rem)] leading-snug font-semibold tracking-tight [font-stretch:92%]">
-                  {e.degree}
-                </p>
-                <p className="mt-1.5 text-ink-2">{e.school}</p>
-              </div>
-            </li>
-          )
-        })}
-      </ol>
     </div>
   )
 }
@@ -130,26 +89,8 @@ export function About() {
                 ))}
               </dl>
             </div>
-
-            <div className="card spot p-6 sm:p-8" onPointerMove={onSpotMove}>
-              <h3 className="eyebrow">Right now</h3>
-              <ul className="mt-5 space-y-3">
-                {now.map((n) => (
-                  <li key={n.text} className="flex items-start gap-3 text-ink-2">
-                    <span aria-hidden className="mt-[0.6rem] size-1.5 shrink-0 rounded-full bg-accent" />
-                    <span>
-                      {n.text} {n.sample && <SampleTag />}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
           </Reveal>
         </div>
-
-        <Reveal delay={0.1} className="mt-12">
-          <EducationTimeline />
-        </Reveal>
       </div>
     </section>
   )

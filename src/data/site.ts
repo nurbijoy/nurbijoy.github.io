@@ -35,28 +35,6 @@ export const site = {
   socials: [{ label: 'GitHub', href: 'https://github.com/nurbijoy', icon: 'github' as const }],
 }
 
-export interface EducationEntry {
-  degree: string
-  school: string
-}
-
-/**
- * Education, earliest first (the About section draws it as a timeline).
- *
- * The graduate programme is named ONLY here: it stays out of the hero, bio, footer and
- * metadata (a test enforces this). No enrolment-status wording on purpose.
- */
-export const education: EducationEntry[] = [
-  {
-    degree: 'B.Sc. in Computer Science and Engineering (CSE)',
-    school: 'Port City International University (PCIU)',
-  },
-  {
-    degree: 'M.Sc. Engg in Information Security (InfoSec)',
-    school: 'Bangladesh University of Engineering and Technology (BUET)',
-  },
-]
-
 export interface NavItem {
   id: string
   label: string
@@ -77,13 +55,6 @@ export const nav: readonly NavItem[] = [
 
 /** Where a nav item points: its own page, or the section on this page. */
 export const navHref = (item: NavItem) => item.href ?? `#${item.id}`
-
-/** The "now" list in the About section. */
-export const now: { text: string; sample?: boolean }[] = [
-  { text: 'Designing and building this site, from design tokens to live charts' },
-  { text: 'Reading up on applied cryptography and protocol design', sample: true },
-  { text: 'Hardening a side project with threat-model-first design', sample: true },
-]
 
 /** Quick facts: hero strip + About card. */
 export const facts: { label: string; value: string }[] = [

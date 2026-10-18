@@ -4,7 +4,7 @@ import { projects } from './projects'
 import { publications } from './publications'
 import { directions, graphLinks, graphNodes } from './research'
 import { domains, MIN_LEVEL, shownDomains, shownSkills, skills } from './skills'
-import { education, nav } from './site'
+import { nav } from './site'
 
 const unique = (xs: readonly string[]) => new Set(xs).size === xs.length
 
@@ -71,13 +71,6 @@ describe('content integrity', () => {
     for (const banned of ['Frontend', 'Backend', 'Data']) expect(shownDomains as string[]).not.toContain(banned)
   })
 
-  it('education lists the B.Sc. and the M.Sc., earliest first', () => {
-    expect(education).toHaveLength(2)
-    expect(education[0]!.degree).toMatch(/^B\.Sc\. in Computer Science and Engineering/)
-    expect(education[0]!.school).toBe('Port City International University (PCIU)')
-    expect(education[1]!.degree).toMatch(/^M\.Sc\. Engg in Information Security/)
-  })
-
   it('navigation ids are unique', () => {
     expect(unique(nav.map((n) => n.id))).toBe(true)
   })
@@ -90,9 +83,9 @@ describe('content rules', () => {
     eager: true,
   }) as Record<string, string>
 
-  it('mentions the graduate programme only in the education record (src/data/site.ts)', () => {
+  it('never names the graduate programme', () => {
     const offenders = Object.entries(files)
-      .filter(([path]) => !path.endsWith('/src/data/site.ts') && !path.endsWith('.test.ts'))
+      .filter(([path]) => !path.endsWith('.test.ts'))
       .filter(([, text]) => /\bBUET\b|Bangladesh University of Engineering/i.test(text))
       .map(([path]) => path)
     expect(offenders).toEqual([])
