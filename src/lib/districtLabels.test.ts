@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { bestLabelLayout, layoutLabels, type LabelItem } from './districtLabels'
+import { bestLabelLayout, layoutLabels, leaderArrow, type LabelItem } from './districtLabels'
 
 /** Every character is half the font size wide: predictable widths for the tests. */
 const measure = (text: string, size: number) => text.length * size * 0.5
@@ -27,6 +27,21 @@ describe('layoutLabels', () => {
     expect(p && q && (p.x !== q.x || p.y !== q.y)).toBe(true)
   })
 
+  it('joins a moved name to its district with a leader line, and leaves a name on its district without one', () => {
+    const items: LabelItem[] = [
+      { id: 'a', text: 'আআ', x: 100, y: 100 },
+      { id: 'b', text: 'আআ', x: 100, y: 100 },
+    ]
+    const layout = layoutLabels(items, measure, 14, bounds)
+    const onDistrict = layout.placed.filter((p) => p.leader === null)
+    const moved = layout.placed.filter((p) => p.leader !== null)
+    expect(onDistrict).toHaveLength(1)
+    expect(moved).toHaveLength(1)
+    const leader = moved[0]!.leader!
+    expect(leader.x1).toBe(100)
+    expect(leader.y1).toBe(100)
+  })
+
   it('keeps every placed name inside the map', () => {
     const items: LabelItem[] = [{ id: 'edge', text: 'আআআ', x: 1, y: 1 }]
     const [p] = layoutLabels(items, measure, 14, bounds).placed
@@ -34,6 +49,16 @@ describe('layoutLabels', () => {
     const half = measure('আআআ', 14) / 2
     expect(p!.x - half).toBeGreaterThanOrEqual(0)
     expect(p!.y - 14 * 1.3 / 2).toBeGreaterThanOrEqual(0)
+  })
+})
+
+describe('leaderArrow', () => {
+  it('ends its arrowhead on the district, and starts its curve at the name', () => {
+    const arrow = leaderArrow({ x1: 100, y1: 100, x2: 80, y2: 60 }, 6)
+    // The head starts at the district point, so its first coordinates are the district's.
+    expect(arrow.head.startsWith('M100 100 ')).toBe(true)
+    // The curve starts at the edge of the name and finishes at the base of the head.
+    expect(arrow.curve.startsWith('M80 60 Q')).toBe(true)
   })
 })
 

@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useState } from 'react'
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Download, Eraser, ImageDown, ListChecks, Search, X, ZoomIn } from 'lucide-react'
 import '@fontsource/hind-siliguri/400.css'
 import '@fontsource/hind-siliguri/700.css'
@@ -14,6 +14,9 @@ import {
   WORLD_STORAGE_KEY,
 } from '@/lib/worldTour'
 import { renderWorldTourPng } from '@/lib/worldTourImage'
+import { bestLabelLayout, leaderArrow, type LabelItem } from '@/lib/districtLabels'
+import { useUnitPx } from '@/hooks/useUnitPx'
+import { measureBangla } from '@/lib/textMeasure'
 import { toBn } from '@/lib/bangla'
 import { ContinentPicker } from './ContinentPicker'
 import './TravelMap.css'
@@ -21,6 +24,9 @@ import './WorldTour.css'
 
 const UNVISITED_FILL = 'var(--line-strong)'
 const CUSTOM_RING_GRADIENT = 'conic-gradient(#ef4444, #f59e0b, #22c55e, #0ea5e9, #6366f1, #a855f7, #ef4444)'
+const VIEW_BOUNDS = { width: WORLD_WIDTH, height: WORLD_HEIGHT }
+/** Font sizes for the visited countries' names on the page map, in map units, largest first. */
+const PAGE_NAME_SIZES = [4, 3.6, 3.2, 3, 2.6, 2.3, 2, 1.8, 1.6, 1.4]
 
 /** How countries get marked: tapping the map, typing a name, or ticking a continent's countries. */
 type InputMode = 'tap' | 'search' | 'continent'
@@ -117,6 +123,27 @@ export function WorldTour() {
     setPickerContinent(null)
   }, [])
 
+  // Names are placed once the Bangla font is ready, so that they are measured correctly.
+  const [fontsReady, setFontsReady] = useState(false)
+  useEffect(() => {
+    const done = () => setFontsReady(true)
+    if (!('fonts' in document)) return done()
+    document.fonts.load('700 18px "Hind Siliguri"', countries.map((c) => c.nameBn).join('')).then(done, done)
+  }, [])
+  // Only the visited countries are named on the page; every country is named on the saved picture.
+  const visitedLabels = useMemo(() => {
+    if (!fontsReady) return null
+    const items: LabelItem[] = countries
+      .filter((c) => visited.has(c.id))
+      .map((c) => ({ id: c.id, text: c.nameBn, x: c.label[0], y: c.label[1] }))
+    return bestLabelLayout(items, measureBangla, VIEW_BOUNDS, PAGE_NAME_SIZES)
+  }, [fontsReady, visited])
+
+  // The arrowhead is about 9 screen pixels long, whatever the size of the map.
+  const svgRef = useRef<SVGSVGElement>(null)
+  const unitPx = useUnitPx(svgRef, WORLD_WIDTH)
+  const headLength = 9 / unitPx
+
   useEffect(() => writeSaved(visited, colour, name), [visited, colour, name])
 
   // Frees a picture's object URL when a newer one replaces it, and when the map unmounts.
@@ -163,32 +190,62 @@ export function WorldTour() {
 
   return (
     <div>
-      <div className="grid gap-8 lg:grid-cols-2 lg:items-start">
-        <div>
-          <div className="flex justify-center rounded-2xl border border-line bg-surface-2/40 p-4 sm:p-6">
-            <svg
-              viewBox={`0 0 ${WORLD_WIDTH} ${WORLD_HEIGHT}`}
-              role="group"
-              aria-label="বিশ্বের দেশের মানচিত্র"
-              className="block h-auto w-full"
-            >
-              <rect x={-WORLD_WIDTH} y={0} width={WORLD_WIDTH * 3} height={WORLD_HEIGHT} fill="var(--surface)" />
-              {countries.map((c) => (
-                <CountryShape
-                  key={c.id}
-                  country={c}
-                  on={visited.has(c.id)}
-                  colour={colour}
-                  onToggle={toggle}
-                  onHover={setHovered}
-                />
-              ))}
-            </svg>
-          </div>
-          <p className="bn mt-4 min-h-6 text-sm text-ink-2">{readout}</p>
-          <p className="mt-1 text-xs text-ink-3">মানচিত্র: Natural Earth (public domain)।</p>
-        </div>
+      <div className="rounded-2xl border border-line bg-surface-2/40 p-3 sm:p-5">
+        <svg
+          ref={svgRef}
+          viewBox={`0 0 ${WORLD_WIDTH} ${WORLD_HEIGHT}`}
+          role="group"
+          aria-label="বিশ্বের দেশের মানচিত্র"
+          className="block h-auto w-full"
+        >
+          <rect x={-WORLD_WIDTH} y={0} width={WORLD_WIDTH * 3} height={WORLD_HEIGHT} fill="var(--surface)" />
+          {countries.map((c) => (
+            <CountryShape
+              key={c.id}
+              country={c}
+              on={visited.has(c.id)}
+              colour={colour}
+              onToggle={toggle}
+              onHover={setHovered}
+            />
+          ))}
+          {visitedLabels &&
+            visitedLabels.placed.map((p) => {
+              if (!p.leader) return null
+              const arrow = leaderArrow(p.leader, headLength)
+              return (
+                <g key={`leader-${p.id}`}>
+                  <path d={arrow.curve} className="map-leader" />
+                  <path d={arrow.head} className="map-arrowhead" />
+                </g>
+              )
+            })}
+          {visitedLabels &&
+            visitedLabels.placed.map((p) => (
+              <text
+                key={p.id}
+                x={p.x}
+                y={p.y}
+                fontSize={visitedLabels.size}
+                textAnchor="middle"
+                dominantBaseline="central"
+                className="map-label is-on"
+                aria-hidden="true"
+              >
+                {countries.find((c) => c.id === p.id)?.nameBn}
+              </text>
+            ))}
+        </svg>
+      </div>
+      <p className="bn mt-4 min-h-6 text-sm text-ink-2">{readout}</p>
+      <p className="mt-1 text-xs text-ink-3">মানচিত্র: Natural Earth (public domain)।</p>
+      {visitedLabels && visitedLabels.hidden.length > 0 && (
+        <p className="bn mt-1 text-xs text-ink-3">
+          {toBn(visitedLabels.hidden.length)}টি দেশের নাম জায়গা না পাওয়ায় মানচিত্রে দেখানো যায়নি। দেশে ক্লিক করলে নাম দেখাবে।
+        </p>
+      )}
 
+      <div className="mt-8 grid gap-8 lg:grid-cols-2 lg:items-start">
         <div className="space-y-6">
           <div>
             <div role="group" aria-label="দেশ যোগ করার উপায়" className="seg flex w-full">
@@ -298,7 +355,9 @@ export function WorldTour() {
               className="bn mt-3 w-full rounded-xl border border-line-strong bg-surface px-4 py-3 text-base text-ink placeholder:text-ink-3 focus:border-accent-ink focus:outline-none"
             />
           </div>
+        </div>
 
+        <div className="space-y-6">
           <div className="flex items-end justify-between gap-4">
             <div>
               <p className="eyebrow">ভ্রমণ করা দেশ</p>

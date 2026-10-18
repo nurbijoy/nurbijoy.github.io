@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useMemo, useState } from 'react'
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Download, Eraser, ImageDown, ListChecks, Search, X, ZoomIn } from 'lucide-react'
 import { Modal } from '@/components/ui/Modal'
 import { DivisionPicker } from './DivisionPicker'
@@ -23,7 +23,9 @@ import {
   TOTAL_DISTRICTS,
 } from '@/lib/travelMap'
 import { toBn } from '@/lib/bangla'
-import { bestLabelLayout, type LabelItem } from '@/lib/districtLabels'
+import { bestLabelLayout, leaderArrow, type LabelItem } from '@/lib/districtLabels'
+import { useUnitPx } from '@/hooks/useUnitPx'
+import { measureBangla } from '@/lib/textMeasure'
 import './TravelMap.css'
 
 const STORAGE_KEY = 'bangladesh-travel-map'
@@ -40,16 +42,6 @@ const INPUT_MODES: { id: InputMode; label: string }[] = [
 ]
 
 const LABEL_ITEMS: LabelItem[] = districts.map((d) => ({ id: d.id, text: d.nameBn, x: d.label[0], y: d.label[1] }))
-
-let measureContext: CanvasRenderingContext2D | null | undefined
-
-/** Width of a name in map units, measured with the Bangla font the names are drawn in. */
-function canvasMeasure(text: string, size: number): number {
-  if (measureContext === undefined) measureContext = document.createElement('canvas').getContext('2d')
-  if (!measureContext) return text.length * size * 0.6
-  measureContext.font = `700 ${size}px "Hind Siliguri", sans-serif`
-  return measureContext.measureText(text).width
-}
 
 /** Storage can be blocked (private windows, strict settings). Then the map is simply not remembered. */
 function readSaved() {
@@ -122,9 +114,13 @@ export function TravelMap() {
     document.fonts.load('700 18px "Hind Siliguri"', districts.map((d) => d.nameBn).join('')).then(done, done)
   }, [])
   const labels = useMemo(
-    () => (fontsReady ? bestLabelLayout(LABEL_ITEMS, canvasMeasure, { width: MAP_WIDTH, height: MAP_HEIGHT }) : null),
+    () => (fontsReady ? bestLabelLayout(LABEL_ITEMS, measureBangla, { width: MAP_WIDTH, height: MAP_HEIGHT }) : null),
     [fontsReady],
   )
+  // The arrowhead is about 9 screen pixels long, whatever the size of the map.
+  const svgRef = useRef<SVGSVGElement>(null)
+  const unitPx = useUnitPx(svgRef, MAP_WIDTH)
+  const headLength = 9 / unitPx
   const [viewing, setViewing] = useState(false)
   const closeView = useCallback(() => setViewing(false), [])
   const [mode, setMode] = useState<InputMode>('tap')
@@ -187,6 +183,7 @@ export function TravelMap() {
         <div>
           <div className="flex justify-center rounded-2xl border border-line bg-surface-2/40 p-4 sm:p-6">
             <svg
+              ref={svgRef}
               viewBox={`0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`}
               role="group"
               aria-label="বাংলাদেশের ৬৪টি জেলার মানচিত্র"
@@ -202,6 +199,17 @@ export function TravelMap() {
                   onHover={setHovered}
                 />
               ))}
+              {labels &&
+                labels.placed.map((p) => {
+                  if (!p.leader) return null
+                  const arrow = leaderArrow(p.leader, headLength)
+                  return (
+                    <g key={`leader-${p.id}`}>
+                      <path d={arrow.curve} className="map-leader" />
+                      <path d={arrow.head} className="map-arrowhead" />
+                    </g>
+                  )
+                })}
               {labels &&
                 labels.placed.map((p) => (
                   <text

@@ -46,3 +46,19 @@
 .map-label.is-on {
   fill: var(--ink);
 }
+
+/* A curved arrow joining a name that was moved away from its district. The line and its head keep
+   the same screen size however far the map is scaled. */
+.map-leader {
+  fill: none;
+  stroke: var(--ink-2);
+  stroke-width: 1.5px;
+  vector-effect: non-scaling-stroke;
+  opacity: 0.85;
+  pointer-events: none;
+}
+.map-arrowhead {
+  fill: var(--ink-2);
+  opacity: 0.85;
+  pointer-events: none;
+}

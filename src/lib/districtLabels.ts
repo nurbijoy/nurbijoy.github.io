@@ -17,6 +17,11 @@ export interface PlacedLabel {
   /** Centre of the name, in map units. */
   x: number
   y: number
+  /**
+   * A line from the district's own point to the nearest edge of its name, when the name had to
+   * move away from it. Null when the name sits on its district.
+   */
+  leader: { x1: number; y1: number; x2: number; y2: number } | null
 }
 
 export interface LabelLayout {
@@ -29,6 +34,51 @@ export interface LabelLayout {
 
 /** Measures a name at a font size, in the same units as the map. */
 export type Measure = (text: string, size: number) => number
+
+export interface LeaderArrow {
+  /** A gently curved line from the name to the district. */
+  curve: string
+  /** A filled arrowhead, its tip on the district. */
+  head: string
+}
+
+/**
+ * A curved connector from a moved name to its district, ending in an arrowhead on the district.
+ * The bend is a small fraction of the length, so the line reads as a connector, not a pointer.
+ * The head is `headLength` long in map units.
+ */
+export function leaderArrow(leader: NonNullable<PlacedLabel['leader']>, headLength: number): LeaderArrow {
+  const sx = leader.x2
+  const sy = leader.y2
+  const ex = leader.x1
+  const ey = leader.y1
+  const dx = ex - sx
+  const dy = ey - sy
+  const len = Math.hypot(dx, dy) || 1
+  const bend = len * 0.18
+  const cx = (sx + ex) / 2 - (dy / len) * bend
+  const cy = (sy + ey) / 2 + (dx / len) * bend
+
+  // The arrow points along the curve's direction at the district.
+  const tx = ex - cx
+  const ty = ey - cy
+  const tl = Math.hypot(tx, ty) || 1
+  const ux = tx / tl
+  const uy = ty / tl
+  const bx = ex - ux * headLength
+  const by = ey - uy * headLength
+  const half = headLength / 2
+  const lx = bx - uy * half
+  const ly = by + ux * half
+  const rx = bx + uy * half
+  const ry = by - ux * half
+
+  const f = (n: number) => (Math.round(n * 100) / 100).toString()
+  return {
+    curve: `M${f(sx)} ${f(sy)} Q${f(cx)} ${f(cy)} ${f(bx)} ${f(by)}`,
+    head: `M${f(ex)} ${f(ey)} L${f(lx)} ${f(ly)} L${f(rx)} ${f(ry)} Z`,
+  }
+}
 
 export interface Bounds {
   width: number
@@ -89,8 +139,18 @@ export function layoutLabels(items: readonly LabelItem[], measure: Measure, size
       }
     }
     if (spot) {
-      boxes.push(spot.box)
-      placed.push({ id: item.id, text: item.text, x: spot.cx, y: spot.cy })
+      const { box } = spot
+      boxes.push(box)
+      const onDistrict = item.x >= box.x && item.x <= box.x + box.w && item.y >= box.y && item.y <= box.y + box.h
+      const leader = onDistrict
+        ? null
+        : {
+            x1: item.x,
+            y1: item.y,
+            x2: Math.min(Math.max(item.x, box.x), box.x + box.w),
+            y2: Math.min(Math.max(item.y, box.y), box.y + box.h),
+          }
+      placed.push({ id: item.id, text: item.text, x: spot.cx, y: spot.cy, leader })
     } else {
       hidden.push(item.id)
     }

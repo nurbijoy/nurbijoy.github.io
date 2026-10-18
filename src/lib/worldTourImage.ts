@@ -1,15 +1,19 @@
-import { countries, WORLD_HEIGHT, WORLD_WIDTH } from '@/data/worldCountries'
+import { countries, WORLD_HEIGHT, WORLD_WIDTH, type Country } from '@/data/worldCountries'
 import { site } from '@/data/site'
 import { toBn } from './bangla'
+import { bestLabelLayout, leaderArrow, type LabelItem } from './districtLabels'
+import { measureBangla } from './textMeasure'
 import { CONTINENT_ORDER, continentProgress, TOTAL_COUNTRIES } from './worldTour'
 
+/** The design size. The canvas is drawn at SCALE_UP times this, so every name stays legible. */
 const WIDTH = 1200
 const HEIGHT = 1640
+const SCALE_UP = 2.5
 const PAD = 96
 const RIGHT = WIDTH - PAD
 
 const FRAME_WIDTH = RIGHT - PAD
-/** Pixels per map unit: the frame fills the width, so the whole world fits. */
+/** Design pixels per map unit: the frame fills the width, so the whole world fits. */
 const SCALE = FRAME_WIDTH / WORLD_WIDTH
 const FRAME_HEIGHT = WORLD_HEIGHT * SCALE
 const MAP_TOP = 280
@@ -21,6 +25,10 @@ const LIST_ROWS = 11
 const LIST_CELLS = LIST_COLUMNS * LIST_ROWS
 
 const BAR_Y = LIST_TOP + LIST_ROWS * LIST_ROW + 30
+
+/** Font sizes for the names on the map, in map units, largest first. */
+const NAME_SIZES = [3, 2.6, 2.3, 2.1, 2, 1.9, 1.8, 1.7, 1.6, 1.5, 1.4, 1.3]
+const NAME_ITEMS: LabelItem[] = countries.map((c) => ({ id: c.id, text: c.nameBn, x: c.label[0], y: c.label[1] }))
 
 // Fixed colours: the image looks the same whatever theme the page is in.
 const BG = '#f6f1e6'
@@ -53,12 +61,15 @@ export interface WorldTourImageInput {
   name: string
 }
 
-/** Draws the world map as a shareable PNG: the visited countries, the names of those countries, and the totals. */
+/**
+ * Draws the world map as a shareable PNG: every country named on the map, the visited countries
+ * in the chosen colour, the names of the visited countries, and the totals.
+ */
 export async function renderWorldTourPng({ visited, colour, name }: WorldTourImageInput): Promise<Blob> {
   const count = visited.size
   const percent = Math.round((count / TOTAL_COUNTRIES) * 100)
   const continentsTouched = continentProgress(visited).filter((p) => p.visited > 0).length
-  const visitedCountries = countries
+  const visitedCountries: Country[] = countries
     .filter((c) => visited.has(c.id))
     .sort((a, b) => CONTINENT_ORDER.indexOf(a.continent) - CONTINENT_ORDER.indexOf(b.continent))
 
@@ -71,14 +82,17 @@ export async function renderWorldTourPng({ visited, colour, name }: WorldTourIma
   const listTitle = 'ভ্রমণ করা দেশগুলো'
 
   await loadFonts(
-    [title, eyebrow, stats, continentStats, legendVisited, legendNotYet, listTitle, ...visitedCountries.map((c) => c.nameBn)].join(''),
+    [title, eyebrow, stats, continentStats, legendVisited, legendNotYet, listTitle, ...countries.map((c) => c.nameBn)].join(''),
   )
+  // The names are placed after the font is loaded, so that they are measured with it.
+  const labels = bestLabelLayout(NAME_ITEMS, measureBangla, { width: WORLD_WIDTH, height: WORLD_HEIGHT }, NAME_SIZES)
 
   const canvas = document.createElement('canvas')
-  canvas.width = WIDTH
-  canvas.height = HEIGHT
+  canvas.width = WIDTH * SCALE_UP
+  canvas.height = HEIGHT * SCALE_UP
   const ctx = canvas.getContext('2d')
   if (!ctx) throw new Error('Canvas is not available in this browser')
+  ctx.scale(SCALE_UP, SCALE_UP)
 
   ctx.fillStyle = BG
   ctx.fillRect(0, 0, WIDTH, HEIGHT)
@@ -141,18 +155,44 @@ export async function renderWorldTourPng({ visited, colour, name }: WorldTourIma
     }
   }
 
-  // A pin on each visited country, so the smallest islands can still be seen.
-  for (const country of visitedCountries) {
-    const x = PAD + country.label[0] * SCALE
-    const y = MAP_TOP + country.label[1] * SCALE
-    ctx.beginPath()
-    ctx.arc(x, y, 6, 0, Math.PI * 2)
-    ctx.fillStyle = INK
-    ctx.fill()
-    ctx.lineWidth = 2
-    ctx.strokeStyle = BG
-    ctx.stroke()
+  // A curved arrow from each moved name to its country, drawn under the names. The arrowhead is
+  // about 9 design pixels long, however far the map is scaled.
+  ctx.save()
+  ctx.translate(PAD, MAP_TOP)
+  ctx.scale(SCALE, SCALE)
+  ctx.strokeStyle = MUTED
+  ctx.fillStyle = MUTED
+  ctx.lineWidth = 1.5 / SCALE
+  ctx.globalAlpha = 0.85
+  for (const placed of labels.placed) {
+    if (!placed.leader) continue
+    const arrow = leaderArrow(placed.leader, 9 / SCALE)
+    ctx.stroke(new Path2D(arrow.curve))
+    ctx.fill(new Path2D(arrow.head))
   }
+  ctx.globalAlpha = 1
+  ctx.restore()
+
+  // Every country is named. Visited countries are in ink and bold; the rest are muted.
+  const visitedIds = visited
+  for (const placed of labels.placed) {
+    const isVisited = visitedIds.has(placed.id)
+    const size = labels.size * SCALE
+    const x = PAD + placed.x * SCALE
+    const y = MAP_TOP + placed.y * SCALE
+    ctx.font = `${isVisited ? 700 : 500} ${size}px ${BANGLA}`
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    ctx.lineJoin = 'round'
+    ctx.lineWidth = size * 0.25
+    ctx.strokeStyle = OCEAN
+    const text = countries.find((c) => c.id === placed.id)?.nameBn ?? ''
+    ctx.strokeText(text, x, y)
+    ctx.fillStyle = isVisited ? INK : MUTED
+    ctx.fillText(text, x, y)
+  }
+  ctx.textAlign = 'left'
+  ctx.textBaseline = 'alphabetic'
   ctx.restore()
 
   // The names of the visited countries, in continent order.
