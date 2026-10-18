@@ -10,6 +10,7 @@ import {
   FolderGit2,
   LayoutGrid,
   Mail,
+  MapPinned,
   Moon,
   Search,
   Sparkles,
@@ -35,6 +36,7 @@ interface Command {
 const SECTION_ICON: Record<string, LucideIcon> = {
   about: User,
   projects: FolderGit2,
+  showcase: MapPinned,
   research: FlaskConical,
   skills: Wrench,
   interests: Sparkles,
@@ -58,12 +60,13 @@ export function CommandPalette({ open, onClose, theme, onToggleTheme }: Props) {
 
   const commands = useMemo<Command[]>(() => {
     const go = (id: string) => () => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
+    const visit = (href: string) => () => window.location.assign(href)
     const list: Command[] = nav.map((n) => ({
       id: `go-${n.id}`,
       group: 'Jump to',
       label: n.label,
       icon: SECTION_ICON[n.id] ?? Compass,
-      run: go(n.id),
+      run: n.href ? visit(n.href) : go(n.id),
     }))
     list.push(
       { id: 'top', group: 'Actions', label: 'Back to top', icon: ArrowUp, run: go('top') },

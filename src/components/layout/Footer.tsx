@@ -1,5 +1,5 @@
 import { ArrowUp } from 'lucide-react'
-import { nav, site } from '@/data/site'
+import { nav, navHref, site } from '@/data/site'
 import { SocialIcon } from '@/components/ui/Icons'
 
 const stack = ['React 19', 'TypeScript', 'Tailwind CSS v4', 'Recharts', 'd3-force', 'Motion']
@@ -38,7 +38,7 @@ export function Footer() {
 
           <nav aria-label="Footer" className="grid grid-cols-2 gap-x-12 gap-y-2 text-sm">
             {nav.map((n) => (
-              <a key={n.id} href={`#${n.id}`} className="py-1 text-ink-2 transition-colors hover:text-accent-ink">
+              <a key={n.id} href={navHref(n)} className="py-1 text-ink-2 transition-colors hover:text-accent-ink">
                 {n.label}
               </a>
             ))}

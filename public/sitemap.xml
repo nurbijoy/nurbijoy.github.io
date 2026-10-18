@@ -4,4 +4,8 @@
     <loc>https://nurbijoy.github.io/</loc>
     <changefreq>monthly</changefreq>
   </url>
+  <url>
+    <loc>https://nurbijoy.github.io/showcase/</loc>
+    <changefreq>monthly</changefreq>
+  </url>
 </urlset>

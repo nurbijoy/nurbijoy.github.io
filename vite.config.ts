@@ -39,6 +39,13 @@ export default defineConfig({
   build: {
     target: 'es2022',
     chunkSizeWarningLimit: 600,
+    rollupOptions: {
+      // Two pages: the home page, and the standalone Showcase at /showcase/.
+      input: {
+        main: fileURLToPath(new URL('./index.html', import.meta.url)),
+        showcase: fileURLToPath(new URL('./showcase/index.html', import.meta.url)),
+      },
+    },
   },
   test: {
     include: ['src/**/*.test.ts'],

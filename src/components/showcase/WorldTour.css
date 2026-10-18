@@ -1,0 +1,19 @@
+/* World map: each country is a path that fills with the chosen colour. Borders stay one pixel wide
+   however far the map is scaled. */
+.world-country {
+  cursor: pointer;
+  stroke: var(--surface);
+  stroke-width: 1px;
+  vector-effect: non-scaling-stroke;
+  stroke-linejoin: round;
+  transition:
+    fill 0.35s var(--ease-out-expo),
+    stroke 0.2s ease;
+}
+.world-country:hover,
+.world-country:focus,
+.world-country:focus-visible {
+  outline: none;
+  stroke: var(--ink);
+  stroke-width: 2px;
+}

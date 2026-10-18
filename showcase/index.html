@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Showcase — Nur Mohammad Bijoy</title>
+    <meta
+      name="description"
+      content="Live projects by Nur Mohammad Bijoy, running in the browser. Starts with a Bangladesh travel map: colour in the districts you have visited and export the result as an image."
+    />
+    <meta name="author" content="Nur Mohammad Bijoy" />
+    <link rel="canonical" href="https://nurbijoy.github.io/showcase/" />
+
+    <meta name="theme-color" content="#0d0d0d" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#f9f9f7" media="(prefers-color-scheme: light)" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Showcase — Nur Mohammad Bijoy" />
+    <meta
+      property="og:description"
+      content="Live projects running in the browser, starting with a Bangladesh travel map you can colour in and export."
+    />
+    <meta property="og:url" content="https://nurbijoy.github.io/showcase/" />
+    <meta name="twitter:card" content="summary" />
+
+    <!-- Apply the saved (or system) theme before first paint to avoid a flash. -->
+    <script>
+      try {
+        var t = localStorage.getItem('theme')
+        if (t !== 'light' && t !== 'dark') {
+          t = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'
+        }
+        document.documentElement.dataset.theme = t
+      } catch (e) {
+        document.documentElement.dataset.theme = 'dark'
+      }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <noscript>
+      <p style="font-family: system-ui, sans-serif; padding: 2rem; max-width: 40rem; margin: 0 auto">
+        The showcase needs JavaScript. <a href="/">Back to Nur Mohammad Bijoy's home page</a>.
+      </p>
+    </noscript>
+    <script type="module" src="/src/showcase/main.tsx"></script>
+  </body>
+</html>

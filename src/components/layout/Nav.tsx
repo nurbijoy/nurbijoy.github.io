@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { Menu, Search, X } from 'lucide-react'
-import { nav, site } from '@/data/site'
+import { nav, navHref, site } from '@/data/site'
 import { useActiveSection } from '@/hooks/useActiveSection'
 import type { Theme } from '@/hooks/useTheme'
 import { cn } from '@/lib/cn'
@@ -37,7 +37,7 @@ export function Nav({ theme, onToggleTheme, onOpenPalette }: Props) {
           {nav.map((item) => (
             <li key={item.id}>
               <a
-                href={`#${item.id}`}
+                href={navHref(item)}
                 aria-current={active === item.id ? 'true' : undefined}
                 className={cn(
                   'relative block rounded-full px-3.5 py-2 text-sm font-medium transition-colors',
@@ -101,7 +101,7 @@ export function Nav({ theme, onToggleTheme, onOpenPalette }: Props) {
               {nav.map((item, i) => (
                 <li key={item.id}>
                   <a
-                    href={`#${item.id}`}
+                    href={navHref(item)}
                     onClick={() => setMenuOpen(false)}
                     className={cn(
                       'flex items-center justify-between rounded-xl px-4 py-3 font-display text-2xl font-semibold tracking-tight transition-colors hover:bg-surface-2',

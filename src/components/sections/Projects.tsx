@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { ArrowUpRight, BookOpenText, GitFork, Globe, Play, Star, type LucideIcon } from 'lucide-react'
-import { projectCategories, projects, type Project, type ProjectStatus } from '@/data/projects'
+import { projectCategories, projects, type Project } from '@/data/projects'
 import { site } from '@/data/site'
 import { CoverArt } from '@/components/ui/CoverArt'
 import { GithubIcon } from '@/components/ui/Icons'
@@ -9,6 +9,7 @@ import { Modal } from '@/components/ui/Modal'
 import { Reveal } from '@/components/ui/Reveal'
 import { SampleTag } from '@/components/ui/SampleTag'
 import { SectionHeading } from '@/components/ui/SectionHeading'
+import { StatusChip } from '@/components/ui/StatusChip'
 import { useGithub } from '@/hooks/useGithub'
 import { cn } from '@/lib/cn'
 import { relativeTime } from '@/lib/format'
@@ -30,19 +31,6 @@ function Cover({ project }: { project: Project }) {
     )
   }
   return <CoverArt seed={project.id} />
-}
-
-function StatusChip({ status }: { status: ProjectStatus }) {
-  return (
-    <span className="tag gap-1.5">
-      {status === 'Live' ? (
-        <span className="pulse-dot !size-1.5" aria-hidden />
-      ) : (
-        <span aria-hidden className="size-1.5 rounded-full border border-ink-3" />
-      )}
-      {status}
-    </span>
-  )
 }
 
 interface LinkSpec {

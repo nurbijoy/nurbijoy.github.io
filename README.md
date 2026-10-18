@@ -22,6 +22,7 @@ All content is typed data in [`src/data`](src/data). No component needs touching
 | Research directions + concept map | `research.ts` | The constellation chart is drawn from `graphNodes` / `graphLinks`. |
 | Skills | `skills.ts` | Only skills at `MIN_LEVEL` (Advanced) or above are ever shown. |
 | Interests | `interests.ts` | |
+| Showcase page (live projects) | `showcase.ts` | Lives on its own page at `/showcase/` (`showcase/index.html`, `src/showcase/main.tsx`). Each entry needs a matching demo in the `demos` map of `src/components/showcase/ShowcasePage.tsx`. The Bangladesh travel map is in `src/components/showcase/`. |
 
 **Placeholder content.** Anything marked `sample: true` renders with a visible *Sample* tag so invented content can never pass as real. Replace the entry and drop the flag. Projects, skills, interests, research directions and the three publications are currently samples. The GitHub section is real data.
 

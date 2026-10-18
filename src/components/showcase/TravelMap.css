@@ -1,0 +1,31 @@
+/* Travel map: every district is a path that fills with the chosen colour. */
+.map-district {
+  cursor: pointer;
+  stroke: var(--surface);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  transition:
+    fill 0.35s var(--ease-out-expo),
+    stroke 0.2s ease;
+}
+.map-district:hover,
+.map-district:focus,
+.map-district:focus-visible {
+  outline: none;
+  stroke: var(--ink);
+  stroke-width: 3.5;
+}
+
+/* Bangla text: Hind Siliguri first, then the page font for anything Latin. Descendants inherit it,
+   so buttons and headings that set their own font still show Bangla in Hind Siliguri. */
+.bn {
+  font-family: 'Hind Siliguri', var(--font-sans), sans-serif;
+}
+.bn * {
+  font-family: inherit;
+}
+/* Bangla needs open spacing: tight English headline tracking and line height clip its vowel signs. */
+.bn .display {
+  letter-spacing: 0;
+  line-height: 1.3;
+}

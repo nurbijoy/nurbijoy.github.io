@@ -57,17 +57,26 @@ export const education: EducationEntry[] = [
   },
 ]
 
-export const nav = [
+export interface NavItem {
+  id: string
+  label: string
+  /** Set when the item opens its own page. Otherwise it scrolls to the section with this id. */
+  href?: string
+}
+
+export const nav: readonly NavItem[] = [
   { id: 'about', label: 'About' },
   { id: 'projects', label: 'Projects' },
+  { id: 'showcase', label: 'Showcase', href: '/showcase/' },
   { id: 'research', label: 'Research' },
   { id: 'skills', label: 'Skills' },
   { id: 'interests', label: 'Interests' },
   { id: 'activity', label: 'Activity' },
   { id: 'contact', label: 'Contact' },
-] as const
+]
 
-export type SectionId = (typeof nav)[number]['id']
+/** Where a nav item points: its own page, or the section on this page. */
+export const navHref = (item: NavItem) => item.href ?? `#${item.id}`
 
 /** The "now" list in the About section. */
 export const now: { text: string; sample?: boolean }[] = [
