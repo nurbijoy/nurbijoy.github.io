@@ -47,7 +47,20 @@ const CATEGORY_COLORS = { academic: '#327765', residential: '#a86e42', facilitie
 const INITIAL_TARGET = new THREE.Vector3(35, 0, -10)
 const INITIAL_POSITION = new THREE.Vector3(445, 620, 740)
 const DEFAULT_DISTANCE = INITIAL_POSITION.distanceTo(INITIAL_TARGET)
+const INITIAL_DIRECTION = INITIAL_POSITION.clone().sub(INITIAL_TARGET).normalize()
+const INITIAL_FORWARD = INITIAL_TARGET.clone().sub(INITIAL_POSITION).normalize()
+const INITIAL_RIGHT = INITIAL_FORWARD.clone().cross(new THREE.Vector3(0, 1, 0)).normalize()
+const OVERVIEW_HALF_WIDTH = Math.max(...campusPlaces.map((place) => {
+  const [x, z] = campusWorldPoint(place.coordinates)
+  return Math.abs(new THREE.Vector3(x, 0, z).sub(INITIAL_TARGET).dot(INITIAL_RIGHT))
+})) + 35
 const clamp = THREE.MathUtils.clamp
+
+function overviewPosition(aspect: number) {
+  const horizontalFov = 2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(43) / 2) * Math.max(aspect, .1))
+  const distance = Math.max(DEFAULT_DISTANCE, OVERVIEW_HALF_WIDTH * 1.12 / Math.tan(horizontalFov / 2))
+  return INITIAL_TARGET.clone().addScaledVector(INITIAL_DIRECTION, distance)
+}
 
 function buildingHeight(building: Building) {
   const record = campusArchitecture[building.id]
@@ -197,14 +210,15 @@ function initializeScene(host: HTMLDivElement, labelLayer: HTMLDivElement, lates
   host.prepend(renderer.domElement)
 
   const scene = new THREE.Scene()
-  const camera = new THREE.PerspectiveCamera(43, 1, .3, 3500)
-  camera.position.copy(INITIAL_POSITION)
+  const initialAspect = Math.max(host.clientWidth, 1) / Math.max(host.clientHeight, 1)
+  const camera = new THREE.PerspectiveCamera(43, initialAspect, .3, 6000)
+  camera.position.copy(overviewPosition(initialAspect))
   const controls = new OrbitControls(camera, renderer.domElement)
   controls.target.copy(INITIAL_TARGET)
   controls.enableDamping = !reducedMotion
   controls.dampingFactor = .12
   controls.minDistance = 28
-  controls.maxDistance = 1500
+  controls.maxDistance = 5500
   controls.maxTargetRadius = 720
   controls.maxPolarAngle = Math.PI / 2 - .035
   controls.minPolarAngle = .08
@@ -250,6 +264,7 @@ function initializeScene(host: HTMLDivElement, labelLayer: HTMLDivElement, lates
   ground.rotation.x = -Math.PI / 2; ground.position.y = -.04; ground.receiveShadow = true; scene.add(ground)
 
   const placeByBuilding = new Map(campusPlaces.flatMap((place) => place.buildingIds.map((id) => [id, place] as const)))
+  const placeByGreen = new Map(campusPlaces.flatMap((place) => (place.greenIds ?? []).map((id) => [id, place] as const)))
   const worldBuildings: WorldBuilding[] = campusGeometry.buildings.map((source) => {
     const points = source.points.map(campusWorldPoint)
     return { source, points, holes: (source.holes ?? []).map((ring) => ring.map(campusWorldPoint)), bounds: campusRingBounds(points), height: buildingHeight(source), place: placeByBuilding.get(source.id) }
@@ -365,6 +380,7 @@ function initializeScene(host: HTMLDivElement, labelLayer: HTMLDivElement, lates
   addInstances(new THREE.BoxGeometry(1, 1, 1), keepMaterial(new THREE.MeshStandardMaterial({ color: '#d8d4c5', roughness: .92 })), parapetMatrices)
 
   const roadBatches: THREE.BufferGeometry[] = [], pavementBatches: THREE.BufferGeometry[] = [], markingBatches: THREE.BufferGeometry[] = []
+  const namedGreens = new Map<string, THREE.Mesh>()
   const worldRoads = campusGeometry.roads.map((road) => ({ ...road, world: road.points.map(campusWorldPoint) }))
   for (const road of worldRoads) {
     const footpath = ['footway', 'path', 'steps'].includes(road.kind)
@@ -389,8 +405,11 @@ function initializeScene(host: HTMLDivElement, labelLayer: HTMLDivElement, lates
   for (const green of campusGeometry.greens) {
     const points = green.points.map(campusWorldPoint)
     const water = green.kind === 'water'
-    const mesh = new THREE.Mesh(keepGeometry(flatGeometry(points, [], water ? -.02 : .1)), water ? waterMaterial : grassMaterial)
+    const place = placeByGreen.get(green.id)
+    const material = water ? waterMaterial : place ? keepMaterial(grassMaterial.clone()) : grassMaterial
+    const mesh = new THREE.Mesh(keepGeometry(flatGeometry(points, [], water ? -.02 : .1)), material)
     mesh.receiveShadow = true; scene.add(mesh)
+    if (place) namedGreens.set(place.id, mesh)
     if (water) continue
     const bounds = campusRingBounds(points)
     const random = campusRandom(campusSeed(green.id))
@@ -474,7 +493,8 @@ function initializeScene(host: HTMLDivElement, labelLayer: HTMLDivElement, lates
     controls.enableDamping = false; controls.update(); controls.enableDamping = damping
     camera.position.copy(position); controls.target.copy(target); controls.update()
   }
-  const onControls = () => { transition = null; invalidate() }
+  let overviewInteracted = false
+  const onControls = () => { overviewInteracted = true; transition = null; invalidate() }
   controls.addEventListener('start', onControls)
   controls.addEventListener('change', invalidate)
   const safeGroundPosition = (place?: CampusPlace) => {
@@ -528,6 +548,10 @@ function initializeScene(host: HTMLDivElement, labelLayer: HTMLDivElement, lates
         if (material === (mesh.material as THREE.MeshStandardMaterial[])[0]) { material.emissive.set(active ? '#3e765b' : '#000000'); material.emissiveIntensity = active ? .26 : 0 }
       }
     }
+    for (const [id, mesh] of namedGreens) {
+      const material = mesh.material as THREE.MeshStandardMaterial
+      material.color.set(id === props.selectedId || id === props.hoveredId ? '#dedb98' : '#bdc99a')
+    }
     for (const entry of labelEntries) {
       entry.button.classList.toggle('is-selected', entry.place.id === props.selectedId)
       entry.button.setAttribute('aria-pressed', String(entry.place.id === props.selectedId))
@@ -545,6 +569,8 @@ function initializeScene(host: HTMLDivElement, labelLayer: HTMLDivElement, lates
     invalidate()
   }
   const command = (request: CampusCameraCommand) => {
+    if (request.kind === 'reset') overviewInteracted = false
+    else overviewInteracted = true
     if (currentMode === 'walk') {
       if (request.kind === 'reset' || request.kind === 'focus') {
         const place = campusPlaces.find((item) => item.id === request.placeId)
@@ -559,7 +585,7 @@ function initializeScene(host: HTMLDivElement, labelLayer: HTMLDivElement, lates
       }
       invalidate(); return
     }
-    if (request.kind === 'reset') animateCamera(INITIAL_POSITION.clone(), INITIAL_TARGET.clone())
+    if (request.kind === 'reset') animateCamera(overviewPosition(camera.aspect), INITIAL_TARGET.clone())
     else if (request.kind === 'focus' && request.placeId) {
       const place = campusPlaces.find((item) => item.id === request.placeId)
       if (!place) return
@@ -582,30 +608,63 @@ function initializeScene(host: HTMLDivElement, labelLayer: HTMLDivElement, lates
       animateCamera(controls.target.clone().add(offset), controls.target.clone())
     }
   }
+  const zoomWithWheel = (deltaY: number) => {
+    overviewInteracted = true
+    transition = null
+    flushOrbitInertia()
+    const offset = camera.position.clone().sub(controls.target)
+      .multiplyScalar(Math.exp(deltaY * .0007))
+      .clampLength(controls.minDistance, controls.maxDistance)
+    camera.position.copy(controls.target).add(offset)
+    controls.update(); invalidate()
+  }
+  const handleWheel = (event: WheelEvent) => {
+    // OrbitControls handles wheel input over the canvas itself. This catches labels
+    // and any wheel event it declines while an orbit gesture is active.
+    if (event.defaultPrevented) return
+    event.preventDefault()
+    const deltaY = event.deltaY * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? host.clientHeight : 1)
+    if (currentMode === 'walk') command({ kind: deltaY < 0 ? 'zoom-in' : 'zoom-out', sequence: 0 })
+    else zoomWithWheel(deltaY)
+  }
 
   const updateLabels = () => {
     const props = latest.current
     const width = host.clientWidth, height = host.clientHeight
-    const occupied: { x: number; y: number; w: number }[] = []
+    const occupied: { x: number; y: number; w: number; h: number }[] = []
     const visibleIds = new Set(props.places.map((place) => place.id))
     const candidates = [...labelEntries].sort((a, b) => Number(b.place.id === props.selectedId || b.place.id === props.hoveredId) - Number(a.place.id === props.selectedId || a.place.id === props.hoveredId) || a.position.distanceToSquared(camera.position) - b.position.distanceToSquared(camera.position))
-    let count = 0
     for (const entry of candidates) {
       const active = entry.place.id === props.selectedId || entry.place.id === props.hoveredId
       if (!props.labels || !visibleIds.has(entry.place.id)) { entry.button.style.display = 'none'; continue }
       vector.copy(entry.position).project(camera)
       const x = (vector.x * .5 + .5) * width, y = (-vector.y * .5 + .5) * height
-      if (vector.z < -1 || vector.z > 1 || x < 15 || x > width - 15 || y < 25 || y > height - 45 || (!active && count >= (mobile ? 9 : 13))) { entry.button.style.display = 'none'; continue }
-      const box = { x: x - 15, y: y - 28, w: entry.width }
-      if (!active && occupied.some((other) => box.x < other.x + other.w && box.x + box.w > other.x && Math.abs(box.y - other.y) < 33)) { entry.button.style.display = 'none'; continue }
-      if (!active) {
-        const direction = entry.position.clone().sub(camera.position)
-        raycaster.set(camera.position, direction.clone().normalize()); raycaster.far = direction.length() - 2
-        if (raycaster.intersectObjects(occluders, false).length) { entry.button.style.display = 'none'; continue }
+      if (vector.z < -1 || vector.z > 1 || x < 4 || x > width - 4 || y < 4 || y > height - 4) { entry.button.style.display = 'none'; continue }
+      const labelWidth = entry.width, labelHeight = 29
+      const options = [
+        { box: { x: x + 14, y: y - labelHeight / 2, w: labelWidth, h: labelHeight }, transform: 'translate(14px,-50%)' },
+        { box: { x: x - labelWidth - 14, y: y - labelHeight / 2, w: labelWidth, h: labelHeight }, transform: 'translate(calc(-100% - 14px),-50%)' },
+        { box: { x: x + 14, y: y - labelHeight - 12, w: labelWidth, h: labelHeight }, transform: 'translate(14px,calc(-100% - 12px))' },
+        { box: { x: x - labelWidth - 14, y: y - labelHeight - 12, w: labelWidth, h: labelHeight }, transform: 'translate(calc(-100% - 14px),calc(-100% - 12px))' },
+        { box: { x: x + 14, y: y + 12, w: labelWidth, h: labelHeight }, transform: 'translate(14px,12px)' },
+        { box: { x: x - labelWidth - 14, y: y + 12, w: labelWidth, h: labelHeight }, transform: 'translate(calc(-100% - 14px),12px)' },
+        { box: { x: x - labelWidth / 2, y: y - labelHeight - 14, w: labelWidth, h: labelHeight }, transform: 'translate(-50%,calc(-100% - 14px))' },
+        { box: { x: x - labelWidth / 2, y: y + 14, w: labelWidth, h: labelHeight }, transform: 'translate(-50%,14px)' },
+      ]
+      const score = (box: typeof options[number]['box']) => {
+        const outside = Math.max(0, 8 - box.x) + Math.max(0, box.x + box.w - (width - 8))
+          + Math.max(0, 8 - box.y) + Math.max(0, box.y + box.h - (height - 8))
+        const overlap = occupied.reduce((total, other) => total
+          + Math.max(0, Math.min(box.x + box.w + 4, other.x + other.w) - Math.max(box.x - 4, other.x))
+          * Math.max(0, Math.min(box.y + box.h + 4, other.y + other.h) - Math.max(box.y - 4, other.y)), 0)
+        return outside * 10000 + overlap
       }
-      occupied.push(box); count++
-      entry.button.style.display = ''; entry.button.style.transform = `translate(${Math.round(x)}px,${Math.round(y)}px) translate(-14px,-100%)`
-      entry.button.style.zIndex = active ? '20' : String(15 - Math.min(count, 14))
+      const placement = options.find((option) => score(option.box) === 0)
+        ?? options.reduce((best, option) => score(option.box) < score(best.box) ? option : best)
+      occupied.push(placement.box)
+      entry.button.style.display = ''
+      entry.button.style.transform = `translate(${Math.round(x)}px,${Math.round(y)}px) ${placement.transform}`
+      entry.button.style.zIndex = active ? '20' : String(15 - Math.min(occupied.length, 14))
     }
   }
   const pickPlace = (event: PointerEvent) => {
@@ -643,6 +702,7 @@ function initializeScene(host: HTMLDivElement, labelLayer: HTMLDivElement, lates
   renderer.domElement.addEventListener('pointerup', pointerUp)
   renderer.domElement.addEventListener('pointercancel', clearKeys)
   renderer.domElement.addEventListener('keydown', keyDown)
+  host.addEventListener('wheel', handleWheel, { passive: false })
   window.addEventListener('keyup', keyUp)
   window.addEventListener('blur', clearKeys)
   const contextLost = (event: Event) => { event.preventDefault(); latest.current.onError() }
@@ -657,7 +717,11 @@ function initializeScene(host: HTMLDivElement, labelLayer: HTMLDivElement, lates
   const resize = new ResizeObserver(() => {
     if (host.clientWidth < 1 || host.clientHeight < 1) { invalidate(); return }
     const width = host.clientWidth, height = host.clientHeight
-    renderer.setSize(width, height, false); camera.aspect = width / height; camera.updateProjectionMatrix(); invalidate()
+    renderer.setSize(width, height, false); camera.aspect = width / height
+    if (!overviewInteracted && currentMode === 'orbit') {
+      camera.position.copy(overviewPosition(camera.aspect)); controls.target.copy(INITIAL_TARGET)
+    }
+    camera.updateProjectionMatrix(); controls.update(); invalidate()
     // setSize clears the canvas; repaint immediately even before an intersection/visibility event.
     paintImmediately()
   })
@@ -738,6 +802,7 @@ function initializeScene(host: HTMLDivElement, labelLayer: HTMLDivElement, lates
       disposed = true; cancelAnimationFrame(frame); controls.dispose(); resize.disconnect(); intersection.disconnect()
       renderer.domElement.removeEventListener('pointerdown', pointerDown); renderer.domElement.removeEventListener('pointermove', pointerMove); renderer.domElement.removeEventListener('pointerup', pointerUp)
       renderer.domElement.removeEventListener('pointercancel', clearKeys); renderer.domElement.removeEventListener('keydown', keyDown); renderer.domElement.removeEventListener('webglcontextlost', contextLost)
+      host.removeEventListener('wheel', handleWheel)
       window.removeEventListener('keyup', keyUp); window.removeEventListener('blur', clearKeys); document.removeEventListener('visibilitychange', visibility)
       resources.geometries.forEach((geometry) => geometry.dispose()); resources.materials.forEach((material) => material.dispose()); resources.textures.forEach((texture) => texture.dispose())
       scene.clear(); renderer.dispose(); renderer.forceContextLoss(); renderer.domElement.remove(); labelLayer.replaceChildren()

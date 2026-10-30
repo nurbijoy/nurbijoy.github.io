@@ -62,6 +62,30 @@ export function polygonPath(points: readonly (readonly number[])[]): string {
   return points.map(([x, y], index) => `${index ? 'L' : 'M'}${Math.round(x * 100) / 100},${Math.round(y * 100) / 100}`).join(' ') + ' Z'
 }
 
+/** Local equirectangular area for small campus features, returned in square metres. */
+export function polygonAreaMeters(points: readonly CampusCoordinate[], holes: readonly (readonly CampusCoordinate[])[] = []): number {
+  if (points.length < 3) return 0
+  const metresPerDegree = Math.PI * 6_371_000 / 180
+  const referenceLatitude = points.reduce((total, [, latitude]) => total + latitude, 0) / points.length
+  const longitudeScale = metresPerDegree * Math.cos(referenceLatitude * Math.PI / 180)
+  const [originLongitude, originLatitude] = points[0]
+  const ringArea = (ring: readonly CampusCoordinate[]) => {
+    if (ring.length < 3) return 0
+    const projected = ring.map(([longitude, latitude]) => [
+      (longitude - originLongitude) * longitudeScale,
+      (latitude - originLatitude) * metresPerDegree,
+    ] as const)
+    let twiceArea = 0
+    for (let index = 0; index < projected.length; index++) {
+      const [x1, y1] = projected[index]
+      const [x2, y2] = projected[(index + 1) % projected.length]
+      twiceArea += x1 * y2 - x2 * y1
+    }
+    return Math.abs(twiceArea) / 2
+  }
+  return Math.max(0, ringArea(points) - holes.reduce((total, hole) => total + ringArea(hole), 0))
+}
+
 /** Hand real walking directions to a mapping service instead of inventing campus routes. */
 export function getPlaceMapsUrl([longitude, latitude]: CampusCoordinate): string {
   return `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}&travelmode=walking`

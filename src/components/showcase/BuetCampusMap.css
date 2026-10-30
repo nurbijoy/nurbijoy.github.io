@@ -29,7 +29,7 @@
 }
 .buet-renderer-tag { display: inline-flex; align-items: center; gap: 6px; margin-left: auto; color: var(--bm-muted); font: 500 9px var(--font-mono); text-transform: uppercase; letter-spacing: .04em; }
 .buet-renderer-tag > span { width: 5px; height: 5px; border-radius: 50%; background: #729b6a; box-shadow: 0 0 0 3px #729b6a16; }
-.buet-explorer.is-3d .buet-map-stage { min-height: 650px; background: #bdc8cc; background-image: none; }
+.buet-explorer.is-3d .buet-map-stage { min-height: clamp(520px, 74dvh, 880px); background: #bdc8cc; background-image: none; }
 .buet-explorer.is-3d .buet-brand h3 { font-size: 23px; }
 .buet-explorer.is-3d .buet-place-list { height: 390px; }
 .buet-explorer.is-3d .buet-sidebar:has(.buet-place-detail) .buet-place-list { height: 240px; }
@@ -128,6 +128,11 @@
 .buet-place-detail h4 { font-family: var(--font-display); font-size: 19px; font-weight: 650; line-height: 1.2; letter-spacing: -.025em; margin: 8px 0; }
 .buet-place-detail p { color: var(--bm-muted); font-size: 11px; line-height: 1.65; margin: 8px 0 12px; }
 .buet-place-detail .buet-bangla { font-size: 12px; margin: 3px 0 8px; }
+.buet-place-facts { display: grid; gap: 6px; margin: 12px 0 14px; padding: 10px; border: 1px solid var(--bm-line); border-radius: 6px; background: color-mix(in srgb, var(--bm-paper) 72%, transparent); }
+.buet-place-facts > span { display: flex; align-items: flex-start; gap: 6px; color: var(--bm-ink); font-size: 9px; line-height: 1.45; }
+.buet-place-facts > span > svg { flex-shrink: 0; margin-top: 1px; color: var(--bm-green); }
+.buet-place-facts ul { display: grid; gap: 3px; margin: 0; padding-left: 19px; color: var(--bm-muted); font-size: 8px; line-height: 1.45; }
+.buet-place-facts > small { color: var(--bm-muted); font-size: 8px; line-height: 1.5; }
 .buet-place-detail a { display: inline-flex; align-items: center; gap: 7px; font-size: 10px; font-weight: 600; color: var(--bm-green); text-underline-offset: 3px; }
 .buet-place-detail a:hover { text-decoration: underline; }
 .buet-sidebar-note { display: flex; gap: 12px; padding: 25px 19px; align-items: center; color: var(--bm-muted); margin-top: auto; border-top: 1px solid var(--bm-line); }
@@ -146,13 +151,14 @@
 .buet-toolbar-actions { display: flex; gap: 7px; }
 .buet-icon-button { display: grid; place-items: center; width: 32px; height: 32px; padding: 0; border: 1px solid var(--bm-line); border-radius: 6px; background: transparent; color: var(--bm-muted); }
 .buet-icon-button:hover, .buet-icon-button.is-active { color: var(--bm-ink); background: var(--bm-paper); }
-.buet-map-stage { position: relative; flex: 1; min-height: 570px; background-color: var(--bm-map); background-image: radial-gradient(color-mix(in srgb, var(--bm-ink) 13%, transparent) .6px, transparent .6px); background-size: 16px 16px; overflow: hidden; }
+.buet-map-stage { position: relative; flex: 1; min-height: clamp(480px, 68dvh, 820px); background-color: var(--bm-map); background-image: radial-gradient(color-mix(in srgb, var(--bm-ink) 13%, transparent) .6px, transparent .6px); background-size: 16px 16px; overflow: hidden; }
 .buet-map-svg { width: 100%; height: 100%; position: absolute; inset: 0; touch-action: none; cursor: grab; user-select: none; }
 .buet-map-svg:active { cursor: grabbing; }
 .buet-map-svg:focus-visible { outline-offset: -3px; border-radius: 0; }
 .buet-map-caption { position: absolute; top: 20px; left: 22px; display: flex; flex-direction: column; gap: 4px; pointer-events: none; z-index: 1; }
 .buet-map-caption > span:last-child { color: var(--bm-muted); font-size: 10px; }
 .buet-map-greens path { fill: var(--bm-grass); stroke: color-mix(in srgb, var(--bm-green) 15%, transparent); stroke-width: .75; }
+.buet-map-greens g.is-highlighted:not(.is-water) > path:first-child { fill: color-mix(in srgb, var(--bm-landmark) 32%, var(--bm-grass)); stroke: var(--bm-landmark); stroke-width: 2; }
 .buet-map-greens .buet-grass-texture { color: var(--bm-green); opacity: .2; stroke: none; }
 .buet-map-greens .is-water path { fill: #9ec5c5; stroke: #85aeae; }
 :root[data-theme='dark'] .buet-map-greens .is-water path { fill: #365a61; stroke: #4f7880; }
@@ -233,17 +239,27 @@
 .buet-about a > svg { display: inline; vertical-align: middle; margin-left: 3px; }
 .buet-source-links { display: flex; flex-wrap: wrap; gap: 7px 16px; font-size: 10px; }
 .buet-error { padding: 12px 25px; font-size: 11px; margin: 0; color: var(--bm-muted); border-top: 1px solid var(--bm-line); }
-.buet-explorer:fullscreen { width: 100vw; height: 100dvh; border: 0; border-radius: 0; display: flex; flex-direction: column; overflow-y: auto; }
-.buet-explorer:fullscreen .buet-workspace { flex: 1; min-height: 0; overflow: hidden; }
-.buet-explorer:fullscreen .buet-sidebar { min-height: 0; overflow: auto; }
-.buet-explorer:fullscreen .buet-map-stage { min-height: 0; }
+.buet-explorer:fullscreen { width: 100vw; height: 100dvh; border: 0; border-radius: 0; display: flex; flex-direction: column; overflow: hidden; }
+.buet-explorer:fullscreen .buet-masthead,
+.buet-explorer:fullscreen .buet-tour-bar,
+.buet-explorer:fullscreen .buet-about,
+.buet-explorer:fullscreen .buet-error,
+.buet-explorer:fullscreen .buet-map-legend { display: none; }
+.buet-explorer:fullscreen .buet-workspace { flex: 1; min-height: 0; overflow: hidden; grid-template-columns: minmax(0,1fr); }
+.buet-explorer:fullscreen .buet-sidebar { display: none; }
+.buet-explorer:fullscreen .buet-map-column { position: relative; min-height: 0; height: 100%; }
+.buet-explorer:fullscreen .buet-map-toolbar { position: absolute; inset: 0 0 auto; z-index: 8; min-height: 56px; padding: 10px 12px; border: 0; background: linear-gradient(#f7f7efcf,transparent); pointer-events: none; }
+.buet-explorer:fullscreen .buet-map-toolbar > * { pointer-events: auto; }
+.buet-explorer:fullscreen .buet-map-stage { height: 100%; min-height: 0; }
+.buet-explorer:fullscreen .buet-map-caption { display: none; }
+.buet-explorer:fullscreen .buet-place-list { height: 300px; flex: 1; }
 .buet-explorer.is-3d:fullscreen .buet-map-stage { min-height: 0; }
+.buet-explorer.is-3d:fullscreen .buet-scene-settings { top: 68px; }
 .buet-explorer.is-3d:fullscreen .buet-map-controls { flex-direction: row; bottom: 76px; }
 .buet-explorer.is-3d:fullscreen .buet-map-controls button:last-child { border-top: 0; border-left: 1px solid #ccd8c8; }
-.buet-explorer:fullscreen .buet-place-list { height: 300px; flex: 1; }
 @media (min-width: 1400px) { .buet-map-stage { min-height: 660px; } }
 @media (max-width: 1050px) {
-  .buet-explorer.is-3d .buet-map-stage { min-height: 650px; }
+  .buet-explorer.is-3d .buet-map-stage { min-height: clamp(500px, 70dvh, 760px); }
   .buet-model-caption { left: 14px; bottom: 66px; }
   .buet-map-hint.buet-3d-hint { max-width: 230px; right: 14px; bottom: 14px; }
   .buet-workspace { grid-template-columns: 240px minmax(0,1fr); }
@@ -258,7 +274,8 @@
   .buet-map-hint { max-width: 160px; }
 }
 @media (max-width: 760px) {
-  .buet-explorer.is-3d .buet-map-stage { min-height: 580px; }
+  .buet-map-stage { min-height: clamp(420px, 62svh, 680px); }
+  .buet-explorer.is-3d .buet-map-stage { min-height: clamp(420px, 68svh, 700px); }
   .buet-explorer.is-3d .buet-place-list { height: auto; max-height: 210px; }
   .buet-explorer.is-3d .buet-sidebar:has(.buet-place-detail) .buet-place-list { height: auto; }
   .buet-reference-photo img { height: 170px; }
@@ -309,14 +326,14 @@
   .buet-location { display: none; }
   .buet-tour-overlay { top: 70px; }
   .buet-map-hint { font-size: 0; }
-  .buet-map-hint::before { content: 'Drag · Pinch to zoom'; font-size: 9px; }
+  .buet-map-hint::before { content: 'Drag · Scroll / pinch to zoom'; font-size: 9px; }
   .buet-map-hint > span { display: none; }
   .buet-explorer:fullscreen .buet-place-list { height: auto; max-height: 150px; flex: none; }
-  .buet-explorer:fullscreen .buet-map-stage { min-height: 450px; }
-  .buet-explorer.is-3d:fullscreen .buet-map-stage { min-height: 580px; }
+  .buet-explorer:fullscreen .buet-map-stage,
+  .buet-explorer.is-3d:fullscreen .buet-map-stage { min-height: 0; }
   .buet-explorer.is-3d:fullscreen .buet-map-controls { flex-direction: column; bottom: 74px; }
   .buet-explorer.is-3d:fullscreen .buet-map-controls button:last-child { border-left: 0; border-top: 1px solid #ccd8c8; }
-  .buet-explorer:fullscreen .buet-workspace { flex: none; overflow: visible; }
+  .buet-explorer:fullscreen .buet-workspace { flex: 1; min-height: 0; overflow: hidden; }
 }
 @media (max-width: 400px) {
   .buet-brand h3 { font-size: 20px; }

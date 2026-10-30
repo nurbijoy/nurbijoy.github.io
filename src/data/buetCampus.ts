@@ -22,6 +22,7 @@ export interface CampusPlace {
   aliases: readonly string[]
   sourceUrl: string
   buildingIds: readonly string[]
+  greenIds?: readonly string[]
 }
 
 export interface CampusGeometry {
@@ -350,7 +351,8 @@ export const campusPlaces: readonly CampusPlace[] = [
       "খেলার মাঠ"
     ],
     "sourceUrl": "https://www.openstreetmap.org/way/97207659",
-    "buildingIds": []
+    "buildingIds": [],
+    "greenIds": ["way/97207659"]
   },
   {
     "id": "shaheed-minar",
@@ -388,7 +390,7 @@ export const campusPlaces: readonly CampusPlace[] = [
       "তিতুমীর"
     ],
     "sourceUrl": "https://titumirhall.buet.ac.bd/contact",
-    "buildingIds": []
+    "buildingIds": ["way/507873081"]
   },
   {
     "id": "suhrawardy",
@@ -408,7 +410,7 @@ export const campusPlaces: readonly CampusPlace[] = [
       "সোহরাওয়ার্দী"
     ],
     "sourceUrl": "https://www.openstreetmap.org/node/830037031",
-    "buildingIds": []
+    "buildingIds": ["way/322812265"]
   },
   {
     "id": "sher-e-bangla",
@@ -428,7 +430,7 @@ export const campusPlaces: readonly CampusPlace[] = [
       "শেরে বাংলা"
     ],
     "sourceUrl": "https://www.openstreetmap.org/node/830039614",
-    "buildingIds": []
+    "buildingIds": ["way/1001442047"]
   },
   {
     "id": "ahsanullah",

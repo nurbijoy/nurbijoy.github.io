@@ -1,8 +1,8 @@
 import { lazy, Suspense, useCallback, useEffect, useId, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
-import { ArrowDownLeft, ArrowUpRight, BookOpen, Box, Building2, Check, ChevronLeft, ChevronRight, ExternalLink, Flag, Footprints, GraduationCap, House, Info, Map, Maximize2, Minus, Moon, Orbit, Plus, RotateCcw, Search, Sun, Trees, Type, X } from 'lucide-react'
+import { ArrowDownLeft, ArrowUpRight, BookOpen, Box, Building2, Check, ChevronLeft, ChevronRight, ExternalLink, Flag, Footprints, GraduationCap, House, Info, Map, MapPin, Maximize2, Minus, Moon, Orbit, Plus, RotateCcw, Search, Sun, Trees, Type, X } from 'lucide-react'
 import { campusGeometry as geometry, campusPlaces, campusSources, campusTour, type CampusPlace } from '@/data/buetCampus'
-import { campusArchitectureReferences } from '@/data/buetCampusArchitecture'
-import { createCampusProjection, filterCampusPlaces, getPlaceMapsUrl, polygonPath } from '@/lib/buetCampus'
+import { campusArchitecture, campusArchitectureReferences } from '@/data/buetCampusArchitecture'
+import { createCampusProjection, filterCampusPlaces, getPlaceMapsUrl, polygonAreaMeters, polygonPath } from '@/lib/buetCampus'
 import type { CampusCameraCommand } from './BuetCampusScene'
 import './BuetCampusMap.css'
 
@@ -19,8 +19,8 @@ const CATEGORIES = [
   { id: 'facilities', label: 'Facilities', Icon: BookOpen },
   { id: 'landmark', label: 'Landmarks', Icon: Flag },
 ] as const
-// Fit the academic and residential core first; the larger source extract remains available by panning.
-const projection = createCampusProjection({ west: 90.3878, south: 23.7238, east: 90.3956, north: 23.7284 }, WIDTH, HEIGHT, 65)
+// Fit the published campus extent so every directory place is on the map at first load.
+const projection = createCampusProjection(geometry.bounds, WIDTH, HEIGHT, 65)
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value))
 const constrain = (camera: Camera): Camera => ({
   zoom: clamp(camera.zoom, .8, 5),
@@ -61,6 +61,24 @@ export function BuetCampusMap() {
   const selectedVisible = selected && visibleIds.has(selected.id) ? selected : undefined
   const referencePhoto = selectedVisible && campusArchitectureReferences.find((reference) => selectedVisible.buildingIds.includes(reference.buildingId))
   const placeByBuilding = useMemo(() => new globalThis.Map(campusPlaces.flatMap((place) => (place.buildingIds ?? []).map((id) => [id, place] as const))), [])
+  const placeByGreen = useMemo(() => new globalThis.Map(campusPlaces.flatMap((place) => (place.greenIds ?? []).map((id) => [id, place] as const))), [])
+  const selectedFootprints = selectedVisible ? geometry.buildings.filter((building) => selectedVisible.buildingIds.includes(building.id)) : []
+  const selectedGreens = selectedVisible ? geometry.greens.filter((green) => selectedVisible.greenIds?.includes(green.id)) : []
+  const footprintAreas = selectedFootprints.map((building) => ({ building, area: polygonAreaMeters(building.points, building.holes ?? []) }))
+  const greenAreas = selectedGreens.map((green) => ({ green, area: polygonAreaMeters(green.points) }))
+  const mappedArea = [...footprintAreas.map(({ area }) => area), ...greenAreas.map(({ area }) => area)].reduce((total, area) => total + area, 0)
+  const levelDetails = selectedFootprints.map((building) => {
+    const details = campusArchitecture[building.id]
+    const levels = details?.levels ?? building.levels
+    if (!levels) return null
+    const basis = /official BUET/i.test(details?.note ?? '') ? 'official source'
+      : /inferred|estimate/i.test(details?.note ?? '') ? 'photo estimate' : 'OSM'
+    return `${levels} ${levels === 1 ? 'level' : 'levels'} (${basis})`
+  }).filter((detail): detail is string => detail !== null)
+  const levelSummary = [...new Set(levelDetails)].map((detail) => {
+    const count = levelDetails.filter((item) => item === detail).length
+    return count > 1 ? `${count} footprints × ${detail}` : detail
+  }).join(', ') || 'storey count not mapped'
 
   const toMapPoint = useCallback((coordinate: readonly number[]): Point => projection.project([coordinate[0], coordinate[1]]), [])
   const screenPoint = useCallback((clientX: number, clientY: number): Point => {
@@ -103,10 +121,10 @@ export function BuetCampusMap() {
     const svg = svgRef.current
     if (!svg) return
     const wheel = (event: WheelEvent) => {
-      if (!event.ctrlKey && document.activeElement !== svg) return
       event.preventDefault()
       const anchor = screenPoint(event.clientX, event.clientY)
-      setCamera((current) => zoomCamera(current, Math.exp(-event.deltaY * .002), anchor))
+      const deltaY = event.deltaY * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? svg.clientHeight : 1)
+      setCamera((current) => zoomCamera(current, Math.exp(-deltaY * .002), anchor))
     }
     svg.addEventListener('wheel', wheel, { passive: false })
     return () => svg.removeEventListener('wheel', wheel)
@@ -167,10 +185,14 @@ export function BuetCampusMap() {
   }), [toMapPoint])
 
   const terrain = useMemo(() => <>
-    <g className="buet-map-greens">{geometry.greens.map((green) => <g key={green.id} className={green.kind === 'water' ? 'is-water' : ''}><path d={polygonPath(green.points.map(toMapPoint))} /><path className="buet-grass-texture" style={{ fill: `url(#${patternId}-grass)` }} d={polygonPath(green.points.map(toMapPoint))} /></g>)}</g>
+    <g className="buet-map-greens">{geometry.greens.map((green) => {
+      const place = placeByGreen.get(green.id)
+      const active = place && (place.id === selectedVisible?.id || place.id === hoveredId)
+      return <g key={green.id} className={`${green.kind === 'water' ? 'is-water' : ''} ${active ? 'is-highlighted' : ''}`}><path d={polygonPath(green.points.map(toMapPoint))} /><path className="buet-grass-texture" style={{ fill: `url(#${patternId}-grass)` }} d={polygonPath(green.points.map(toMapPoint))} /></g>
+    })}</g>
     <g className="buet-road-casings">{geometry.roads.map((road) => <path key={road.id} className={`buet-road buet-road-${road.kind}`} d={polygonPath(road.points.map(toMapPoint)).replace(/\s*[zZ]$/, '')} />)}</g>
     <g className="buet-roads">{geometry.roads.map((road) => <path key={road.id} className={`buet-road buet-road-${road.kind}`} d={polygonPath(road.points.map(toMapPoint)).replace(/\s*[zZ]$/, '')} />)}</g>
-  </>, [toMapPoint, patternId])
+  </>, [toMapPoint, patternId, hoveredId, selectedVisible?.id, placeByGreen])
 
   const buildingLayer = useMemo(() => <g className="buet-buildings">{buildings.map((building) => {
     const place = placeByBuilding.get(building.id)
@@ -235,6 +257,16 @@ export function BuetCampusMap() {
           {selectedVisible ? <div className={`buet-place-detail buet-detail-${selectedVisible.category}`} aria-live="polite">
             <div className="buet-detail-top"><span>{categoryLabel(selectedVisible.category)}</span><button aria-label="Close place details" onClick={() => { setSelectedId(null); setTourStep(null) }}><X size={15} /></button></div>
             <h4>{selectedVisible.name}</h4>{selectedVisible.nameBn && <p className="buet-bangla" lang="bn">{selectedVisible.nameBn}</p>}<p>{selectedVisible.description}</p>
+            <div className="buet-place-facts" aria-label="Mapped coordinates and size">
+              <span><MapPin size={12} aria-hidden />{selectedVisible.coordinates[1].toFixed(6)}° N, {selectedVisible.coordinates[0].toFixed(6)}° E · WGS84</span>
+              {selectedFootprints.length > 0 && <span><Building2 size={12} aria-hidden />{selectedFootprints.length} mapped building {selectedFootprints.length === 1 ? 'footprint' : 'footprints'} · ≈ {Math.round(mappedArea).toLocaleString()} m²</span>}
+              {selectedFootprints.length > 0 && <span><Building2 size={12} aria-hidden />{levelSummary}</span>}
+              {selectedFootprints.length === 0 && selectedGreens.length > 0 && <span><Trees size={12} aria-hidden />Mapped open-space area · ≈ {Math.round(mappedArea).toLocaleString()} m²</span>}
+              {selectedFootprints.length === 0 && selectedGreens.length === 0 && <span><Flag size={12} aria-hidden />Point feature · no outline mapped</span>}
+              {footprintAreas.length > 1 && <ul>{footprintAreas.map(({ building, area }) => <li key={building.id}>{building.name ?? 'Unnamed OSM footprint'} · ≈ {Math.round(area).toLocaleString()} m²</li>)}</ul>}
+              <small>OSM geometry retrieved {geometry.retrievedAt}; area is the ground outline, not total floor area. Heights are sourced or estimated.</small>
+            </div>
+            <a href={selectedVisible.sourceUrl} target="_blank" rel="noopener noreferrer">Place source <ExternalLink size={13} /></a>
             {referencePhoto && <figure className="buet-reference-photo"><a href={referencePhoto.sourceUrl} target="_blank" rel="noopener noreferrer"><img src={referencePhoto.path} alt={`${referencePhoto.label}, photographed in ${referencePhoto.year}`} width={960} height={640} loading="lazy" /><span>Reference photo · {referencePhoto.year}<ExternalLink size={11} /></span></a><figcaption>Photo: <a href={referencePhoto.sourceUrl} target="_blank" rel="noopener noreferrer">{referencePhoto.author}</a> · <a href={referencePhoto.licenseUrl} target="_blank" rel="noopener noreferrer">{referencePhoto.license}</a></figcaption></figure>}
             <a href={getPlaceMapsUrl(selectedVisible.coordinates)} target="_blank" rel="noopener noreferrer">Directions in Google Maps <ExternalLink size={13} /></a>
           </div> : <div className="buet-sidebar-note"><Trees size={21} /><p>Big ideas. Familiar corners.<br /><strong>A campus worth exploring.</strong></p></div>}
@@ -285,7 +317,7 @@ export function BuetCampusMap() {
               <button aria-label="Zoom in on campus" title="Zoom in" disabled={!is3D && camera.zoom >= 5} onClick={() => is3D ? commandScene('zoom-in') : setCamera((current) => zoomCamera(current, 1.3))}><Plus size={18} /></button><span>{Math.round((is3D ? sceneView.zoom : camera.zoom) * 100)}%</span><button aria-label="Zoom out of campus" title="Zoom out" disabled={!is3D && camera.zoom <= .8} onClick={() => is3D ? commandScene('zoom-out') : setCamera((current) => zoomCamera(current, 1 / 1.3))}><Minus size={18} /></button><button aria-label="Reset campus map view" title="Fit campus to view" onClick={resetMap}><RotateCcw size={16} /></button>
             </div>
             {is3D ? <div className="buet-model-caption"><span>ARCHITECTURAL EXPLORER</span><small>Mapped footprints · Estimated building details</small></div> : <div className="buet-scale" aria-label="Map scale"><span>{Math.round(projection.metersPerUnit * 100 / (camera.zoom * displayScale))} m</span><i /></div>}
-            <span className={`buet-map-hint ${is3D ? 'buet-3d-hint' : ''}`} id={`${patternId}-help`}>{is3D ? sceneMode === 'walk' ? 'WASD / arrows to move · Drag to look' : 'Drag to orbit · Right-drag to pan · Scroll to zoom' : 'Drag to explore · Pinch or Ctrl + scroll to zoom'}<br /><span>{is3D ? sceneMode === 'walk' ? 'Select a place to move nearby. Return to Orbit for an aerial view.' : 'Touch: one finger to orbit, two fingers to pan or zoom.' : 'Keyboard: arrows to pan, + / − to zoom, Home to reset.'}</span></span>
+            <span className={`buet-map-hint ${is3D ? 'buet-3d-hint' : ''}`} id={`${patternId}-help`}>{is3D ? sceneMode === 'walk' ? 'WASD / arrows or scroll to move · Drag to look' : 'Drag to orbit · Right-drag to pan · Scroll to zoom' : 'Drag to explore · Scroll or pinch to zoom'}<br /><span>{is3D ? sceneMode === 'walk' ? 'Select a place to move nearby. Return to Orbit for an aerial view.' : 'Touch: one finger to orbit, two fingers to pan or zoom.' : 'Keyboard: arrows to pan, + / − to zoom, Home to reset.'}</span></span>
             {tourStep !== null && <div className="buet-tour-overlay" aria-live="polite"><div><span>THE CAMPUS TRAIL</span><strong>{tourStep + 1} <small>/ {campusTour.length}</small></strong></div><p>{campusPlaces.find((place) => place.id === campusTour[tourStep])?.shortName}</p><button aria-label="End campus tour" onClick={() => setTourStep(null)}><X size={16} /></button><div className="buet-tour-progress">{campusTour.map((id, index) => <span key={id} className={index <= tourStep ? 'is-complete' : ''} />)}</div></div>}
           </div>
           <div className="buet-map-legend">{CATEGORIES.map(({ id, label }) => <span key={id}><i className={`buet-${id}`} />{label}</span>)}<span className="buet-footprints"><Building2 size={12} /> Real building footprints</span><a className="buet-attribution" href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">© OpenStreetMap contributors</a></div>

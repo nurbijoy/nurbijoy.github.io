@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { createCampusProjection, filterCampusPlaces, getPlaceMapsUrl, polygonPath } from './buetCampus'
+import { createCampusProjection, filterCampusPlaces, getPlaceMapsUrl, polygonAreaMeters, polygonPath } from './buetCampus'
 import { campusGeometry, campusPlaces, campusTour } from '../data/buetCampus'
+import { campusArchitecture } from '../data/buetCampusArchitecture'
+import { campusWorldPoint, distanceToCampusSegment, pointInCampusRing } from './buetCampus3d'
 
 describe('campus projection', () => {
   const bounds = { west: 90.386, south: 23.723, east: 90.397, north: 23.732 }
@@ -34,6 +36,20 @@ describe('campus projection', () => {
   it('rejects degenerate bounds or a drawing area consumed by padding', () => {
     expect(() => createCampusProjection({ ...bounds, east: bounds.west })).toThrow(RangeError)
     expect(() => createCampusProjection(bounds, 100, 100, 60)).toThrow(RangeError)
+  })
+
+  it('calculates local footprint area in square metres, including courtyard cutouts', () => {
+    const metresPerDegree = Math.PI * 6_371_000 / 180
+    const latitude = 23.7263
+    const longitude = 90.3913
+    const east100 = 100 / (metresPerDegree * Math.cos(latitude * Math.PI / 180))
+    const north100 = 100 / metresPerDegree
+    const outer = [[longitude, latitude], [longitude + east100, latitude], [longitude + east100, latitude + north100], [longitude, latitude + north100]] as const
+    const east20 = 20 / (metresPerDegree * Math.cos(latitude * Math.PI / 180))
+    const north20 = 20 / metresPerDegree
+    const courtyard = [[longitude + east20, latitude + north20], [longitude + east20 * 2, latitude + north20], [longitude + east20 * 2, latitude + north20 * 2], [longitude + east20, latitude + north20 * 2]] as const
+    expect(polygonAreaMeters(outer)).toBeCloseTo(10_000, 0)
+    expect(polygonAreaMeters(outer, [courtyard])).toBeCloseTo(9_600, 0)
   })
 })
 
@@ -76,6 +92,17 @@ describe('campus SVG and directions helpers', () => {
 })
 
 describe('campus map data integrity', () => {
+  it('fits every directory place inside the initial 2D map extent', () => {
+    const mapProjection = createCampusProjection(campusGeometry.bounds, 1200, 900, 65)
+    for (const place of campusPlaces) {
+      const [x, y] = mapProjection.project(place.coordinates)
+      expect(x, `${place.id}: map x`).toBeGreaterThanOrEqual(65)
+      expect(x, `${place.id}: map x`).toBeLessThanOrEqual(1135)
+      expect(y, `${place.id}: map y`).toBeGreaterThanOrEqual(65)
+      expect(y, `${place.id}: map y`).toBeLessThanOrEqual(835)
+    }
+  })
+
   it('keeps directory identifiers unique and tour stops connected to real places', () => {
     const placeIds = new Set(campusPlaces.map((place) => place.id))
     expect(placeIds.size).toBe(campusPlaces.length)
@@ -87,14 +114,67 @@ describe('campus map data integrity', () => {
   it('places every landmark inside the published map extent and links only existing buildings', () => {
     const { west, south, east, north } = campusGeometry.bounds
     const buildingIds = new Set(campusGeometry.buildings.map((building) => building.id))
+    const greenIds = new Set(campusGeometry.greens.map((green) => green.id))
     for (const place of campusPlaces) {
       const [longitude, latitude] = place.coordinates
       expect(Number.isFinite(longitude) && longitude >= west && longitude <= east, `${place.id}: longitude`).toBe(true)
       expect(Number.isFinite(latitude) && latitude >= south && latitude <= north, `${place.id}: latitude`).toBe(true)
       for (const id of place.buildingIds) expect(buildingIds.has(id), `${place.id}: unknown building ${id}`).toBe(true)
+      for (const id of place.greenIds ?? []) expect(greenIds.has(id), `${place.id}: unknown green area ${id}`).toBe(true)
       expect(place.name.trim().length, place.id).toBeGreaterThan(0)
       expect(place.shortName.trim().length, place.id).toBeGreaterThan(0)
       expect(new URL(place.sourceUrl).protocol, place.id).toBe('https:')
+    }
+  })
+
+  it('anchors every place to its mapped footprint, open-space polygon, or exact OSM point', () => {
+    const buildings = new Map(campusGeometry.buildings.map((building) => [building.id, building]))
+    const greens = new Map(campusGeometry.greens.map((green) => [green.id, green]))
+    const buildingOwners = new Map<string, string>()
+    const sourceNodeCoordinates: Record<string, readonly [number, number]> = {
+      '830037031': [90.3897246, 23.7264045],
+      '830039614': [90.3905006, 23.7257365],
+      '1119027966': [90.3918607, 23.7261287],
+    }
+    for (const place of campusPlaces) {
+      const point = campusWorldPoint(place.coordinates)
+      for (const id of place.buildingIds) {
+        expect(buildingOwners.has(id), `${id}: assigned to multiple places`).toBe(false)
+        buildingOwners.set(id, place.id)
+      }
+      const linkedBuildings = place.buildingIds.map((id) => buildings.get(id)).filter((building) => building !== undefined)
+      if (linkedBuildings.length) {
+        const distanceToFootprint = (ring: readonly (readonly [number, number])[]) => {
+          const worldRing = ring.map(campusWorldPoint)
+          if (pointInCampusRing(point, worldRing)) return 0
+          return worldRing.slice(1).reduce((nearest, next, index) => Math.min(nearest,
+            distanceToCampusSegment(point, worldRing[index], next)), Infinity)
+        }
+        const nearest = Math.min(...linkedBuildings.map((building) => distanceToFootprint(building.points)))
+        expect(nearest, `${place.id}: nearest linked footprint`).toBeLessThanOrEqual(20)
+      }
+      for (const id of place.greenIds ?? []) {
+        const green = greens.get(id)!
+        expect(pointInCampusRing(point, green.points.map(campusWorldPoint)), `${place.id}: marker inside ${id}`).toBe(true)
+      }
+      const sourceNodeId = place.sourceUrl.match(/openstreetmap\.org\/node\/(\d+)/)?.[1]
+      if (sourceNodeId && sourceNodeCoordinates[sourceNodeId]) {
+        expect(place.coordinates, `${place.id}: OSM node coordinate`).toEqual(sourceNodeCoordinates[sourceNodeId])
+      }
+      expect(linkedBuildings.length + (place.greenIds?.length ?? 0) + Number(Boolean(sourceNodeId)), `${place.id}: mapped anchor`).toBeGreaterThan(0)
+    }
+  })
+
+  it('keeps footprint area data positive and architectural level references attached to real buildings', () => {
+    const buildingIds = new Set(campusGeometry.buildings.map((building) => building.id))
+    for (const building of campusGeometry.buildings) {
+      expect(polygonAreaMeters(building.points, building.holes ?? []), `${building.id}: area`).toBeGreaterThan(0)
+    }
+    for (const green of campusGeometry.greens) expect(polygonAreaMeters(green.points), `${green.id}: area`).toBeGreaterThan(0)
+    for (const [id, details] of Object.entries(campusArchitecture)) {
+      expect(buildingIds.has(id), `${id}: architecture record without footprint`).toBe(true)
+      if (details.levels !== undefined) expect(Number.isFinite(details.levels) && details.levels > 0, `${id}: levels`).toBe(true)
+      if (details.height !== undefined) expect(Number.isFinite(details.height) && details.height > 0, `${id}: height`).toBe(true)
     }
   })
 
