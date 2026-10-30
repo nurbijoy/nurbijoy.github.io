@@ -32,7 +32,10 @@ export const site = {
   /** Add an address to show a "Say hello" mail button in the hero + contact section. */
   email: '',
 
-  socials: [{ label: 'GitHub', href: 'https://github.com/nurbijoy', icon: 'github' as const }],
+  socials: [
+    { label: 'GitHub', href: 'https://github.com/nurbijoy', icon: 'github' as const },
+    { label: 'LinkedIn', href: 'https://www.linkedin.com/in/nurbijoy/', icon: 'linkedin' as const },
+  ],
 }
 
 export interface NavItem {

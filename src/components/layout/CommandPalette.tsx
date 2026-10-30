@@ -6,6 +6,8 @@ import {
   Compass,
   Copy,
   CornerDownLeft,
+  ExternalLink,
+  FileText,
   FlaskConical,
   FolderGit2,
   LayoutGrid,
@@ -69,6 +71,14 @@ export function CommandPalette({ open, onClose, theme, onToggleTheme }: Props) {
       run: n.href ? visit(n.href) : go(n.id),
     }))
     list.push(
+      {
+        id: 'cv-builder',
+        group: 'Jump to',
+        label: 'LinkedIn to CV Builder (Showcase)',
+        keywords: 'linkedin cv resume academic professional latex pdf showcase',
+        icon: FileText,
+        run: () => window.location.assign('/showcase/#linkedin-cv-builder'),
+      },
       { id: 'top', group: 'Actions', label: 'Back to top', icon: ArrowUp, run: go('top') },
       {
         id: 'theme',
@@ -85,6 +95,14 @@ export function CommandPalette({ open, onClose, theme, onToggleTheme }: Props) {
         keywords: 'code repositories',
         icon: FolderGit2,
         run: () => window.open(`https://github.com/${site.github}`, '_blank', 'noopener'),
+      },
+      {
+        id: 'linkedin',
+        group: 'Actions',
+        label: 'Open LinkedIn profile',
+        keywords: 'linkedin professional network nurbijoy',
+        icon: ExternalLink,
+        run: () => window.open('https://www.linkedin.com/in/nurbijoy/', '_blank', 'noopener'),
       },
       {
         id: 'copy',

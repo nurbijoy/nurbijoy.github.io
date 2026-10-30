@@ -1,21 +1,36 @@
 /**
  * Live projects shown on the Showcase page (/showcase/). Each one needs a demo component
- * in the `demos` map of ShowcasePage, keyed by the same `id`. The page is in Bangla, so the
- * text here is too.
+ * in the `demos` map of ShowcasePage, keyed by the same `id`.
+ * Tour-related projects are in Bangla, while other tools are in English.
  */
 export interface ShowcaseProject {
   id: string
   title: string
   blurb: string
-  /** Shown as a tag, e.g. "টুল". */
+  /** Shown as a tag, e.g. "Tool" or "টুল". */
   category: string
-  /** Shown as a status chip, e.g. "লাইভ". */
+  /** Shown as a status chip, e.g. "New", "Live" or "লাইভ". */
   status: string
   /** Technology names stay in English. */
   stack: string[]
+  /** Icon identifier for showcase project selector cards. */
+  icon?: 'file-text' | 'map' | 'globe'
+  /** Whether the project content is in Bangla (for tour-related projects). */
+  isBangla?: boolean
 }
 
 export const showcase: ShowcaseProject[] = [
+  {
+    id: 'linkedin-cv-builder',
+    title: 'LinkedIn to Academic & Professional CV Builder',
+    blurb:
+      'Transform your LinkedIn profile or custom data into a high-impact academic CV or professional resume. Features real-time preview, ATS-friendly PDF print, LaTeX (.tex), and Markdown export.',
+    category: 'Tool',
+    status: 'New',
+    stack: ['React', 'TypeScript', 'LaTeX (.tex)', 'PDF Print'],
+    icon: 'file-text',
+    isBangla: false,
+  },
   {
     id: 'bangladesh-travel-map',
     title: 'বাংলাদেশ ভ্রমণ মানচিত্র',
@@ -24,6 +39,8 @@ export const showcase: ShowcaseProject[] = [
     category: 'টুল',
     status: 'লাইভ',
     stack: ['React', 'SVG', 'Canvas 2D'],
+    icon: 'map',
+    isBangla: true,
   },
   {
     id: 'world-tour',
@@ -33,5 +50,7 @@ export const showcase: ShowcaseProject[] = [
     category: 'টুল',
     status: 'লাইভ',
     stack: ['React', 'SVG', 'Canvas 2D'],
+    icon: 'globe',
+    isBangla: true,
   },
 ]
