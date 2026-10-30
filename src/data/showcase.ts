@@ -22,12 +22,12 @@ export interface ShowcaseProject {
 export const showcase: ShowcaseProject[] = [
   {
     id: 'linkedin-cv-builder',
-    title: 'LinkedIn to Academic & Professional CV Builder',
+    title: 'Academic & Professional CV Builder',
     blurb:
-      'Transform your LinkedIn profile or custom data into a high-impact academic CV or professional resume. Features real-time preview, ATS-friendly PDF print, LaTeX (.tex), and Markdown export.',
+      'Fill in a form and watch a high-impact academic CV or professional resume take shape on a live A4 preview, then export it as PDF, Word, LaTeX or Markdown.',
     category: 'Tool',
     status: 'New',
-    stack: ['React', 'TypeScript', 'LaTeX (.tex)', 'PDF Print'],
+    stack: ['React', 'TypeScript', 'Word (.docx)', 'LaTeX'],
     icon: 'file-text',
     isBangla: false,
   },
@@ -52,5 +52,16 @@ export const showcase: ShowcaseProject[] = [
     stack: ['React', 'SVG', 'Canvas 2D'],
     icon: 'globe',
     isBangla: true,
+  },
+  {
+    id: 'buet-campus-map',
+    title: 'BUET Campus Explorer',
+    blurb:
+      'Explore a true 3D campus model built from mapped footprints. Orbit or walk through the grounds, switch between daylight and evening, search landmarks, and take a virtual tour.',
+    category: 'Campus Map',
+    status: 'New',
+    stack: ['React', 'Three.js', 'OpenStreetMap'],
+    icon: 'map',
+    isBangla: false,
   },
 ]

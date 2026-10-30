@@ -22,7 +22,9 @@ All content is typed data in [`src/data`](src/data). No component needs touching
 | Research directions + concept map | `research.ts` | The constellation chart is drawn from `graphNodes` / `graphLinks`. |
 | Skills | `skills.ts` | Only skills at `MIN_LEVEL` (Advanced) or above are ever shown. |
 | Interests | `interests.ts` | |
-| Showcase page (live projects) | `showcase.ts` | Lives on its own page at `/showcase/` (`showcase/index.html`, `src/showcase/main.tsx`). Each entry needs a matching demo in the `demos` map of `src/components/showcase/ShowcasePage.tsx`. The Bangladesh travel map is in `src/components/showcase/`. |
+| Showcase page (live projects) | `showcase.ts` | Lives on its own page at `/showcase/` (`showcase/index.html`, `src/showcase/main.tsx`). Each entry needs a matching demo in the `demos` map of `src/components/showcase/ShowcasePage.tsx`. Map components are in `src/components/showcase/`. The BUET Campus Explorer (`#buet-campus-map`) loads on demand; landmark content is in `buetCampus.ts`. |
+
+**BUET Campus Explorer.** Switch between a genuine Three.js 3D campus model and a 2D map. The controls offer orbit and walk modes, daylight and evening lighting, landmark search and categories, and a curated virtual tour. The architectural visualization uses mapped OpenStreetMap footprints. Building heights, facade details, and materials are estimates unless supported by a cited source; the model is not a surveyed reconstruction.
 
 **Placeholder content.** Anything marked `sample: true` renders with a visible *Sample* tag so invented content can never pass as real. Replace the entry and drop the flag. Projects, skills, interests, research directions and the three publications are currently samples. The GitHub section is real data.
 

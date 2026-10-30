@@ -74,8 +74,8 @@ export function CommandPalette({ open, onClose, theme, onToggleTheme }: Props) {
       {
         id: 'cv-builder',
         group: 'Jump to',
-        label: 'LinkedIn to CV Builder (Showcase)',
-        keywords: 'linkedin cv resume academic professional latex pdf showcase',
+        label: 'CV Builder (Showcase)',
+        keywords: 'cv resume academic professional builder export pdf word docx latex markdown showcase',
         icon: FileText,
         run: () => window.location.assign('/showcase/#linkedin-cv-builder'),
       },

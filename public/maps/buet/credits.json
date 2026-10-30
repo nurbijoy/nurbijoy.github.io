@@ -1,0 +1,75 @@
+{
+  "note": "Wikimedia 960px thumbnails. No other image changes. Source pages document the selected open licenses; photos may predate renovations.",
+  "photos": [
+    {
+      "buildingId": "way/96797010",
+      "label": "ECE Building",
+      "path": "/maps/buet/ece-reference.jpg",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:ECE_Building.jpg",
+      "author": "Wiki Ruhan",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "year": 2018
+    },
+    {
+      "buildingId": "way/1194017615",
+      "label": "Architecture Building",
+      "path": "/maps/buet/architecture-reference.jpg",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Architecture_building_.jpg",
+      "author": "Wiki Ruhan",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "year": 2018
+    },
+    {
+      "buildingId": "way/96797005",
+      "label": "Mechanical / EME Building",
+      "path": "/maps/buet/mechanical-reference.jpg",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:BUET_EME_Building.jpg",
+      "author": "Ashique Mahmud Rupam (photo credit in file description); uploaded by Ragib",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+      "year": 2003
+    },
+    {
+      "buildingId": "way/96796998",
+      "label": "Civil Engineering Building",
+      "path": "/maps/buet/civil-reference.jpg",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Civil_Engineering_Building_of_BUET_seen_from_EME_Building.JPG",
+      "author": "Raiyan Kamal",
+      "license": "CC BY-SA 2.5",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.5/",
+      "year": 2006
+    },
+    {
+      "buildingId": "way/96797002",
+      "label": "Old Academic Building",
+      "path": "/maps/buet/oab-reference.jpg",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Old_Academic_Building_at_the_Bangladesh_University_of_Engineering_and_Technology.jpg",
+      "author": "Azfar-adib",
+      "license": "Public domain dedication",
+      "licenseUrl": "https://commons.wikimedia.org/wiki/File:Old_Academic_Building_at_the_Bangladesh_University_of_Engineering_and_Technology.jpg",
+      "year": 2006
+    },
+    {
+      "buildingId": "way/1528516219",
+      "label": "Central Library",
+      "path": "/maps/buet/library-reference.jpg",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Library_Building,_BUET.jpg",
+      "author": "Ankan Ghosh Dastider / Wikimedia Commons",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "year": 2021
+    },
+    {
+      "buildingId": "way/96797022",
+      "label": "Registrar Building",
+      "path": "/maps/buet/registrar-reference.jpg",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Registrar_Building_BUET_1.A.M.R.jpg",
+      "author": "A.M.R.",
+      "license": "CC BY 2.5",
+      "licenseUrl": "https://creativecommons.org/licenses/by/2.5/",
+      "year": 2006
+    }
+  ]
+}

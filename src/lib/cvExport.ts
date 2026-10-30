@@ -1,322 +1,384 @@
-import type { CvData, CvMode, CvSectionVisibility } from '@/data/cvDefaults'
+import type { CvBasics, CvData, CvDensity, CvMode, CvSectionVisibility, CvStyle } from '@/data/cvDefaults'
+
+export interface CvExportOptions {
+  mode: CvMode
+  visibility: CvSectionVisibility
+  style: CvStyle
+  density: CvDensity
+  /** Accent colour as "#rrggbb". */
+  accent: string
+}
+
+export type CvSectionKey =
+  | 'researchInterests'
+  | 'summary'
+  | 'education'
+  | 'publications'
+  | 'experience'
+  | 'projects'
+  | 'skills'
+  | 'awards'
+  | 'certifications'
+
+export interface CvSection {
+  key: CvSectionKey
+  title: string
+}
+
+/**
+ * The sections the live preview shows, in its order and with its headings. The preview and
+ * every export read this list, so a downloaded file always matches what is on screen.
+ */
+export function cvSections(cv: CvData, mode: CvMode, visibility: CvSectionVisibility): CvSection[] {
+  const ac = mode === 'academic'
+  const interests = ac && visibility.researchInterests && cv.basics.researchInterests.length > 0
+  const all: [CvSectionKey, string, boolean][] = [
+    ['researchInterests', 'Research Interests', interests],
+    // With research interests on show, the academic CV leads with those instead of the summary.
+    ['summary', ac ? 'Research Overview' : 'Executive Summary', !!cv.basics.summary && !interests],
+    ['education', 'Education', visibility.education && cv.education.length > 0],
+    ['publications', 'Publications & Preprints', visibility.publications && cv.publications.length > 0],
+    [
+      'experience',
+      ac ? 'Research & Academic Experience' : 'Work Experience',
+      visibility.experience && cv.experience.length > 0,
+    ],
+    ['projects', 'Selected Projects', visibility.projects && cv.projects.length > 0],
+    ['skills', 'Technical Competencies', visibility.skills && cv.skills.length > 0],
+    ['awards', 'Honors & Awards', visibility.awards && cv.awards.length > 0],
+    ['certifications', 'Certifications', visibility.certifications && cv.certifications.length > 0],
+  ]
+  return all.filter(([, , show]) => show).map(([key, title]) => ({ key, title }))
+}
+
+/** Joins the non-empty parts, so missing dates or issuers leave no dangling separator. */
+export function joinSome(sep: string, ...parts: (string | undefined)[]): string {
+  return parts.filter(Boolean).join(sep)
+}
+
+export const dateRange = (start?: string, end?: string) => joinSome(' – ', start, end)
+
+export interface ContactItem {
+  text: string
+  href?: string
+}
+
+/** The header's contact line, in the preview's order. */
+export function contactItems(b: CvBasics): ContactItem[] {
+  const items: (ContactItem | false)[] = [
+    !!b.email && { text: b.email, href: `mailto:${b.email}` },
+    !!b.phone && { text: b.phone },
+    !!b.location && { text: b.location },
+    !!b.website && { text: 'Portfolio', href: b.website },
+    !!b.linkedin && { text: 'LinkedIn', href: b.linkedin },
+    !!b.github && { text: 'GitHub', href: b.github },
+  ]
+  return items.filter((i): i is ContactItem => !!i)
+}
+
+/** "Dr. Jane A. Doe" → "Dr-Jane-A-Doe-CV", for download file names. */
+export function cvFileName(name: string): string {
+  // \p{M} keeps combining marks, e.g. the vowel signs of Bangla script.
+  const base = name.trim().replace(/[^\p{L}\p{M}\p{N}]+/gu, '-').replace(/^-+|-+$/g, '')
+  return base ? `${base}-CV` : 'CV'
+}
+
+// ────────────────────────────── LaTeX ──────────────────────────────
+
+const LATEX_ESCAPES: Record<string, string> = {
+  '\\': '\\textbackslash{}',
+  '{': '\\{',
+  '}': '\\}',
+  '%': '\\%',
+  $: '\\$',
+  '&': '\\&',
+  '#': '\\#',
+  _: '\\_',
+  '~': '\\textasciitilde{}',
+  '^': '\\textasciicircum{}',
+  // Symbols pdflatex's utf8 input has no text glyph for.
+  '→': '$\\rightarrow$',
+  '←': '$\\leftarrow$',
+  '≤': '$\\leq$',
+  '≥': '$\\geq$',
+  '≈': '$\\approx$',
+}
 
 /** Escapes special LaTeX characters to prevent compile errors. */
 export function escapeLatex(text: string): string {
   if (!text) return ''
-  return text
-    .replace(/\\/g, '\\textbackslash{}')
-    .replace(/[{}]/g, (c) => `\\${c}`)
-    .replace(/([%$&#_])/g, '\\$1')
-    .replace(/~/g, '\\textasciitilde{}')
-    .replace(/\^/g, '\\textasciicircum{}')
+  return text.replace(/[\\{}%$&#_~^→←≤≥≈]/g, (c) => LATEX_ESCAPES[c]!)
 }
 
-/** Formats a LaTeX section header. */
-function latexSection(title: string): string {
-  return `\n\\section*{${escapeLatex(title)}}\n\\vspace{-0.5em}\\hrule\\vspace{0.8em}\n`
+/** hyperref reads URLs nearly verbatim; only % and # need escaping, and stray braces are dropped. */
+function latexUrl(url: string): string {
+  return url.replace(/[{}\\]/g, '').replace(/[%#]/g, (c) => `\\${c}`)
+}
+
+const latexHref = (url: string, label: string) => `\\href{${latexUrl(url)}}{${escapeLatex(label)}}`
+
+/** Lines of one entry: line breaks between them, a paragraph break after. */
+const latexLines = (...lines: string[]) => `${lines.filter(Boolean).join('\\\\\n')}\\par\n`
+
+function latexList(items: string[]): string {
+  if (items.length === 0) return ''
+  return `\\begin{itemize}[leftmargin=1.3em,noitemsep,topsep=2pt]\n${items.map((i) => `  \\item ${escapeLatex(i)}\n`).join('')}\\end{itemize}\n`
 }
 
 /**
- * Generates an elegant, fully compilable LaTeX document ready for Overleaf or pdflatex.
+ * Generates a compilable LaTeX document (pdflatex or Overleaf) that follows the preview:
+ * same sections, serif or sans-serif face per layout style, and the chosen accent colour.
  */
-export function exportToLatex(
-  cv: CvData,
-  mode: CvMode,
-  visibility?: Partial<CvSectionVisibility>,
-): string {
+export function exportToLatex(cv: CvData, opts: CvExportOptions): string {
   const b = cv.basics
-  const isAc = mode === 'academic'
+  const compact = opts.density === 'compact'
+  const upper = opts.style !== 'modern-sans'
+  const hex = opts.accent.replace('#', '').toUpperCase()
+  const titleColor = opts.style === 'swiss-clean' ? 'accent' : 'ink'
+  const ruleColor = opts.style === 'modern-sans' ? 'accent' : opts.style === 'swiss-clean' ? 'rule' : 'ink'
+  const sep = ' ~$\\cdot$~ '
 
-  const contactItems: string[] = []
-  if (b.email) contactItems.push(`\\href{mailto:${b.email}}{${escapeLatex(b.email)}}`)
-  if (b.phone) contactItems.push(escapeLatex(b.phone))
-  if (b.location) contactItems.push(escapeLatex(b.location))
-  if (b.website) contactItems.push(`\\href{${b.website}}{Website}`)
-  if (b.linkedin) contactItems.push(`\\href{${b.linkedin}}{LinkedIn}`)
-  if (b.github) contactItems.push(`\\href{${b.github}}{GitHub}`)
-
-  const contactLine = contactItems.join(' ~$\\cdot$~ ')
+  const contact = contactItems(b)
+    .map((c) => (c.href ? latexHref(c.href, c.text) : escapeLatex(c.text)))
+    .join(sep)
 
   let body = ''
-
-  // Research Interests (Academic)
-  if (isAc && visibility?.researchInterests !== false && b.researchInterests.length > 0) {
-    body += latexSection('Research Interests')
-    body += '\\begin{itemize}[leftmargin=*,noitemsep,topsep=0pt]\n'
-    for (const interest of b.researchInterests) {
-      body += `  \\item ${escapeLatex(interest)}\n`
-    }
-    body += '\\end{itemize}\n'
-  }
-
-  // Executive Summary (Professional)
-  if (!isAc && b.summary) {
-    body += latexSection('Professional Summary')
-    body += `${escapeLatex(b.summary)}\n`
-  }
-
-  // Education
-  if (visibility?.education !== false && cv.education.length > 0) {
-    body += latexSection('Education')
-    for (const edu of cv.education) {
-      body += `\\textbf{${escapeLatex(edu.institution)}} \\hfill ${escapeLatex(edu.startDate)} -- ${escapeLatex(edu.endDate)}\\\\\n`
-      body += `\\textit{${escapeLatex(edu.degree)}${edu.field ? `, ${escapeLatex(edu.field)}` : ''}}`
-      if (edu.location) body += ` \\hfill \\textit{${escapeLatex(edu.location)}}`
-      body += '\\\\\n'
-      if (edu.gpa) body += `\\textbf{CGPA / Grade:} ${escapeLatex(edu.gpa)}\\\\\n`
-      if (edu.details) body += `\\small{${escapeLatex(edu.details)}}\\\\\n`
-      body += '\\vspace{0.4em}\n'
-    }
-  }
-
-  // Publications (Especially Academic)
-  if (visibility?.publications !== false && cv.publications.length > 0) {
-    body += latexSection('Publications & Preprints')
-    body += '\\begin{enumerate}[leftmargin=*,noitemsep,topsep=0pt]\n'
-    for (const pub of cv.publications) {
-      const auth = escapeLatex(pub.authors).replace(
-        new RegExp(escapeLatex(b.name), 'g'),
-        `\\textbf{${escapeLatex(b.name)}}`,
-      )
-      const link = pub.doiOrUrl ? ` [\\href{${pub.doiOrUrl}}{Link}]` : ''
-      body += `  \\item ${auth}, \`\`${escapeLatex(pub.title)},'' \\textit{${escapeLatex(pub.venue)}}, ${escapeLatex(pub.year)}.${link}\n`
-    }
-    body += '\\end{enumerate}\n'
-  }
-
-  // Experience
-  if (visibility?.experience !== false && cv.experience.length > 0) {
-    body += latexSection(isAc ? 'Research & Professional Experience' : 'Work Experience')
-    for (const exp of cv.experience) {
-      body += `\\textbf{${escapeLatex(exp.role)}} ~$\\cdot$~ \\textit{${escapeLatex(exp.company)}} \\hfill ${escapeLatex(exp.startDate)} -- ${escapeLatex(exp.endDate)}\\\\\n`
-      if (exp.location) body += `\\textit{\\small{${escapeLatex(exp.location)}}}\\\\\n`
-      if (exp.bullets.length > 0) {
-        body += '\\begin{itemize}[leftmargin=*,noitemsep,topsep=2pt]\n'
-        for (const bItem of exp.bullets) {
-          body += `  \\item ${escapeLatex(bItem)}\n`
+  for (const { key, title } of cvSections(cv, opts.mode, opts.visibility)) {
+    body += `\\cvsection{${escapeLatex(upper ? title.toUpperCase() : title)}}\n`
+    switch (key) {
+      case 'researchInterests':
+        body += `${escapeLatex(b.researchInterests.join(', '))}\\par\n`
+        break
+      case 'summary':
+        body += `${escapeLatex(b.summary)}\\par\n`
+        break
+      case 'education':
+        for (const edu of cv.education) {
+          body += latexLines(
+            `\\textbf{${escapeLatex(edu.institution)}} \\hfill ${escapeLatex(dateRange(edu.startDate, edu.endDate))}`,
+            joinSome(
+              ' \\hfill ',
+              joinSome(', ', edu.degree, edu.field) && `\\textit{${escapeLatex(joinSome(', ', edu.degree, edu.field))}}`,
+              edu.location && `\\textit{${escapeLatex(edu.location)}}`,
+            ),
+            edu.gpa ? `\\textbf{CGPA / Grade:} \\textcolor{accent}{${escapeLatex(edu.gpa)}}` : '',
+            edu.details ? `{\\small ${escapeLatex(edu.details)}}` : '',
+          )
+          body += '\\vspace{0.35em}\n'
         }
-        body += '\\end{itemize}\n'
-      }
-      if (exp.technologies.length > 0) {
-        body += `\\small{\\textbf{Technologies:} ${escapeLatex(exp.technologies.join(', '))}}\\\\\n`
-      }
-      body += '\\vspace{0.4em}\n'
-    }
-  }
-
-  // Teaching (Academic)
-  if (isAc && visibility?.teaching !== false && cv.teaching.length > 0) {
-    body += latexSection('Teaching & Mentoring')
-    for (const t of cv.teaching) {
-      body += `\\textbf{${escapeLatex(t.role)}}, \\textit{${escapeLatex(t.institution)}} \\hfill ${escapeLatex(t.period)}\\\\\n`
-      body += `Course: ${escapeLatex(t.course)}\\\\\n`
-      if (t.details) body += `\\small{${escapeLatex(t.details)}}\\\\\n`
-      body += '\\vspace{0.3em}\n'
-    }
-  }
-
-  // Projects
-  if (visibility?.projects !== false && cv.projects.length > 0) {
-    body += latexSection('Selected Projects')
-    for (const proj of cv.projects) {
-      body += `\\textbf{${escapeLatex(proj.name)}}`
-      if (proj.role) body += ` ~$\\cdot$~ \\textit{${escapeLatex(proj.role)}}`
-      if (proj.year) body += ` \\hfill ${escapeLatex(proj.year)}`
-      body += '\\\\\n'
-      body += `${escapeLatex(proj.description)}\\\\\n`
-      if (proj.bullets.length > 0) {
-        body += '\\begin{itemize}[leftmargin=*,noitemsep,topsep=2pt]\n'
-        for (const pb of proj.bullets) {
-          body += `  \\item ${escapeLatex(pb)}\n`
+        break
+      case 'publications':
+        body += '\\begin{enumerate}[leftmargin=1.6em,noitemsep,topsep=0pt]\n'
+        for (const pub of cv.publications) {
+          // Academic convention: the CV owner's name in bold within the author list.
+          const owner = escapeLatex(b.name.replace(/^(?:(?:dr|prof|mr|mrs|ms|mx)\.?\s+)+/i, ''))
+          const authors = owner
+            ? escapeLatex(pub.authors).split(owner).join(`\\textbf{${owner}}`)
+            : escapeLatex(pub.authors)
+          const link = pub.doiOrUrl ? ` [${latexHref(pub.doiOrUrl, 'Link')}]` : ''
+          const parts = joinSome(
+            ', ',
+            authors,
+            `\`\`${escapeLatex(pub.title)}''`,
+            pub.venue && `\\textit{${escapeLatex(pub.venue)}}`,
+            escapeLatex(pub.year),
+          )
+          body += `  \\item ${parts}.${link}\n`
         }
-        body += '\\end{itemize}\n'
-      }
-      if (proj.stack.length > 0) {
-        body += `\\small{\\textbf{Stack:} ${escapeLatex(proj.stack.join(', '))}}\\\\\n`
-      }
-      body += '\\vspace{0.4em}\n'
+        body += '\\end{enumerate}\n'
+        break
+      case 'experience':
+        for (const exp of cv.experience) {
+          const heading = joinSome(
+            sep,
+            exp.role && `\\textbf{${escapeLatex(exp.role)}}`,
+            exp.company && `\\textit{${escapeLatex(exp.company)}}`,
+          )
+          body += latexLines(
+            `${heading} \\hfill ${escapeLatex(dateRange(exp.startDate, exp.endDate))}`,
+            exp.location ? `{\\small\\textit{${escapeLatex(exp.location)}}}` : '',
+          )
+          body += latexList(exp.bullets)
+          if (exp.technologies.length > 0) {
+            body += `{\\small \\textbf{Technologies:} ${escapeLatex(exp.technologies.join(', '))}}\\par\n`
+          }
+          body += '\\vspace{0.35em}\n'
+        }
+        break
+      case 'projects':
+        for (const proj of cv.projects) {
+          const name = proj.url ? latexHref(proj.url, proj.name) : escapeLatex(proj.name)
+          const heading = joinSome(sep, `\\textbf{${name}}`, proj.role && `\\textit{${escapeLatex(proj.role)}}`)
+          body += latexLines(`${heading} \\hfill ${escapeLatex(proj.year ?? '')}`, escapeLatex(proj.description))
+          body += latexList(proj.bullets)
+          if (proj.stack.length > 0) {
+            body += `{\\small \\textbf{Stack:} ${escapeLatex(proj.stack.join(', '))}}\\par\n`
+          }
+          body += '\\vspace{0.35em}\n'
+        }
+        break
+      case 'skills':
+        for (const cat of cv.skills) {
+          body += `\\textbf{${escapeLatex(cat.category)}:} ${escapeLatex(cat.items.join(', '))}\\par\n`
+        }
+        break
+      case 'awards':
+        for (const aw of cv.awards) {
+          body += latexLines(
+            `${joinSome(sep, `\\textbf{${escapeLatex(aw.title)}}`, aw.issuer && escapeLatex(aw.issuer))} \\hfill ${escapeLatex(aw.year)}`,
+            aw.description ? `{\\small ${escapeLatex(aw.description)}}` : '',
+          )
+        }
+        break
+      case 'certifications':
+        for (const c of cv.certifications) {
+          const name = c.url ? latexHref(c.url, c.name) : escapeLatex(c.name)
+          body += latexLines(`${joinSome(sep, `\\textbf{${name}}`, c.issuer && escapeLatex(c.issuer))} \\hfill ${escapeLatex(c.year)}`)
+        }
+        break
     }
   }
 
-  // Skills
-  if (visibility?.skills !== false && cv.skills.length > 0) {
-    body += latexSection('Technical Competencies')
-    body += '\\begin{description}[leftmargin=!,labelwidth=3.2cm,noitemsep,topsep=0pt]\n'
-    for (const cat of cv.skills) {
-      body += `  \\item[${escapeLatex(cat.category)}] ${escapeLatex(cat.items.join(', '))}\n`
-    }
-    body += '\\end{description}\n'
-  }
-
-  // Awards & Honors
-  if (visibility?.awards !== false && cv.awards.length > 0) {
-    body += latexSection('Honors & Awards')
-    for (const aw of cv.awards) {
-      body += `\\textbf{${escapeLatex(aw.title)}} ~$\\cdot$~ \\textit{${escapeLatex(aw.issuer)}} \\hfill ${escapeLatex(aw.year)}\\\\\n`
-      if (aw.description) body += `\\small{${escapeLatex(aw.description)}}\\\\\n`
-    }
-  }
-
-  // Certifications
-  if (visibility?.certifications !== false && cv.certifications.length > 0) {
-    body += latexSection('Certifications & Credentials')
-    for (const c of cv.certifications) {
-      body += `\\textbf{${escapeLatex(c.name)}} ~$\\cdot$~ \\textit{${escapeLatex(c.issuer)}} \\hfill ${escapeLatex(c.year)}\\\\\n`
-    }
-  }
-
-  return `\\documentclass[10pt,a4paper]{article}
+  return `% ${b.name || 'Curriculum Vitae'} — generated by the CV Builder at nurbijoy.github.io/showcase
+% Compiles with pdflatex (Overleaf's default). Use XeLaTeX or LuaLaTeX for non-Latin scripts.
+\\documentclass[${compact ? '10pt' : '11pt'},a4paper]{article}
 \\usepackage[utf8]{inputenc}
-\\usepackage[margin=1.8cm]{geometry}
-\\usepackage{hyperref}
+\\usepackage[T1]{fontenc}
+\\usepackage{lmodern}
+\\usepackage[margin=${compact ? '1.4cm' : '1.8cm'}]{geometry}
+\\usepackage{xcolor}
 \\usepackage{enumitem}
-\\usepackage{titlesec}
 \\usepackage{parskip}
-
-\\hypersetup{
-    colorlinks=true,
-    linkcolor=black,
-    urlcolor=blue!70!black
-}
-
+\\usepackage{hyperref}
+${opts.style === 'academic-latex' ? '' : '\\renewcommand{\\familydefault}{\\sfdefault}\n'}
+\\definecolor{accent}{HTML}{${hex}}
+\\definecolor{ink}{HTML}{0F172A}
+\\definecolor{rule}{HTML}{E2E8F0}
+\\hypersetup{colorlinks=true, urlcolor=accent, linkcolor=ink}
+\\setlength{\\parskip}{${compact ? '0.15em' : '0.3em'}}
 \\pagestyle{empty}
+
+\\newcommand{\\cvsection}[1]{%
+  \\vspace{${compact ? '0.5em' : '0.9em'}}%
+  {\\large\\bfseries\\color{${titleColor}}#1}\\par\\nopagebreak\\vspace{0.1em}%
+  {\\color{${ruleColor}}\\hrule height ${opts.style === 'modern-sans' ? '1.2pt' : '0.6pt'}}\\nopagebreak\\vspace{0.45em}%
+}
 
 \\begin{document}
 
 \\begin{center}
-    {\\LARGE \\textbf{${escapeLatex(b.name)}}}\\\\[0.3em]
-    {\\large \\textit{${escapeLatex(b.headline)}}}\\\\[0.4em]
-    \\small{${contactLine}}
-\\end{center}
-\\vspace{0.5em}
+  {\\LARGE\\bfseries ${escapeLatex(b.name)}}\\par
+${b.headline ? `  \\vspace{0.25em}{\\large\\itshape ${escapeLatex(b.headline)}}\\par\n` : ''}${contact ? `  \\vspace{0.35em}{\\small ${contact}}\\par\n` : ''}\\end{center}
 
 ${body}
-
 \\end{document}
 `
 }
 
-/**
- * Generates clean GitHub-Flavored Markdown for the CV.
- */
-export function exportToMarkdown(
-  cv: CvData,
-  mode: CvMode,
-  visibility?: Partial<CvSectionVisibility>,
-): string {
+// ────────────────────────────── Markdown ──────────────────────────────
+
+/** Escapes characters Markdown would treat as formatting. */
+function md(text: string): string {
+  return text.replace(/([\\`*_[\]<>|])/g, '\\$1')
+}
+
+const mdLink = (label: string, url: string) => `[${md(label)}](<${url}>)`
+
+/** GitHub-flavoured Markdown with the preview's sections and headings. */
+export function exportToMarkdown(cv: CvData, opts: CvExportOptions): string {
   const b = cv.basics
-  const isAc = mode === 'academic'
-  const lines: string[] = []
+  const out: string[] = [`# ${md(b.name || 'Curriculum Vitae')}`, '']
+  if (b.headline) out.push(`*${md(b.headline)}*`, '')
+  const contact = contactItems(b).map((c) => (c.href ? mdLink(c.text, c.href) : md(c.text)))
+  if (contact.length > 0) out.push(contact.join(' · '), '')
 
-  lines.push(`# ${b.name}`)
-  if (b.headline) lines.push(`**${b.headline}**\n`)
-
-  const contact: string[] = []
-  if (b.email) contact.push(`[${b.email}](mailto:${b.email})`)
-  if (b.phone) contact.push(b.phone)
-  if (b.location) contact.push(b.location)
-  if (b.website) contact.push(`[Website](${b.website})`)
-  if (b.linkedin) contact.push(`[LinkedIn](${b.linkedin})`)
-  if (b.github) contact.push(`[GitHub](${b.github})`)
-  lines.push(contact.join(' • ') + '\n')
-  lines.push('---\n')
-
-  if (isAc && visibility?.researchInterests !== false && b.researchInterests.length > 0) {
-    lines.push('## Research Interests')
-    for (const r of b.researchInterests) lines.push(`- ${r}`)
-    lines.push('')
+  // Two trailing spaces force a line break inside a paragraph.
+  const block = (...lines: string[]) => {
+    const kept = lines.filter(Boolean)
+    if (kept.length > 0) out.push(kept.join('  \n'), '')
+  }
+  const bullets = (items: string[]) => {
+    if (items.length > 0) out.push(...items.map((i) => `- ${md(i)}`), '')
   }
 
-  if (b.summary) {
-    lines.push(`## ${isAc ? 'Research Overview' : 'Professional Summary'}`)
-    lines.push(b.summary + '\n')
-  }
-
-  if (visibility?.education !== false && cv.education.length > 0) {
-    lines.push('## Education')
-    for (const edu of cv.education) {
-      lines.push(`### ${edu.institution}`)
-      lines.push(`*${edu.degree}${edu.field ? `, ${edu.field}` : ''}* | ${edu.startDate} – ${edu.endDate}`)
-      if (edu.gpa) lines.push(`- **CGPA / Grade:** ${edu.gpa}`)
-      if (edu.details) lines.push(`- ${edu.details}`)
-      lines.push('')
+  for (const { key, title } of cvSections(cv, opts.mode, opts.visibility)) {
+    out.push(`## ${title}`, '')
+    switch (key) {
+      case 'researchInterests':
+        block(md(b.researchInterests.join(', ')))
+        break
+      case 'summary':
+        block(md(b.summary))
+        break
+      case 'education':
+        for (const edu of cv.education) {
+          const degree = joinSome(', ', edu.degree, edu.field)
+          block(
+            joinSome(' — ', `**${md(edu.institution)}**`, dateRange(edu.startDate, edu.endDate)),
+            joinSome(' · ', degree && `*${md(degree)}*`, edu.location && md(edu.location)),
+            edu.gpa ? `**CGPA / Grade:** ${md(edu.gpa)}` : '',
+            edu.details ? md(edu.details) : '',
+          )
+        }
+        break
+      case 'publications':
+        cv.publications.forEach((pub, i) => {
+          const link = pub.doiOrUrl ? ` ${mdLink('Link', pub.doiOrUrl)}` : ''
+          const text = joinSome(', ', md(pub.authors), `"${md(pub.title)}"`, pub.venue && `*${md(pub.venue)}*`, md(pub.year))
+          out.push(`${i + 1}. ${text}.${link}`)
+        })
+        out.push('')
+        break
+      case 'experience':
+        for (const exp of cv.experience) {
+          out.push(`### ${md(joinSome(' · ', exp.role, exp.company))}`, '')
+          block(joinSome(' · ', dateRange(exp.startDate, exp.endDate) && `*${dateRange(exp.startDate, exp.endDate)}*`, exp.location && md(exp.location)))
+          bullets(exp.bullets)
+          if (exp.technologies.length > 0) block(`**Technologies:** ${md(exp.technologies.join(', '))}`)
+        }
+        break
+      case 'projects':
+        for (const proj of cv.projects) {
+          const name = proj.url ? mdLink(proj.name, proj.url) : md(proj.name)
+          out.push(`### ${joinSome(' · ', name, proj.role && md(proj.role))}`, '')
+          block(proj.year ? `*${md(proj.year)}*` : '', md(proj.description))
+          bullets(proj.bullets)
+          if (proj.stack.length > 0) block(`**Stack:** ${md(proj.stack.join(', '))}`)
+        }
+        break
+      case 'skills':
+        out.push(...cv.skills.map((s) => `- **${md(s.category)}:** ${md(s.items.join(', '))}`), '')
+        break
+      case 'awards':
+        for (const aw of cv.awards) {
+          out.push(`- ${joinSome(' · ', `**${md(aw.title)}**`, aw.issuer && md(aw.issuer), aw.year && md(aw.year))}`)
+          if (aw.description) out.push(`  ${md(aw.description)}`)
+        }
+        out.push('')
+        break
+      case 'certifications':
+        for (const c of cv.certifications) {
+          const name = c.url ? mdLink(c.name, c.url) : md(c.name)
+          out.push(`- ${joinSome(' · ', `**${name}**`, c.issuer && md(c.issuer), c.year && md(c.year))}`)
+        }
+        out.push('')
+        break
     }
   }
 
-  if (visibility?.publications !== false && cv.publications.length > 0) {
-    lines.push('## Publications & Preprints')
-    cv.publications.forEach((pub, idx) => {
-      const link = pub.doiOrUrl ? ` [Link](${pub.doiOrUrl})` : ''
-      lines.push(`${idx + 1}. ${pub.authors}, "${pub.title}", *${pub.venue}*, ${pub.year}.${link}`)
-    })
-    lines.push('')
-  }
-
-  if (visibility?.experience !== false && cv.experience.length > 0) {
-    lines.push(`## ${isAc ? 'Academic & Research Experience' : 'Work Experience'}`)
-    for (const exp of cv.experience) {
-      lines.push(`### ${exp.role} — ${exp.company}`)
-      lines.push(`*${exp.startDate} – ${exp.endDate}${exp.location ? ` | ${exp.location}` : ''}*`)
-      for (const bItem of exp.bullets) lines.push(`- ${bItem}`)
-      if (exp.technologies.length > 0) lines.push(`*Technologies:* ${exp.technologies.join(', ')}`)
-      lines.push('')
-    }
-  }
-
-  if (isAc && visibility?.teaching !== false && cv.teaching.length > 0) {
-    lines.push('## Teaching Experience')
-    for (const t of cv.teaching) {
-      lines.push(`- **${t.role}**, ${t.course} — *${t.institution}* (${t.period})`)
-      if (t.details) lines.push(`  ${t.details}`)
-    }
-    lines.push('')
-  }
-
-  if (visibility?.projects !== false && cv.projects.length > 0) {
-    lines.push('## Projects')
-    for (const p of cv.projects) {
-      const urlText = p.url ? ` ([Link](${p.url}))` : ''
-      lines.push(`### ${p.name}${urlText}`)
-      if (p.description) lines.push(p.description)
-      for (const pb of p.bullets) lines.push(`- ${pb}`)
-      if (p.stack.length > 0) lines.push(`*Stack:* ${p.stack.join(', ')}`)
-      lines.push('')
-    }
-  }
-
-  if (visibility?.skills !== false && cv.skills.length > 0) {
-    lines.push('## Technical Competencies')
-    for (const s of cv.skills) {
-      lines.push(`- **${s.category}:** ${s.items.join(', ')}`)
-    }
-    lines.push('')
-  }
-
-  if (visibility?.awards !== false && cv.awards.length > 0) {
-    lines.push('## Honors & Awards')
-    for (const a of cv.awards) {
-      lines.push(`- **${a.title}**, *${a.issuer}* (${a.year})`)
-      if (a.description) lines.push(`  ${a.description}`)
-    }
-    lines.push('')
-  }
-
-  return lines.join('\n')
+  return `${out.join('\n').replace(/\n{3,}/g, '\n\n').trim()}\n`
 }
 
-export function exportToJson(cv: CvData): string {
-  return JSON.stringify(cv, null, 2)
-}
-
-/** Triggers a browser download of text content with a given filename and mime type. */
-export function downloadFile(content: string, filename: string, mimeType: string): void {
-  const blob = new Blob([content], { type: mimeType })
+/** Triggers a browser download of a Blob or text with the given file name. */
+export function downloadFile(content: Blob | string, filename: string, mimeType?: string): void {
+  const blob = typeof content === 'string' ? new Blob([content], { type: mimeType }) : content
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
   a.download = filename
   document.body.appendChild(a)
   a.click()
-  document.body.removeChild(a)
-  URL.revokeObjectURL(url)
+  a.remove()
+  // Revoke on the next tick: some browsers start the download asynchronously.
+  setTimeout(() => URL.revokeObjectURL(url), 0)
 }

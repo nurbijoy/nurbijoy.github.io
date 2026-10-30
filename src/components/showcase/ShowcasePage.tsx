@@ -1,4 +1,4 @@
-import { useEffect, useState, type ComponentType } from 'react'
+import { lazy, Suspense, useEffect, useState, type ComponentType } from 'react'
 import { ArrowLeft, Check, FileText, Globe, Map, Share2, Sparkles } from 'lucide-react'
 import { ThemeToggle } from '@/components/layout/ThemeToggle'
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary'
@@ -9,11 +9,14 @@ import { TravelMap } from './TravelMap'
 import { WorldTour } from './WorldTour'
 import { CvBuilder } from './CvBuilder'
 
+const BuetCampusMap = lazy(() => import('./BuetCampusMap').then((module) => ({ default: module.BuetCampusMap })))
+
 /** The live demo for each entry in the showcase data, keyed by the entry's id. */
 const demos: Record<string, ComponentType> = {
   'linkedin-cv-builder': CvBuilder,
   'bangladesh-travel-map': TravelMap,
   'world-tour': WorldTour,
+  'buet-campus-map': BuetCampusMap,
 }
 
 const PROJECT_ICONS = {
@@ -25,7 +28,7 @@ const PROJECT_ICONS = {
 /**
  * The standalone Showcase page: interactive live projects running directly in the browser.
  * Tour-related projects (Bangladesh Travel Map, World Tour) are in Bangla;
- * other tools (such as the LinkedIn CV Builder) and page navigation are in English.
+ * other tools (such as the CV Builder) and page navigation are in English.
  */
 export function ShowcasePage() {
   const { theme, toggle } = useTheme()
@@ -116,9 +119,6 @@ export function ShowcasePage() {
             <br />
             <span className="text-accent-ink">running in your browser.</span>
           </h1>
-          <p className="max-w-md text-sm text-ink-2 md:text-base">
-            Interactive browser tools with zero server dependencies or signup requirements. Test them live and export your results directly.
-          </p>
         </div>
 
         {/* ────────────────── Reorganized Project Selector Cards ────────────────── */}
@@ -128,7 +128,7 @@ export function ShowcasePage() {
             <span className="text-xs text-ink-3">Click any tool to launch live</span>
           </div>
 
-          <div role="tablist" className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div role="tablist" className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
             {showcase.map((p) => {
               const IconComp = (p.icon && PROJECT_ICONS[p.icon]) || Sparkles
               const isSelected = p.id === project.id
@@ -140,20 +140,18 @@ export function ShowcasePage() {
                   role="tab"
                   aria-selected={isSelected}
                   onClick={() => selectProject(p.id)}
-                  className={`group relative flex flex-col justify-between rounded-xl border p-4 text-left transition-all duration-200 cursor-pointer ${
-                    isSelected
+                  className={`group relative flex flex-col justify-between rounded-xl border p-4 text-left transition-all duration-200 cursor-pointer ${isSelected
                       ? 'border-accent bg-surface-2 shadow-md ring-2 ring-accent/30'
                       : 'border-line bg-surface hover:border-line-strong hover:bg-surface-2/60'
-                  }`}
+                    }`}
                 >
                   <div>
                     <div className="flex items-center justify-between gap-2">
                       <div
-                        className={`grid size-9 place-items-center rounded-lg transition-colors ${
-                          isSelected
+                        className={`grid size-9 place-items-center rounded-lg transition-colors ${isSelected
                             ? 'bg-accent text-accent-fg'
                             : 'bg-surface-2 text-ink-2 group-hover:text-ink'
-                        }`}
+                          }`}
                       >
                         <IconComp size={18} />
                       </div>
@@ -190,9 +188,8 @@ export function ShowcasePage() {
         {/* ────────────────── Active Project Display ────────────────── */}
         <article className="card mt-8 p-5 sm:p-8">
           <header
-            className={`mb-8 flex flex-col gap-4 border-b border-line pb-6 md:flex-row md:items-start md:justify-between ${
-              project.isBangla ? 'bn' : ''
-            }`}
+            className={`mb-8 flex flex-col gap-4 border-b border-line pb-6 md:flex-row md:items-start md:justify-between ${project.isBangla ? 'bn' : ''
+              }`}
           >
             <div className="max-w-3xl">
               <div className="flex flex-wrap items-center gap-2">
@@ -224,7 +221,9 @@ export function ShowcasePage() {
 
           {Demo && (
             <ErrorBoundary label={project.title} variant="inline">
-              <Demo />
+              <Suspense fallback={<div role="status" className="grid min-h-72 place-items-center text-sm text-ink-2">Loading project…</div>}>
+                <Demo />
+              </Suspense>
             </ErrorBoundary>
           )}
         </article>

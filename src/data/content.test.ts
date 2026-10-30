@@ -83,9 +83,23 @@ describe('content rules', () => {
     eager: true,
   }) as Record<string, string>
 
-  it('never names the graduate programme', () => {
+  it('keeps the graduate programme out of personal content while allowing the campus showcase', () => {
+    // The campus map is an explicitly requested public showcase project, independent of the biography.
+    const campusProjectFiles = new Set([
+      '/src/data/showcase.ts',
+      '/src/data/buetCampus.ts',
+      '/src/data/buetCampusArchitecture.ts',
+      '/src/lib/buetCampus.ts',
+      '/src/lib/buetCampus3d.ts',
+      '/src/components/showcase/ShowcasePage.tsx',
+      '/src/components/showcase/BuetCampusMap.tsx',
+      '/src/components/showcase/BuetCampusMap.css',
+      '/src/components/showcase/BuetCampusScene.tsx',
+      '/src/components/showcase/BuetCampusScene.css',
+    ])
     const offenders = Object.entries(files)
       .filter(([path]) => !path.endsWith('.test.ts'))
+      .filter(([path]) => !campusProjectFiles.has(path))
       .filter(([, text]) => /\bBUET\b|Bangladesh University of Engineering/i.test(text))
       .map(([path]) => path)
     expect(offenders).toEqual([])

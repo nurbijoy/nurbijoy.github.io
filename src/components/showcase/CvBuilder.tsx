@@ -1,25 +1,17 @@
-import { useState, useId, type CSSProperties } from 'react'
+import { useState, type CSSProperties } from 'react'
 import {
   Award,
   BookOpen,
   Briefcase,
-  Check,
   ChevronDown,
   ChevronUp,
-  Copy,
-  Download,
   Eye,
-  FileCode,
-  FileDown,
-  FileText,
   FolderGit2,
   GraduationCap,
   Plus,
-  Printer,
   RotateCcw,
   Sparkles,
   Trash2,
-  Upload,
   User,
   Wrench,
 } from 'lucide-react'
@@ -34,9 +26,16 @@ import {
   type CvSectionVisibility,
   type CvStyle,
 } from '@/data/cvDefaults'
-import { downloadFile, exportToJson, exportToLatex, exportToMarkdown } from '@/lib/cvExport'
-import { parseLinkedInInput } from '@/lib/linkedinParser'
-import { Modal } from '@/components/ui/Modal'
+import {
+  cvFileName,
+  cvSections,
+  downloadFile,
+  exportToLatex,
+  exportToMarkdown,
+  type CvExportOptions,
+  type CvSectionKey,
+} from '@/lib/cvExport'
+import { CvExportMenu, type CvExportFormat } from './CvExportMenu'
 import './CvBuilder.css'
 
 const ACCENT_COLORS = [
@@ -58,20 +57,43 @@ export function CvBuilder() {
   // Mobile / Tab view toggle: 'editor' or 'preview'
   const [viewTab, setViewTab] = useState<'editor' | 'preview'>('preview')
 
-  // Modals
-  const [importOpen, setImportOpen] = useState(false)
-  const [latexOpen, setLatexOpen] = useState(false)
-  const [markdownOpen, setMarkdownOpen] = useState(false)
-  const [rawInput, setRawInput] = useState('')
-  const [importFeedback, setImportFeedback] = useState<string | null>(null)
-  const [copiedKey, setCopiedKey] = useState<string | null>(null)
-
   // Editor accordion open states
   const [openSection, setOpenSection] = useState<string>('basics')
 
-  const importModalId = useId()
-  const latexModalId = useId()
-  const mdModalId = useId()
+  const [exporting, setExporting] = useState(false)
+  const [exportError, setExportError] = useState<string | null>(null)
+
+  // Headings of the sections on show; the preview and every export read the same list.
+  const sectionTitle: Partial<Record<CvSectionKey, string>> = Object.fromEntries(
+    cvSections(data, mode, visibility).map((s) => [s.key, s.title]),
+  )
+
+  const handleExport = async (format: CvExportFormat) => {
+    setExportError(null)
+    const opts: CvExportOptions = { mode, visibility, style, density, accent: accentColor }
+    const name = cvFileName(data.basics.name)
+    if (format === 'pdf') {
+      // Browsers name the saved PDF after the page title.
+      const title = document.title
+      document.title = name.replace(/-/g, ' ')
+      window.addEventListener('afterprint', () => (document.title = title), { once: true })
+      window.print()
+    } else if (format === 'tex') {
+      downloadFile(exportToLatex(data, opts), `${name}.tex`, 'application/x-tex')
+    } else if (format === 'md') {
+      downloadFile(exportToMarkdown(data, opts), `${name}.md`, 'text/markdown')
+    } else {
+      setExporting(true)
+      try {
+        const { cvToDocx } = await import('@/lib/cvDocx')
+        downloadFile(await cvToDocx(data, opts), `${name}.docx`)
+      } catch (err) {
+        setExportError(`Could not create the Word file: ${err instanceof Error ? err.message : String(err)}`)
+      } finally {
+        setExporting(false)
+      }
+    }
+  }
 
   const handleModeChange = (newMode: CvMode) => {
     setMode(newMode)
@@ -83,38 +105,6 @@ export function CvBuilder() {
     }
   }
 
-  const handleCopy = (text: string, key: string) => {
-    void navigator.clipboard?.writeText(text).then(() => {
-      setCopiedKey(key)
-      setTimeout(() => setCopiedKey(null), 2000)
-    })
-  }
-
-  const handleImportSubmit = () => {
-    const res = parseLinkedInInput(rawInput, data)
-    if (res.data && res.detectedSource !== 'unknown') {
-      setData((prev) => ({
-        ...prev,
-        basics: { ...prev.basics, ...res.data.basics },
-        education: res.data.education ?? prev.education,
-        experience: res.data.experience ?? prev.experience,
-        publications: res.data.publications ?? prev.publications,
-        projects: res.data.projects ?? prev.projects,
-        skills: res.data.skills ?? prev.skills,
-        awards: res.data.awards ?? prev.awards,
-        certifications: res.data.certifications ?? prev.certifications,
-        teaching: res.data.teaching ?? prev.teaching,
-      }))
-    }
-    setImportFeedback(res.message)
-    setTimeout(() => {
-      if (res.detectedSource !== 'unknown') {
-        setImportOpen(false)
-        setImportFeedback(null)
-      }
-    }, 1500)
-  }
-
   // Helpers to update fields
   const updateBasics = (field: keyof CvData['basics'], val: unknown) => {
     setData((d) => ({ ...d, basics: { ...d.basics, [field]: val } }))
@@ -124,14 +114,11 @@ export function CvBuilder() {
     setVisibility((v) => ({ ...v, [sec]: !v[sec] }))
   }
 
-  const generatedLatex = exportToLatex(data, mode, visibility)
-  const generatedMarkdown = exportToMarkdown(data, mode, visibility)
-
   return (
     <div className="cv-builder-root flex flex-col gap-6">
       {/* ────────────────── Top Control Toolbar (No Print) ────────────────── */}
       <div className="cv-no-print flex flex-col gap-4 rounded-xl border border-line-strong bg-surface p-4 shadow-sm md:p-6">
-        {/* Row 1: Presets & LinkedIn Import */}
+        {/* Row 1: Presets & Export */}
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line pb-4">
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-xs font-semibold text-ink-3">Profile Presets:</span>
@@ -167,14 +154,12 @@ export function CvBuilder() {
             </button>
           </div>
 
-          <button
-            type="button"
-            className="btn btn-primary text-xs font-semibold"
-            onClick={() => setImportOpen(true)}
-          >
-            <Upload size={14} />
-            Import / Paste LinkedIn
-          </button>
+          <CvExportMenu onExport={(format) => void handleExport(format)} busy={exporting} />
+          {exportError && (
+            <p role="alert" className="w-full text-right text-xs text-red-500">
+              {exportError}
+            </p>
+          )}
         </div>
 
         {/* Row 2: Target CV Mode, Styling, and Density */}
@@ -247,63 +232,22 @@ export function CvBuilder() {
           </div>
         </div>
 
-        {/* Row 3: Action & Export Buttons */}
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4">
-          <div className="flex items-center gap-1 md:hidden">
-            <button
-              type="button"
-              className={`chip text-xs font-semibold ${viewTab === 'editor' ? '!bg-surface-2 !text-ink' : ''}`}
-              onClick={() => setViewTab('editor')}
-            >
-              Form Editor
-            </button>
-            <button
-              type="button"
-              className={`chip text-xs font-semibold ${viewTab === 'preview' ? '!bg-surface-2 !text-ink' : ''}`}
-              onClick={() => setViewTab('preview')}
-            >
-              Live Preview
-            </button>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              onClick={() => window.print()}
-              className="btn btn-primary gap-1.5 text-xs font-semibold shadow-sm"
-            >
-              <Printer size={15} />
-              Print / Save PDF
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setLatexOpen(true)}
-              className="btn btn-ghost gap-1.5 border border-line-strong text-xs"
-            >
-              <FileCode size={15} />
-              LaTeX (.tex)
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setMarkdownOpen(true)}
-              className="btn btn-ghost gap-1.5 border border-line-strong text-xs"
-            >
-              <FileText size={15} />
-              Markdown (.md)
-            </button>
-
-            <button
-              type="button"
-              onClick={() => downloadFile(exportToJson(data), 'cv-data.json', 'application/json')}
-              className="btn btn-ghost gap-1.5 text-xs text-ink-3 hover:text-ink"
-              title="Backup JSON Data"
-            >
-              <FileDown size={15} />
-              JSON
-            </button>
-          </div>
+        {/* Row 3: Editor / Preview switch on small screens, where the two can't sit side by side */}
+        <div className="flex items-center gap-1 border-t border-line pt-4 lg:hidden">
+          <button
+            type="button"
+            className={`chip text-xs font-semibold ${viewTab === 'editor' ? '!bg-surface-2 !text-ink' : ''}`}
+            onClick={() => setViewTab('editor')}
+          >
+            Form Editor
+          </button>
+          <button
+            type="button"
+            className={`chip text-xs font-semibold ${viewTab === 'preview' ? '!bg-surface-2 !text-ink' : ''}`}
+            onClick={() => setViewTab('preview')}
+          >
+            Live Preview
+          </button>
         </div>
       </div>
 
@@ -1528,40 +1472,41 @@ export function CvBuilder() {
                 </p>
               )}
               <div className="mt-2.5 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-xs text-[#475569]">
-                {data.basics.email && <span>{data.basics.email}</span>}
-                {data.basics.phone && <span>· {data.basics.phone}</span>}
-                {data.basics.location && <span>· {data.basics.location}</span>}
-                {data.basics.website && (
-                  <span>
-                    ·{' '}
+                {[
+                  data.basics.email,
+                  data.basics.phone,
+                  data.basics.location,
+                  data.basics.website && (
                     <a href={data.basics.website} target="_blank" rel="noreferrer" className="text-[var(--cv-accent,#d95926)] font-medium">
                       Portfolio
                     </a>
-                  </span>
-                )}
-                {data.basics.linkedin && (
-                  <span>
-                    ·{' '}
+                  ),
+                  data.basics.linkedin && (
                     <a href={data.basics.linkedin} target="_blank" rel="noreferrer" className="text-[var(--cv-accent,#d95926)] font-medium">
                       LinkedIn
                     </a>
-                  </span>
-                )}
-                {data.basics.github && (
-                  <span>
-                    ·{' '}
+                  ),
+                  data.basics.github && (
                     <a href={data.basics.github} target="_blank" rel="noreferrer" className="text-[var(--cv-accent,#d95926)] font-medium">
                       GitHub
                     </a>
-                  </span>
-                )}
+                  ),
+                ]
+                  .filter(Boolean)
+                  .map((item, i) => (
+                    // Separator only between items, so a missing email leaves no leading "·".
+                    <span key={i}>
+                      {i > 0 && '· '}
+                      {item}
+                    </span>
+                  ))}
               </div>
             </div>
 
             {/* Research Interests (Academic Mode) */}
-            {mode === 'academic' && visibility.researchInterests && data.basics.researchInterests.length > 0 && (
+            {sectionTitle.researchInterests && (
               <section className="cv-break-inside-avoid mt-4">
-                <h2 className="cv-section-title">Research Interests</h2>
+                <h2 className="cv-section-title">{sectionTitle.researchInterests}</h2>
                 <div className="mt-1 flex flex-wrap gap-1.5 text-xs">
                   {data.basics.researchInterests.map((interest, idx) => (
                     <span
@@ -1580,26 +1525,24 @@ export function CvBuilder() {
             )}
 
             {/* Summary (Especially Professional Mode) */}
-            {data.basics.summary && (mode === 'professional' || visibility.researchInterests === false) && (
+            {sectionTitle.summary && (
               <section className="cv-break-inside-avoid mt-4">
-                <h2 className="cv-section-title">
-                  {mode === 'academic' ? 'Research Overview' : 'Executive Summary'}
-                </h2>
+                <h2 className="cv-section-title">{sectionTitle.summary}</h2>
                 <p className="mt-1 text-xs leading-relaxed text-[#1e293b]">{data.basics.summary}</p>
               </section>
             )}
 
             {/* Education (with Prominent CGPA / Major / Honors) */}
-            {visibility.education && data.education.length > 0 && (
+            {sectionTitle.education && (
               <section className="mt-4">
-                <h2 className="cv-section-title">Education</h2>
+                <h2 className="cv-section-title">{sectionTitle.education}</h2>
                 <div className="flex flex-col gap-3">
                   {data.education.map((edu) => (
                     <div key={edu.id} className="cv-item cv-break-inside-avoid">
                       <div className="flex flex-wrap items-baseline justify-between gap-2">
                         <span className="font-bold text-[#0f172a] text-sm">{edu.institution}</span>
                         <span className="text-xs font-medium text-[#64748b]">
-                          {edu.startDate} – {edu.endDate}
+                          {[edu.startDate, edu.endDate].filter(Boolean).join(' – ')}
                         </span>
                       </div>
                       <div className="flex flex-wrap items-baseline justify-between gap-2 text-xs mt-0.5">
@@ -1623,18 +1566,18 @@ export function CvBuilder() {
             )}
 
             {/* Publications (Academic CV priority) */}
-            {visibility.publications && data.publications.length > 0 && (
+            {sectionTitle.publications && (
               <section className="mt-4">
-                <h2 className="cv-section-title">Publications & Preprints</h2>
+                <h2 className="cv-section-title">{sectionTitle.publications}</h2>
                 <div className="flex flex-col gap-2.5">
                   {data.publications.map((pub, idx) => (
                     <div key={pub.id} className="cv-item cv-break-inside-avoid text-xs">
                       <p className="text-[#1e293b] leading-relaxed">
                         <span className="font-bold text-[#0f172a]">{idx + 1}. </span>
-                        <span className="font-semibold text-[#0f172a]">{pub.authors}, </span>
+                        {pub.authors && <span className="font-semibold text-[#0f172a]">{pub.authors}, </span>}
                         <span className="italic font-medium text-[#0f172a]">"{pub.title}," </span>
-                        <span className="text-[#334155]">{pub.venue}, </span>
-                        <span className="text-[#64748b]">{pub.year}.</span>
+                        {pub.venue && <span className="text-[#334155]">{pub.venue}, </span>}
+                        {pub.year && <span className="text-[#64748b]">{pub.year}.</span>}
                         {pub.doiOrUrl && (
                           <a
                             href={pub.doiOrUrl}
@@ -1653,20 +1596,20 @@ export function CvBuilder() {
             )}
 
             {/* Work & Research Experience */}
-            {visibility.experience && data.experience.length > 0 && (
+            {sectionTitle.experience && (
               <section className="mt-4">
-                <h2 className="cv-section-title">
-                  {mode === 'academic' ? 'Research & Academic Experience' : 'Work Experience'}
-                </h2>
+                <h2 className="cv-section-title">{sectionTitle.experience}</h2>
                 <div className="flex flex-col gap-3.5">
                   {data.experience.map((exp) => (
                     <div key={exp.id} className="cv-item cv-break-inside-avoid">
                       <div className="flex flex-wrap items-baseline justify-between gap-2">
                         <span className="font-bold text-[#0f172a] text-sm">
-                          {exp.role} · <span className="font-normal italic text-[#334155]">{exp.company}</span>
+                          {exp.role}
+                          {exp.role && exp.company && ' · '}
+                          <span className="font-normal italic text-[#334155]">{exp.company}</span>
                         </span>
                         <span className="text-xs font-medium text-[#64748b]">
-                          {exp.startDate} – {exp.endDate}
+                          {[exp.startDate, exp.endDate].filter(Boolean).join(' – ')}
                         </span>
                       </div>
                       {exp.location && <p className="text-xs text-[#64748b] italic">{exp.location}</p>}
@@ -1690,9 +1633,9 @@ export function CvBuilder() {
             )}
 
             {/* Projects */}
-            {visibility.projects && data.projects.length > 0 && (
+            {sectionTitle.projects && (
               <section className="mt-4">
-                <h2 className="cv-section-title">Selected Projects</h2>
+                <h2 className="cv-section-title">{sectionTitle.projects}</h2>
                 <div className="flex flex-col gap-3">
                   {data.projects.map((proj) => (
                     <div key={proj.id} className="cv-item cv-break-inside-avoid text-xs">
@@ -1724,9 +1667,9 @@ export function CvBuilder() {
             )}
 
             {/* Technical Competencies / Skills */}
-            {visibility.skills && data.skills.length > 0 && (
+            {sectionTitle.skills && (
               <section className="mt-4">
-                <h2 className="cv-section-title">Technical Competencies</h2>
+                <h2 className="cv-section-title">{sectionTitle.skills}</h2>
                 <div className="flex flex-col gap-2 text-xs">
                   {data.skills.map((cat) => (
                     <div key={cat.id} className="cv-break-inside-avoid">
@@ -1739,15 +1682,15 @@ export function CvBuilder() {
             )}
 
             {/* Honors & Awards */}
-            {visibility.awards && data.awards.length > 0 && (
+            {sectionTitle.awards && (
               <section className="mt-4">
-                <h2 className="cv-section-title">Honors & Awards</h2>
+                <h2 className="cv-section-title">{sectionTitle.awards}</h2>
                 <div className="flex flex-col gap-2 text-xs">
                   {data.awards.map((aw) => (
                     <div key={aw.id} className="cv-break-inside-avoid flex justify-between">
                       <div>
                         <span className="font-bold text-[#0f172a]">{aw.title}</span>
-                        <span className="text-[#334155]"> · {aw.issuer}</span>
+                        {aw.issuer && <span className="text-[#334155]"> · {aw.issuer}</span>}
                         {aw.description && <p className="text-[#64748b] mt-0.5">{aw.description}</p>}
                       </div>
                       <span className="text-[#64748b]">{aw.year}</span>
@@ -1758,15 +1701,15 @@ export function CvBuilder() {
             )}
 
             {/* Certifications (Professional mode priority) */}
-            {visibility.certifications && data.certifications.length > 0 && (
+            {sectionTitle.certifications && (
               <section className="mt-4">
-                <h2 className="cv-section-title">Certifications</h2>
+                <h2 className="cv-section-title">{sectionTitle.certifications}</h2>
                 <div className="flex flex-col gap-2 text-xs">
                   {data.certifications.map((c) => (
                     <div key={c.id} className="cv-break-inside-avoid flex justify-between">
                       <div>
                         <span className="font-bold text-[#0f172a]">{c.name}</span>
-                        <span className="text-[#334155]"> · {c.issuer}</span>
+                        {c.issuer && <span className="text-[#334155]"> · {c.issuer}</span>}
                       </div>
                       <span className="text-[#64748b]">{c.year}</span>
                     </div>
@@ -1777,135 +1720,6 @@ export function CvBuilder() {
           </div>
         </div>
       </div>
-
-      {/* ────────────────── LinkedIn Import Modal ────────────────── */}
-      <Modal open={importOpen} onClose={() => setImportOpen(false)} labelledBy={importModalId}>
-        <div className="p-6">
-          <div className="flex items-center justify-between pr-6">
-            <h3 id={importModalId} className="font-display text-xl font-bold text-ink">
-              Import or Paste from LinkedIn
-            </h3>
-            <span className="chip text-xs">Profile Importer</span>
-          </div>
-          <p className="mt-1 text-xs text-ink-3">
-            Enter a public LinkedIn profile URL (e.g. <code>https://www.linkedin.com/in/username/</code>), or paste profile text /
-            LinkedIn &ldquo;Save to PDF&rdquo; text below.
-          </p>
-
-          <div className="mt-4 flex flex-col gap-3">
-            <textarea
-              rows={8}
-              value={rawInput}
-              onChange={(e) => setRawInput(e.target.value)}
-              placeholder="Paste LinkedIn URL (e.g. https://www.linkedin.com/in/username/) or copied profile text..."
-              className="w-full rounded-lg border border-line-strong bg-surface-2 p-3 font-mono text-xs text-ink focus:border-accent focus:outline-none"
-            />
-
-            {importFeedback && (
-              <div className="rounded-lg bg-surface-2 p-2.5 text-xs font-medium text-accent-ink">
-                {importFeedback}
-              </div>
-            )}
-
-            <div className="flex items-center justify-between pt-2">
-              <button
-                type="button"
-                onClick={() => {
-                  setData(academicSamplePreset)
-                  setImportOpen(false)
-                }}
-                className="chip text-xs"
-              >
-                Reset to Sample Data
-              </button>
-
-              <button
-                type="button"
-                onClick={handleImportSubmit}
-                className="btn btn-primary gap-1.5 text-xs font-semibold"
-              >
-                <Upload size={14} /> Parse & Load Profile
-              </button>
-            </div>
-          </div>
-        </div>
-      </Modal>
-
-      {/* ────────────────── LaTeX Export Modal ────────────────── */}
-      <Modal open={latexOpen} onClose={() => setLatexOpen(false)} labelledBy={latexModalId}>
-        <div className="p-6">
-          <div className="flex items-center justify-between pr-8">
-            <h3 id={latexModalId} className="font-display text-xl font-bold text-ink">
-              LaTeX (.tex) Document Ready
-            </h3>
-            <span className="chip text-xs">Overleaf / TeX Live Ready</span>
-          </div>
-          <p className="mt-1 text-xs text-ink-3">
-            This code can be compiled directly with `pdflatex` or pasted into Overleaf to produce a high-assurance CV.
-          </p>
-
-          <pre className="mt-4 max-h-[360px] overflow-auto rounded-lg border border-line bg-surface-2 p-3 font-mono text-xs text-ink">
-            {generatedLatex}
-          </pre>
-
-          <div className="mt-4 flex items-center justify-between border-t border-line pt-4">
-            <button
-              type="button"
-              onClick={() => handleCopy(generatedLatex, 'latex')}
-              className="btn btn-ghost gap-1.5 border border-line-strong text-xs"
-            >
-              {copiedKey === 'latex' ? <Check size={14} className="text-green-500" /> : <Copy size={14} />}
-              {copiedKey === 'latex' ? 'Copied!' : 'Copy Code'}
-            </button>
-
-            <button
-              type="button"
-              onClick={() => downloadFile(generatedLatex, `${data.basics.name || 'cv'}.tex`, 'text/plain')}
-              className="btn btn-primary gap-1.5 text-xs font-semibold"
-            >
-              <Download size={14} /> Download .tex File
-            </button>
-          </div>
-        </div>
-      </Modal>
-
-      {/* ────────────────── Markdown Export Modal ────────────────── */}
-      <Modal open={markdownOpen} onClose={() => setMarkdownOpen(false)} labelledBy={mdModalId}>
-        <div className="p-6">
-          <div className="flex items-center justify-between pr-8">
-            <h3 id={mdModalId} className="font-display text-xl font-bold text-ink">
-              Markdown (.md) Document Ready
-            </h3>
-            <span className="chip text-xs">GitHub Flavored</span>
-          </div>
-          <p className="mt-1 text-xs text-ink-3">
-            Clean, formatted markdown document ready for GitHub repositories, documentation, or personal static pages.
-          </p>
-
-          <pre className="mt-4 max-h-[360px] overflow-auto rounded-lg border border-line bg-surface-2 p-3 font-mono text-xs text-ink">
-            {generatedMarkdown}
-          </pre>
-
-          <div className="mt-4 flex items-center justify-between border-t border-line pt-4">
-            <button
-              type="button"
-              onClick={() => handleCopy(generatedMarkdown, 'md')}
-              className="btn btn-ghost gap-1.5 border border-line-strong text-xs"
-            >
-              {copiedKey === 'md' ? <Check size={14} className="text-green-500" /> : <Copy size={14} />}
-              {copiedKey === 'md' ? 'Copied!' : 'Copy Markdown'}
-            </button>
-
-            <button
-              type="button"
-              onClick={() => downloadFile(generatedMarkdown, `${data.basics.name || 'cv'}.md`, 'text/markdown')}
-              className="btn btn-primary gap-1.5 text-xs font-semibold"
-            >
-              <Download size={14} /> Download .md File
-            </button>
-          </div>
-        </div>
-      </Modal>
     </div>
   )
 }

@@ -1,5 +1,5 @@
 /* ─────────────────────────────────────────────────────────────
-   LinkedIn to Academic & Professional CV Builder
+   Academic & Professional CV Builder
    Screen preview & High-Fidelity Print / PDF styling
    ───────────────────────────────────────────────────────────── */
 
@@ -158,9 +158,10 @@
     margin: 12mm 14mm;
   }
 
-  /* Force pure paper background & high contrast */
+  /* Force pure paper background & high contrast; a dark color-scheme would tint the page margins */
   html,
   body {
+    color-scheme: light !important;
     background: #ffffff !important;
     color: #0f172a !important;
     margin: 0 !important;
@@ -169,31 +170,35 @@
     print-color-adjust: exact !important;
   }
 
-  header,
-  footer,
-  .ambient,
-  .grain,
-  .cv-no-print,
-  #main > p.eyebrow,
-  #main > h1.display,
-  #main > div[role='tablist'],
-  #main > div[role='group'],
-  article > header {
+  /* Print the CV sheet alone, whatever page it is embedded in: remove everything that neither
+     contains the sheet nor sits inside it… */
+  body *:not(:has(#cv-print-area)):not(#cv-print-area):not(#cv-print-area *),
+  body::before,
+  body::after {
     display: none !important;
   }
 
-  main#main {
-    padding: 0 !important;
+  /* …and flatten the sheet's ancestors into plain blocks. This also overrides the phone/tablet
+     Editor–Preview switch, which may have hidden the preview column. */
+  body *:has(#cv-print-area) {
+    display: block !important;
+    position: static !important;
+    width: auto !important;
+    max-width: none !important;
+    height: auto !important;
+    min-height: 0 !important;
     margin: 0 !important;
-    max-width: 100% !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: none !important;
+    box-shadow: none !important;
+    transform: none !important;
+    overflow: visible !important;
   }
 
-  article.card {
-    border: none !important;
-    background: transparent !important;
-    box-shadow: none !important;
-    padding: 0 !important;
-    margin: 0 !important;
+  body *:has(#cv-print-area)::before,
+  body *:has(#cv-print-area)::after {
+    display: none !important;
   }
 
   .cv-preview-sheet,
@@ -224,6 +229,12 @@
   .cv-break-inside-avoid {
     break-inside: avoid !important;
     page-break-inside: avoid !important;
+  }
+
+  /* Never leave a section heading alone at the foot of a page. */
+  .cv-section-title {
+    break-after: avoid !important;
+    page-break-after: avoid !important;
   }
 
   a {
