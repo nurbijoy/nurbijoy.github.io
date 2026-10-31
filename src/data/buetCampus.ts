@@ -2,7 +2,16 @@
  * BUET campus explorer: a local OpenStreetMap snapshot and curated public landmarks.
  * Coordinates and footprints are WGS84 [longitude, latitude]. This is an orientation
  * map, not a surveyed site plan; POIs are representative points, not entrances.
- * Geometry retrieved 30 October 2026 via the OpenStreetMap v0.6 map API.
+ * Geometry retrieved 30 October 2026 via the OpenStreetMap v0.6 map API, then reduced to the campus:
+ * footprints inside the OSM BUET boundary (way/750974415) are kept, except 57 that are not BUET's:
+ * four OSM names as other institutions' (Palashi Fire Service, Palashi Bazar, the Army recruiting HQ,
+ * the Population Building), and 53 identified by checking Google Maps labels against the footprints
+ * on 31 October 2026 (Palashi Government Staff Colony, Azimpur Govt. Girls' School and the Public
+ * Auditorium, the Maternal & Child Health Training Institute and Civil Surgeon Office, the Azimpur
+ * Town sub-post office row, Dhakeshwari Road shops, and private houses west of the Hazibeg lane).
+ * Google informed only which OSM footprints to keep; no Google data is copied.
+ * Roads are clipped to the boundary (+15 m); only on-campus open spaces remain.
+ * The full snapshot is published at /maps/buet-campus.osm.
  * Map data © OpenStreetMap contributors, available under ODbL 1.0:
  * https://www.openstreetmap.org/copyright
  */
@@ -440,8 +449,8 @@ export const campusPlaces: readonly CampusPlace[] = [
     "category": "residential",
     "description": "A BUET residential hall south of the Mechanical Engineering complex.",
     "coordinates": [
-      90.3929088,
-      23.7247603
+      90.3927081,
+      23.7249989
     ],
     "aliases": [
       "AH",

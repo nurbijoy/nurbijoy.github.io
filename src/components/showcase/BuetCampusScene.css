@@ -1,21 +1,32 @@
-.buet-scene { position: absolute; inset: 0; overflow: hidden; background: #dce6e3; }
+.buet-scene { position: absolute; inset: 0; overflow: hidden; background: #dfe8e5; }
 .buet-scene-canvas { width: 100%; height: 100%; display: block; outline-offset: -3px; touch-action: none; cursor: grab; }
 .buet-scene-canvas:active { cursor: grabbing; }
 .buet-scene-canvas.is-walking { cursor: crosshair; }
-.buet-scene-labels { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
-.buet-scene-label { position: absolute; left: 0; top: 0; display: flex; align-items: center; gap: 0; padding: 0 9px 0 0; height: 29px; max-width: 230px; border: 1px solid #ffffffa3; border-radius: 5px; background: #fffef5ef; color: #273b36; box-shadow: 0 2px 8px #2b3c3536; pointer-events: auto; white-space: nowrap; font: 500 10px var(--font-sans); cursor: pointer; will-change: transform; }
-.buet-scene-label::after { position: absolute; content: ''; left: 9px; bottom: -5px; width: 7px; height: 7px; background: #fffef5; transform: rotate(45deg); border-right: 1px solid #ffffffa3; border-bottom: 1px solid #ffffffa3; }
-.buet-scene-label-number { align-self: stretch; display: grid; place-items: center; min-width: 27px; margin-right: 7px; border-radius: 4px 0 0 4px; background: var(--scene-place-color); color: #fff; font: 600 9px var(--font-mono); }
-.buet-scene-label-name { overflow: hidden; text-overflow: ellipsis; }
-.buet-scene-label.is-selected, .buet-scene-label:hover, .buet-scene-label:focus-visible { border-color: #285c47; box-shadow: 0 0 0 2px #fffefaaf, 0 4px 12px #183d344d; color: #163d2a; }
-.buet-scene-label.is-selected { font-weight: 700; }
-.buet-scene-loading { position: absolute; inset: 0; display: grid; place-items: center; background: #e7e9dd; color: #415944; font: 500 12px var(--font-mono); }
-.buet-scene-walk-pad { position: absolute; left: 20px; top: 50%; bottom: auto; transform: translateY(-50%); z-index: 5; display: grid; grid-template-columns: repeat(3, 34px); grid-template-rows: repeat(2, 34px); gap: 4px; user-select: none; }
-.buet-scene-walk-pad button { display: grid; place-items: center; padding: 0; border: 1px solid #ffffffc2; border-radius: 6px; background: #f9fbf1e0; color: #294a3b; box-shadow: 0 2px 5px #183d3420; font: 600 18px var(--font-sans); touch-action: none; }
+/* Its own stacking layer, so place labels always sit beneath the on-map controls. */
+.buet-scene-labels { position: absolute; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; }
+.buet-scene-label { position: absolute; left: 0; top: 0; display: flex; align-items: center; height: 26px; padding: 0 11px 0 0; border: 1px solid var(--bm-glass-line); border-radius: 13px; background: var(--bm-glass); color: var(--bm-ink); box-shadow: 0 3px 12px #0f241a33; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); pointer-events: auto; white-space: nowrap; font: 600 12px/1 var(--font-sans); cursor: pointer; will-change: transform; transition: opacity .2s, box-shadow .15s, border-color .15s; }
+.buet-scene-label-number { flex-shrink: 0; display: grid; place-items: center; width: 24px; height: 24px; margin-right: 7px; border-radius: 50%; background: var(--place); color: #fff; font: 600 11px/1 var(--font-mono); }
+.buet-scene-label.is-left { flex-direction: row-reverse; padding: 0 0 0 11px; }
+.buet-scene-label.is-left .buet-scene-label-number { margin: 0 0 0 7px; }
+.buet-scene-label.is-dot { padding: 0; border-color: transparent; background: transparent; box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; }
+.buet-scene-label.is-dot .buet-scene-label-name { display: none; }
+.buet-scene-label.is-dot .buet-scene-label-number { margin: 0; box-shadow: 0 0 0 2px #fffdf6, 0 2px 8px #0f241a4d; }
+.buet-scene-label.is-occluded { opacity: .55; }
+.buet-scene-label:hover, .buet-scene-label:focus-visible { border-color: var(--bm-green); opacity: 1; }
+.buet-scene-label.is-dot:hover .buet-scene-label-number, .buet-scene-label.is-dot:focus-visible .buet-scene-label-number { box-shadow: 0 0 0 2px #fffdf6, 0 0 0 4px var(--bm-green); }
+.buet-scene-label.is-selected { opacity: 1; border-color: var(--bm-selection); box-shadow: 0 0 0 3px color-mix(in srgb, var(--bm-selection) 30%, transparent), 0 4px 14px #0f241a40; }
+.buet-scene-label.is-selected.is-dot .buet-scene-label-number { box-shadow: 0 0 0 2px #fffdf6, 0 0 0 5px var(--bm-selection); }
+.buet-scene-label-academic { --place: var(--bm-academic-strong); }
+.buet-scene-label-residential { --place: var(--bm-residential-strong); }
+.buet-scene-label-facilities { --place: var(--bm-facilities-strong); }
+.buet-scene-label-landmark { --place: var(--bm-landmark-strong); }
+.buet-scene-loading { position: absolute; inset: 0; display: grid; place-items: center; background: linear-gradient(160deg, var(--bm-paper), var(--bm-map)); color: var(--bm-muted); font: 500 12px var(--font-mono); }
+.buet-scene-walk-pad { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); z-index: 5; display: grid; grid-template-columns: repeat(3, 40px); grid-template-rows: repeat(2, 40px); gap: 5px; user-select: none; }
+.buet-scene-walk-pad button { display: grid; place-items: center; padding: 0; border: 1px solid var(--bm-glass-line); border-radius: 10px; background: var(--bm-glass); color: var(--bm-ink); box-shadow: var(--bm-shadow); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); font: 600 18px var(--font-sans); touch-action: none; }
 .buet-scene-walk-pad button:first-child { grid-column: 2; }
 .buet-scene-walk-pad button:nth-child(2) { grid-column: 1; grid-row: 2; }
 .buet-scene-walk-pad button:nth-child(3) { grid-column: 2; grid-row: 2; }
 .buet-scene-walk-pad button:nth-child(4) { grid-column: 3; grid-row: 2; }
-.buet-scene-walk-pad button:active { background: #2d6048; color: #fff; }
-@media (max-width: 600px) { .buet-scene-label { font-size: 9px; height: 27px; max-width: 175px; } .buet-scene-walk-pad { left: 12px; grid-template-columns: repeat(3, 40px); grid-template-rows: repeat(2, 40px); } }
+.buet-scene-walk-pad button:active { background: var(--bm-green); color: var(--bm-on-green); }
+@media (max-width: 760px) { .buet-scene-walk-pad { left: 10px; top: auto; bottom: 74px; transform: none; grid-template-columns: repeat(3, 44px); grid-template-rows: repeat(2, 44px); } }
 @media (prefers-reduced-motion: reduce) { .buet-scene-label { transition: none; } }

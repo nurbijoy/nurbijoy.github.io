@@ -90,3 +90,15 @@ export function polygonAreaMeters(points: readonly CampusCoordinate[], holes: re
 export function getPlaceMapsUrl([longitude, latitude]: CampusCoordinate): string {
   return `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}&travelmode=walking`
 }
+
+/** Read a shareable `#project/place` link, e.g. `#buet-campus-map/library`. */
+export function campusPlaceIdFromHash(hash: string, projectId: string, placeIds: readonly string[]): string | null {
+  let value = hash.replace(/^#/, '')
+  try { value = decodeURIComponent(value) } catch { return null }
+  const [project, placeId, ...rest] = value.split('/')
+  return project === projectId && rest.length === 0 && placeIds.includes(placeId) ? placeId : null
+}
+
+export function campusPlaceHash(projectId: string, placeId: string | null): string {
+  return placeId ? `#${projectId}/${encodeURIComponent(placeId)}` : `#${projectId}`
+}

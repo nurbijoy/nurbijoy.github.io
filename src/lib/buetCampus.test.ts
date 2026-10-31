@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { createCampusProjection, filterCampusPlaces, getPlaceMapsUrl, polygonAreaMeters, polygonPath } from './buetCampus'
+import { campusPlaceHash, campusPlaceIdFromHash, createCampusProjection, filterCampusPlaces, getPlaceMapsUrl, polygonAreaMeters, polygonPath } from './buetCampus'
 import { campusGeometry, campusPlaces, campusTour } from '../data/buetCampus'
 import { campusArchitecture } from '../data/buetCampusArchitecture'
 import { campusWorldPoint, distanceToCampusSegment, pointInCampusRing } from './buetCampus3d'
@@ -150,8 +150,9 @@ describe('campus map data integrity', () => {
           return worldRing.slice(1).reduce((nearest, next, index) => Math.min(nearest,
             distanceToCampusSegment(point, worldRing[index], next)), Infinity)
         }
+        // Pins sit on a linked building; 2 m allows a marker on the seam between a hall's blocks.
         const nearest = Math.min(...linkedBuildings.map((building) => distanceToFootprint(building.points)))
-        expect(nearest, `${place.id}: nearest linked footprint`).toBeLessThanOrEqual(20)
+        expect(nearest, `${place.id}: nearest linked footprint`).toBeLessThanOrEqual(2)
       }
       for (const id of place.greenIds ?? []) {
         const green = greens.get(id)!
@@ -162,6 +163,26 @@ describe('campus map data integrity', () => {
         expect(place.coordinates, `${place.id}: OSM node coordinate`).toEqual(sourceNodeCoordinates[sourceNodeId])
       }
       expect(linkedBuildings.length + (place.greenIds?.length ?? 0) + Number(Boolean(sourceNodeId)), `${place.id}: mapped anchor`).toBeGreaterThan(0)
+    }
+  })
+
+  it('shows only BUET: no footprint or open space belongs to a neighbouring institution, and roads stay on campus', () => {
+    // Names found in the full OSM snapshot around the campus; none may reappear in the reduced geometry.
+    const neighbours = /jagannath|salimullah|zahurul|shamsun|eden|nursing|medical college|azimpur|dhakeshwari|fire service|palashi bazar|army|জনসংখ্যা|\bDU\b|University of Dhaka/i
+    const named = [...campusGeometry.buildings, ...campusGeometry.greens].filter((feature) => feature.name)
+    expect(named.length).toBeGreaterThan(10)
+    for (const feature of named) expect(feature.name, feature.id).not.toMatch(neighbours)
+    // The campus keeps 120 footprints; the full neighbourhood snapshot had 452 and the raw boundary 177.
+    expect(campusGeometry.buildings.length).toBeGreaterThan(100)
+    expect(campusGeometry.buildings.length).toBeLessThan(140)
+    // Spot checks from the Google Maps cross-check: staff colony, girls' school, health institute, private block.
+    const ids = new Set(campusGeometry.buildings.map((building) => building.id))
+    for (const id of ['way/435101817', 'way/367479409', 'way/316804616', 'way/506174756']) expect(ids.has(id), id).toBe(false)
+    // ...and BUET buildings beside them that must stay: Staff Quarter 64, Ship Model Testing Center, JIDPUS.
+    for (const id of ['way/506174765', 'way/1001442057', 'way/235414270']) expect(ids.has(id), id).toBe(true)
+    const { west, south, east, north } = campusGeometry.bounds
+    for (const road of campusGeometry.roads) for (const [longitude, latitude] of road.points) {
+      expect(longitude >= west && longitude <= east && latitude >= south && latitude <= north, road.id).toBe(true)
     }
   })
 
@@ -196,5 +217,23 @@ describe('campus map data integrity', () => {
     for (const road of campusGeometry.roads) {
       expect(road.points.length >= 2 && road.points.every(validCoordinate), road.id).toBe(true)
     }
+  })
+})
+
+describe('shareable place links', () => {
+  const ids = ['library', 'ece']
+
+  it('round-trips a place through the project hash', () => {
+    expect(campusPlaceHash('campus', 'library')).toBe('#campus/library')
+    expect(campusPlaceHash('campus', null)).toBe('#campus')
+    expect(campusPlaceIdFromHash(campusPlaceHash('campus', 'ece'), 'campus', ids)).toBe('ece')
+  })
+
+  it('ignores other projects, unknown places, extra segments and malformed escapes', () => {
+    expect(campusPlaceIdFromHash('#campus', 'campus', ids)).toBeNull()
+    expect(campusPlaceIdFromHash('#other/library', 'campus', ids)).toBeNull()
+    expect(campusPlaceIdFromHash('#campus/unknown', 'campus', ids)).toBeNull()
+    expect(campusPlaceIdFromHash('#campus/library/extra', 'campus', ids)).toBeNull()
+    expect(campusPlaceIdFromHash('#campus/%E0%A4%A', 'campus', ids)).toBeNull()
   })
 })

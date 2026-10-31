@@ -34,9 +34,10 @@ export function ShowcasePage() {
   const { theme, toggle } = useTheme()
 
   // Read initial hash if present and matching a project id
+  // A project hash may carry a deep link after a slash, e.g. #buet-campus-map/library.
   const getInitialId = () => {
     if (typeof window !== 'undefined') {
-      const hash = window.location.hash.replace(/^#/, '').trim()
+      const hash = window.location.hash.replace(/^#/, '').split('/')[0].trim()
       if (hash && showcase.some((p) => p.id === hash)) {
         return hash
       }
@@ -50,7 +51,7 @@ export function ShowcasePage() {
   // Sync hash changes (browser back/forward or external link)
   useEffect(() => {
     const onHashChange = () => {
-      const hash = window.location.hash.replace(/^#/, '').trim()
+      const hash = window.location.hash.replace(/^#/, '').split('/')[0].trim()
       if (hash && showcase.some((p) => p.id === hash)) {
         setActiveId(hash)
       }
